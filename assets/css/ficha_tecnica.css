@@ -1,0 +1,181 @@
+/* =========================================
+   Estilos Específicos para Ficha Técnica
+   ========================================= */
+
+.ficha-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+@media (min-width: 1200px) {
+    .ficha-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        align-items: start;
+    }
+    
+    .ficha-grid section:last-child {
+        grid-column: span 2;
+    }
+}
+
+.data-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px #0000000d, 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform var(--transition), box-shadow var(--transition), max-height 0.35s ease;
+}
+
+.data-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-icon {
+    color: var(--primary-color);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.info-label {
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .ficha-grid {
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .data-card {
+        position: relative;
+        padding: 18px;
+    }
+
+    .data-card.is-collapsible {
+        cursor: pointer;
+        overflow: hidden;
+        max-height: 168px;
+    }
+
+    .data-card.is-collapsible::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--bg-card) 78%);
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.25s ease;
+    }
+
+    .data-card.is-expanded {
+        max-height: var(--expanded-height, 1200px);
+    }
+
+    .data-card.is-expanded::after {
+        opacity: 0;
+    }
+
+    .card-header {
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+    }
+
+    .card-title {
+        font-size: 1.05rem;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .info-item {
+        gap: 2px;
+    }
+
+    .info-value {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .data-card.is-expanded .info-value {
+        -webkit-line-clamp: unset;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Ajustes para Tema Oscuro heredados de firstpage.css */
+body.dark-theme .data-card {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+@media (max-width: 768px) {
+    body.dark-theme .data-card.is-collapsible::after {
+        background: linear-gradient(to bottom, rgba(17, 24, 39, 0), var(--bg-card) 78%);
+    }
+}
+

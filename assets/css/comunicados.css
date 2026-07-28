@@ -1,0 +1,102 @@
+/* =========================================
+   Estilos específicos del módulo Comunicados
+   ========================================= */
+
+.comunicados-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comunicados-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 800px;
+}
+
+.comunicado-card {
+    background: var(--bg-card);
+    border: 1px solid #3ba86aff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.comunicado-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+.comunicado-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--bg-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-theme .comunicado-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.comunicado-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.comunicado-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--text-main);
+}
+
+.comunicado-content {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Badge para el tipo de comunicado (Opcional) */
+.comunicado-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--status-approved-bg);
+    color: var(--status-approved-text);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .comunicado-card {
+        padding: 1rem;
+    }
+}

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Corporativo | DLGC</title>
+    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/style.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container nav-container">
+            <!-- Logotipo Corporativo -->
+            <a href="#" class="logo" aria-label="Inicio">
+                <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
+            </a>
+            
+            <nav class="nav-links" aria-label="Navegación principal">
+                <a href="#inicio">Inicio</a>
+                <a href="#identidad">Identidad Corporativa</a>
+                <a href="#organigrama">Organigrama</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button id="theme-toggle" class="icon-btn" aria-label="Cambiar modo oscuro/claro">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <a href="/dlgc_rrhh/templates/login.php" class="btn btn-primary">Acceso Empleados &rarr;</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- SECCIÓN HERO -->
+        <section id="inicio" class="hero container">
+            <div class="hero-content reveal">
+                <span class="availability-tag">PORTAL DEL EMPLEADO</span>
+                
+                <h1 class="hero-title">Distribuciones <span class="highlight">La Gran Cacharrería</span></h1>
+                
+                <p class="hero-description">
+                    Centralizamos la información corporativa, optimizamos la gestión del personal y facilitamos los procesos internos para cuidar de nuestro equipo.
+                </p>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">30+</span>
+                        <span class="stat-label">Colaboradores</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">32+</span>
+                        <span class="stat-label">Años en el mercado</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual reveal" style="animation-delay: 0.2s;">
+                <div class="image-wrapper">
+                    <!-- Imagen representativa de equipo/RRHH -->
+                    <img src="/dlgc_rrhh/assets/img/hero-image.jpg" alt="Equipo de trabajo colaborando en la oficina">
+                    <div class="status-badge" aria-hidden="true">Bienestar Laboral</div>
+                </div>
+                <div class="bg-glow"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN MISIÓN Y VISIÓN -->
+        <section id="identidad" class="corporate-identity container">
+            <div class="section-header reveal">
+                <h2>Identidad Corporativa</h2>
+                <p>Los pilares que guían nuestras decisiones y nuestro compromiso con el equipo.</p>
+            </div>
+            
+            <div class="cards-grid">
+                <article class="card reveal">
+                    <div class="card-icon" aria-hidden="true">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                    </div>
+                    <h3>Nuestra Misión</h3>
+                    <p>Consolidarnos como los principales distribuidores especializados en líneas de papelería y belleza, con la representación de las marcas lideres del mercado, desarrollando la distribución de manera eficiente focalizando nuestros esfuerzo en la tipología adecuada de cada mercado.</p>
+                </article>
+
+                <article class="card reveal" style="animation-delay: 0.2s;">
+                    <div class="card-icon" aria-hidden="true">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                    <h3>Nuestra Visión</h3>
+                    <p>Nos proyectamos al afianzamiento de nuestra empresa como líder en el mercado de productos de papelería, cuidado personal, belleza y productos para bebés, en el Oriente colombiano incursionar en mediano plazo en diferentes mercados, basados en la capacitación profesional de nuestros ejecutivos y colaboradores e implementando los últimos avances tecnológicos en nuestra empresa, buscando siempre como último fin, la calidad y la eficiencia de nuestros servicios y la puntualidad en nuestros compromisos para nuestros clientes.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN ORGANIGRAMA -->
+        <section id="organigrama" class="organization container">
+            <div class="section-header reveal">
+                <h2>Estructura Organizacional</h2>
+                <p>Conoce cómo está distribuido nuestro equipo de trabajo.</p>
+            </div>
+
+            <div class="org-chart reveal">
+                <div class="org-root">
+                    <div class="org-node chief">
+                        <div class="node-content">
+                            <strong>Gerente</strong>
+                            <span>Dirección General</span>
+                        </div>
+                    </div>
+                    <div class="org-root-connector"></div>
+                </div>
+
+                <div class="org-level">
+                    <div class="org-column">
+                        <div class="org-node director-node">
+                            <div class="node-content">
+                                <strong>Directora de ventas</strong>
+                            </div>
+                        </div>
+                        <div class="org-subtree">
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Jefe de ventas</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Supervisora de ventas</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Compras</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Vendedoras</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Telemercadeo</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="org-column">
+                        <div class="org-node director-node">
+                            <div class="node-content">
+                                <strong>Directora Administrativa</strong>
+                            </div>
+                        </div>
+                        <div class="org-subtree">
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Aux. contable</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Aux. de cartera</strong>
+                                    <span>Cobros</span>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Aux. de cartera</strong>
+                                    <span>Aceptar pedidos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="org-column">
+                        <div class="org-node director-node">
+                            <div class="node-content">
+                                <strong>Directora de logística</strong>
+                            </div>
+                        </div>
+                        <div class="org-subtree">
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Supervisora de belleza</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Supervisora de empaques</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Supervisora de papeleria</strong>
+                                </div>
+                            </div>
+                            <div class="org-subnode">
+                                <div class="node-content">
+                                    <strong>Auxiliares de logística</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/dlgc_rrhh/assets/js/theme.js"></script>
+    <script src="/DLGC_RRHH/assets/js/script.js"></script>
+</body>
+</html>

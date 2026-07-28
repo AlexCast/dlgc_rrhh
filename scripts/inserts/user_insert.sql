@@ -1,0 +1,10 @@
+-- ============================================================
+-- Seeds iniciales obsoletos
+-- ============================================================
+-- El catálogo completo de roles, módulos, operaciones y
+-- asignaciones RBAC ahora vive en:
+--
+--     scripts/inserts/rbac_seeds.sql
+--
+-- Ejecutar ese archivo después de crear el esquema.
+-- ============================================================

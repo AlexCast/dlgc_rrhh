@@ -1,0 +1,16 @@
+<?php
+/**
+ * Configuración de correo SMTP.
+ * Copia este archivo como mail_config.php y completa tus credenciales reales.
+ * mail_config.php está ignorado por Git para proteger la información sensible.
+ */
+
+return [
+    'host'       => 'smtp.gmail.com',
+    'port'       => 587,
+    'encryption' => 'tls',
+    'username'   => 'tucorreo@gmail.com',
+    'password'   => 'TU_CONTRASENA_DE_APLICACION',
+    'from_email' => 'tucorreo@gmail.com',
+    'from_name'  => 'Portal DLGC RRHH',
+];
