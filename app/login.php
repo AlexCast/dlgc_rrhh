@@ -9,6 +9,7 @@ session_start();
 
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/csrf_guard.php';
+require_once __DIR__ . '/helpers/InputSanitizer.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 
@@ -31,11 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 csrf_validate();
 
 // --- 1. Recepción y normalización de credenciales enviadas por POST ---
-$userInput  = trim($_POST['user'] ?? '');
+$userInput  = InputSanitizer::loginIdentifier($_POST['user'] ?? '');
 $contrasena = $_POST['contrasena'] ?? '';
-
-// Normalizar usuario/correo a minúsculas y limpiar espacios.
-$userInput = strtolower(trim($userInput));
 
 if ($userInput === '' || $contrasena === '') {
     redirigirLogin([

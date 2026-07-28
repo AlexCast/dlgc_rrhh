@@ -33,6 +33,22 @@ $options = [
 try {
     // Se crea la instancia de conexión PDO
     $conexion = new PDO($dsn, $user, $pass, $options);
+
+    // Propagar el usuario real de la aplicación a PostgreSQL para las auditorías.
+    // Solo si ya hay sesión activa; si no, dejamos que PostgreSQL use CURRENT_USER.
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $actorAuditoria = $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? '';
+        $actorAuditoria = trim((string) $actorAuditoria);
+        if ($actorAuditoria !== '') {
+            try {
+                $sentenciaAuditoria = $conexion->prepare("SELECT set_config('app.current_user', ?, false)");
+                $sentenciaAuditoria->execute([$actorAuditoria]);
+            } catch (PDOException $eAuditoria) {
+                // No debe romper la aplicación; solo registramos el error para diagnóstico.
+                error_log('Error al configurar app.current_user: ' . $eAuditoria->getMessage());
+            }
+        }
+    }
 } catch (PDOException $e) {
     // Se registra el error real en el log del servidor (no se muestra al usuario)
     error_log('Error de conexión a la base de datos: ' . $e->getMessage());

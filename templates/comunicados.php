@@ -24,6 +24,62 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         $rolPerfil = (string) $puestoContrato;
     }
 }
+
+// Cargar comunicados activos enriquecidos con estado de lectura del usuario actual
+$sentenciaComunicados = $conexion->prepare('SELECT * FROM fun_listar_comunicados_activos(?);');
+$sentenciaComunicados->execute([$idUsuarioSesion]);
+$comunicados = $sentenciaComunicados->fetchAll(PDO::FETCH_OBJ);
+
+function tiempoRelativo(?string $fecha): string
+{
+    if (empty($fecha)) {
+        return 'Fecha desconocida';
+    }
+
+    $dt = date_create($fecha);
+    if ($dt === false) {
+        return htmlspecialchars($fecha, ENT_QUOTES, 'UTF-8');
+    }
+
+    $now = new DateTime();
+    $diff = $now->diff($dt);
+
+    if ($diff->y > 0) {
+        return 'Hace ' . $diff->y . ' año' . ($diff->y > 1 ? 's' : '');
+    }
+    if ($diff->m > 0) {
+        return 'Hace ' . $diff->m . ' mes' . ($diff->m > 1 ? 'es' : '');
+    }
+    if ($diff->d > 0) {
+        return 'Hace ' . $diff->d . ' día' . ($diff->d > 1 ? 's' : '');
+    }
+    if ($diff->h > 0) {
+        return 'Hace ' . $diff->h . ' hora' . ($diff->h > 1 ? 's' : '');
+    }
+    if ($diff->i > 0) {
+        return 'Hace ' . $diff->i . ' minuto' . ($diff->i > 1 ? 's' : '');
+    }
+    return 'Hace un momento';
+}
+
+function truncarTexto(?string $texto, int $limite = 150): string
+{
+    $texto = trim((string) $texto);
+    if (mb_strlen($texto) <= $limite) {
+        return $texto;
+    }
+    return mb_substr($texto, 0, $limite) . '...';
+}
+
+$categoriasClase = [
+    'GENERAL' => 'tag-general',
+    'URGENTE' => 'tag-urgent',
+    'EVENTO' => 'tag-event',
+    'INFORMACION' => 'tag-info',
+    'INSTITUCIONAL' => 'tag-institutional',
+];
+
+$csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -101,62 +157,79 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                         <h2>Últimas Noticias</h2>
                         <p class="text-muted">Mantente al día con la información oficial de la empresa.</p>
                     </div>
+                    <?php if (has_module_permission(24, 'crear') || has_module_permission(24, 'actualizar')): ?>
+                    <a href="/dlgc_rrhh/src/comunicados/listar_comunicados.php" class="btn-admin-comunicados">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        Gestionar
+                    </a>
+                    <?php endif; ?>
                 </section>
 
-                <div class="comunicados-list">
-                    <!-- Ejemplo de Comunicado 1 -->
-                    <article class="comunicado-card">
-                        <span class="comunicado-tag">Institucional</span>
-                        <div class="comunicado-author">
-                            <div class="author-avatar">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                            </div>
-                            <div class="author-info">
-                                <span class="author-name">Recursos Humanos</span>
-                                <span class="comunicado-date">Hace 2 horas</span>
-                            </div>
+                <div class="comunicados-list" data-csrf-token="<?php echo $csrfToken; ?>">
+                    <?php if (count($comunicados) === 0): ?>
+                        <div class="comunicado-card comunicado-empty">
+                            <p>No hay comunicados publicados en este momento.</p>
                         </div>
-                        <h3 class="comunicado-title">Nueva Política de Teletrabajo 2024</h3>
-                        <p class="comunicado-content">
-                            Les informamos que a partir del próximo mes entra en vigencia la actualización de nuestra política de trabajo híbrido. Los detalles han sido enviados a sus correos institucionales.
-                        </p>
-                    </article>
+                    <?php else: ?>
+                        <?php foreach ($comunicados as $com): ?>
+                            <?php
+                            $tagClass = $categoriasClase[$com->categoria] ?? 'tag-general';
+                            $contenidoCompleto = trim((string) $com->contenido);
+                            $requiereExpansion = mb_strlen($contenidoCompleto) > 150;
+                            $contenidoCorto = truncarTexto($contenidoCompleto, 150);
+                            $visto = (bool) $com->visto_por_usuario;
+                            ?>
+                            <article
+                                class="comunicado-card <?php echo $visto ? 'comunicado-visto' : 'comunicado-nuevo'; ?>"
+                                data-id-comunicado="<?php echo (int) $com->id_comunicado; ?>"
+                            >
+                                <div class="comunicado-meta">
+                                    <span class="comunicado-tag <?php echo $tagClass; ?>">
+                                        <?php echo htmlspecialchars((string) $com->categoria, ENT_QUOTES, 'UTF-8'); ?>
+                                    </span>
+                                    <?php if (!$visto): ?>
+                                        <span class="comunicado-nuevo-badge">Nuevo</span>
+                                    <?php endif; ?>
+                                </div>
 
-                    <!-- Ejemplo de Comunicado 2 -->
-                    <article class="comunicado-card">
-                        <span class="comunicado-tag">Eventos</span>
-                        <div class="comunicado-author">
-                            <div class="author-avatar">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                            </div>
-                            <div class="author-info">
-                                <span class="author-name">Bienestar Laboral</span>
-                                <span class="comunicado-date">Ayer</span>
-                            </div>
-                        </div>
-                        <h3 class="comunicado-title">Celebración del Día de la Familia</h3>
-                        <p class="comunicado-content">
-                            Están cordialmente invitados a nuestra jornada de integración este viernes 15 de julio. Habrá actividades para niños, almuerzo campestre y rifas. ¡No faltes!
-                        </p>
-                    </article>
+                                <div class="comunicado-author">
+                                    <div class="author-avatar">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    </div>
+                                    <div class="author-info">
+                                        <span class="author-name"><?php echo htmlspecialchars((string) ($com->usr_insert ?? 'Administrador'), ENT_QUOTES, 'UTF-8'); ?></span>
+                                        <span class="comunicado-date"><?php echo tiempoRelativo($com->fec_insert); ?></span>
+                                    </div>
+                                </div>
 
-                    <!-- Ejemplo de Comunicado 3 -->
-                    <article class="comunicado-card">
-                        <span class="comunicado-tag">Operaciones</span>
-                        <div class="comunicado-author">
-                            <div class="author-avatar">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                            </div>
-                            <div class="author-info">
-                                <span class="author-name">Soporte Técnico</span>
-                                <span class="comunicado-date">2 de Julio, 2026</span>
-                            </div>
-                        </div>
-                        <h3 class="comunicado-title">Mantenimiento de Servidores</h3>
-                        <p class="comunicado-content">
-                            Se realizará un mantenimiento programado en los servidores de base de datos este domingo desde las 10:00 PM hasta las 2:00 AM. Los servicios de consulta estarán fuera de línea.
-                        </p>
-                    </article>
+                                <h3 class="comunicado-title"><?php echo htmlspecialchars((string) $com->titulo, ENT_QUOTES, 'UTF-8'); ?></h3>
+
+                                <div class="comunicado-content-wrapper">
+                                    <p class="comunicado-content <?php echo $requiereExpansion ? 'comunicado-truncado' : ''; ?>" data-full-text="<?php echo htmlspecialchars($contenidoCompleto, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?php echo nl2br(htmlspecialchars($contenidoCorto, ENT_QUOTES, 'UTF-8'), false); ?>
+                                    </p>
+                                    <?php if ($requiereExpansion): ?>
+                                        <button type="button" class="btn-ver-mas" data-accion="expandir">
+                                            Ver más
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="comunicado-footer">
+                                    <span class="vistos-count">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        <?php echo (int) $com->total_vistos; ?> visto<?php echo ((int) $com->total_vistos) !== 1 ? 's' : ''; ?>
+                                    </span>
+                                    <?php if ($visto): ?>
+                                        <span class="visto-badge">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            Leído
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </main>

@@ -273,11 +273,13 @@ document.addEventListener('DOMContentLoaded', () => {
         documentoInput.setAttribute('title', titulo);
 
         // Limpiar valor si ya no cumple con el nuevo tipo
-        normalizarCaso(documentoInput);
+        if (typeof normalizarCaso === 'function') {
+            normalizarCaso(documentoInput);
+        }
     };
 
     tipoDocumentoSelect?.addEventListener('change', actualizarDocumentoPorTipo);
-    actualizarDocumentoPorTipo();
+    // actualizarDocumentoPorTipo se llamará después de definir normalizarCaso al final del script
 
     // Navegación desde "¿Olvidaste tu contraseña?" a pestaña de recuperación
     document.getElementById('forgot-link')?.addEventListener('click', (e) => {
@@ -329,21 +331,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Correos: minúsculas, sin espacios, sin comas, sin comillas
         if (tipo === 'email' || nombre === 'correo' || nombre === 'email') {
-            input.value = valor.toLowerCase().replace(/[\s,;:'"\\]+/g, '');
+            input.value = valor.toLowerCase().replace(/[^a-z0-9._%+\-@]/g, '');
             return;
         }
 
         // Campo login-user: si es correo, minúsculas y limpiar; si es username, limpiar caracteres no permitidos
         if (id === 'login-user') {
             input.value = valor.includes('@')
-                ? valor.toLowerCase().replace(/[\s,;:'"\\]+/g, '')
-                : valor.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+                ? valor.toLowerCase().replace(/[^a-z0-9._%+\-@]/g, '')
+                : valor.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
             return;
         }
 
         // Campo username: siempre minúsculas y sin espacios ni caracteres no permitidos
         if (id === 'reg-username' || nombre === 'username') {
-            input.value = valor.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+            input.value = valor.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
             return;
         }
 
@@ -352,23 +354,127 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Texto general: mayúsculas por defecto
+        // Texto general: mayúsculas por defecto (conservar espacios entre palabras)
         if (tipo === 'text') {
-            input.value = valor.toUpperCase().replace(/\s+/g, ' ').trim();
+            input.value = valor.toUpperCase().replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').trim();
+            return;
         }
+    };
+
+    const esCaracterPermitidoUsername = (caracter) => /[a-zA-Z0-9_.-]/.test(caracter);
+    const esCaracterPermitidoEmail = (caracter) => /[a-zA-Z0-9._%+\-@]/.test(caracter);
+    const esCaracterPermitidoTexto = (caracter) => /[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]/.test(caracter);
+
+    const limpiarEntrada = (input, filtro) => {
+        const seleccionInicio = input.selectionStart;
+        const seleccionFin = input.selectionEnd;
+        const valorAnterior = input.value;
+        let valorLimpio = '';
+
+        for (const caracter of input.value) {
+            if (filtro(caracter)) {
+                valorLimpio += caracter;
+            }
+        }
+
+        if (valorLimpio !== valorAnterior) {
+            input.value = valorLimpio;
+            const delta = valorAnterior.length - valorLimpio.length;
+            const nuevoCursor = Math.max(0, seleccionInicio - delta);
+            input.setSelectionRange(nuevoCursor, nuevoCursor);
+        }
+    };
+
+    const obtenerFiltroParaCampo = (input) => {
+        const tipo = input.getAttribute('type');
+        const nombre = input.name;
+        const id = input.id;
+
+        if (tipo === 'password' || tipo === 'hidden' || tipo === 'submit') {
+            return null;
+        }
+
+        if (id === 'login-user') {
+            return (caracter) => caracter === '@'
+                ? esCaracterPermitidoEmail(caracter)
+                : esCaracterPermitidoUsername(caracter);
+        }
+
+        if (id === 'reg-username' || nombre === 'username') {
+            return esCaracterPermitidoUsername;
+        }
+
+        if (tipo === 'email' || nombre === 'correo' || nombre === 'email') {
+            return esCaracterPermitidoEmail;
+        }
+
+        if (id === 'reg-access-code') {
+            return (caracter) => /[0-9]/.test(caracter);
+        }
+
+        if (tipo === 'text' && input.id !== 'reg-doc') {
+            return esCaracterPermitidoTexto;
+        }
+
+        return null;
     };
 
     document.querySelectorAll('.auth-form input, .auth-form select').forEach(campo => {
         if (campo.id === 'reg-doc') {
             return;
         }
+
+        const filtro = obtenerFiltroParaCampo(campo);
+        const esCampoContrasena = campo.type === 'password'
+            || campo.name === 'contrasena'
+            || campo.name === 'confirmar_contrasena'
+            || campo.name === 'nueva_contrasena';
+
+        if (!esCampoContrasena) {
+            campo.addEventListener('beforeinput', (e) => {
+                if (e.data === null) {
+                    return;
+                }
+
+                const filtroCampo = obtenerFiltroParaCampo(campo);
+                if (!filtroCampo) {
+                    return;
+                }
+
+                for (const caracter of e.data) {
+                    if (!filtroCampo(caracter)) {
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            });
+        }
+
+        campo.addEventListener('input', () => {
+            if (filtro && !esCampoContrasena) {
+                limpiarEntrada(campo, filtro);
+            }
+            normalizarCaso(campo);
+        });
+
         campo.addEventListener('blur', () => normalizarCaso(campo));
-        campo.addEventListener('input', () => normalizarCaso(campo));
+
         campo.addEventListener('paste', (e) => {
             e.preventDefault();
             const texto = (e.clipboardData || window.clipboardData).getData('text');
-            campo.value = texto;
+            const filtroCampo = obtenerFiltroParaCampo(campo);
+            const textoLimpio = filtroCampo
+                ? Array.from(texto).filter(filtroCampo).join('')
+                : texto;
+            campo.value = textoLimpio;
             normalizarCaso(campo);
         });
+
+        campo.addEventListener('drop', (e) => {
+            e.preventDefault();
+        });
     });
+
+    // Inicializar campos una vez que normalizarCaso ya está definida
+    actualizarDocumentoPorTipo();
 });

@@ -12,6 +12,7 @@ require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/csrf_guard.php';
 require_once __DIR__ . '/helpers/Mailer.php';
 require_once __DIR__ . '/helpers/RateLimiter.php';
+require_once __DIR__ . '/helpers/InputSanitizer.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 $usrInsert = 'sistema_registro';
@@ -86,15 +87,15 @@ if ($esValidacionCodigo) {
     ]);
 }
 
-// --- 1. Recepción y saneamiento básico de los datos del formulario ---
-$username         = strtolower(trim($_POST['username'] ?? ''));
-$tipoDocumento    = strtoupper(trim($_POST['tipo_documento'] ?? ''));
-$idUsuario        = strtoupper(trim($_POST['id_usuario'] ?? ''));
-$primerNombre     = strtoupper(trim($_POST['primer_nombre'] ?? ''));
-$segundoNombre    = strtoupper(trim($_POST['segundo_nombre'] ?? '')) ?: null;
-$primerApellido   = strtoupper(trim($_POST['primer_apellido'] ?? ''));
-$segundoApellido  = strtoupper(trim($_POST['segundo_apellido'] ?? '')) ?: null;
-$correo           = strtolower(trim($_POST['correo'] ?? ''));
+// --- 1. Recepción y saneamiento de los datos del formulario ---
+$username         = InputSanitizer::username($_POST['username'] ?? '');
+$tipoDocumento    = InputSanitizer::text($_POST['tipo_documento'] ?? '') ?? '';
+$idUsuario        = InputSanitizer::text($_POST['id_usuario'] ?? '') ?? '';
+$primerNombre     = InputSanitizer::text($_POST['primer_nombre'] ?? '') ?? '';
+$segundoNombre    = InputSanitizer::text($_POST['segundo_nombre'] ?? '');
+$primerApellido   = InputSanitizer::text($_POST['primer_apellido'] ?? '') ?? '';
+$segundoApellido  = InputSanitizer::text($_POST['segundo_apellido'] ?? '');
+$correo           = InputSanitizer::email($_POST['correo'] ?? '');
 $contrasena       = $_POST['contrasena'] ?? '';
 $confirmarContrasena = $_POST['confirmar_contrasena'] ?? '';
 
@@ -105,9 +106,9 @@ if (
     $username === ''
     || strlen($username) < 3
     || strlen($username) > 30
-    || !preg_match('/^[a-z][a-z0-9_.]{2,29}$/', $username)
+    || !preg_match('/^[a-z][a-z0-9_.-]{2,29}$/', $username)
 ) {
-    $errores[] = 'El usuario debe tener entre 3 y 30 caracteres, comenzar con una letra minúscula y solo puede contener letras minúsculas, números, puntos y guiones bajos. Sin espacios ni caracteres especiales.';
+    $errores[] = 'El usuario debe tener entre 3 y 30 caracteres, comenzar con una letra minúscula y solo puede contener letras minúsculas, números, puntos, guiones bajos y guiones. Sin espacios ni caracteres especiales.';
 }
 
 $tiposValidos = ['CC', 'PPT', 'CE'];
@@ -138,16 +139,15 @@ if ($primerApellido === '' || strlen($primerApellido) > 30) {
     $errores[] = 'El primer apellido es obligatorio y debe tener máximo 30 caracteres.';
 }
 
-if (!filter_var($correo, FILTER_VALIDATE_EMAIL) || strlen($correo) > 40) {
+if (!InputSanitizer::validateEmail($correo) || strlen($correo) > 40) {
     $errores[] = 'El correo electrónico no es válido.';
 }
 
-if (strlen($contrasena) < 8 || strlen($contrasena) > 255) {
-    $errores[] = 'La contraseña debe tener al menos 8 caracteres.';
-}
-
-if ($contrasena !== $confirmarContrasena) {
-    $errores[] = 'Las contraseñas no coinciden.';
+$validacionContrasena = InputSanitizer::validatePassword($contrasena, $confirmarContrasena);
+if (!$validacionContrasena['valid']) {
+    foreach ($validacionContrasena['errors'] as $errorContrasena) {
+        $errores[] = $errorContrasena;
+    }
 }
 
 if (!empty($errores)) {

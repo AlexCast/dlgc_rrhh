@@ -16,6 +16,14 @@ $activeItem = $activeItem ?? '';
                 <span>Inicio RRHH</span>
             </a>
         </li>
+        <?php if (has_module_access(24)): ?>
+        <li>
+            <a href="/dlgc_rrhh/src/comunicados/listar_comunicados.php" class="nav-item<?php echo ($activeItem === 'admin_comunicados') ? ' active' : ''; ?>">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Administrar Comunicados</span>
+            </a>
+        </li>
+        <?php endif; ?>
         <?php if (has_module_access(4)): ?>
         <li>
             <a href="/dlgc_rrhh/src/empleados/listar_empleados.php" class="nav-item<?php echo ($activeItem === 'empleados') ? ' active' : ''; ?>">

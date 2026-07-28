@@ -13,6 +13,7 @@ require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/csrf_guard.php';
 require_once __DIR__ . '/helpers/Mailer.php';
 require_once __DIR__ . '/helpers/RateLimiter.php';
+require_once __DIR__ . '/helpers/InputSanitizer.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 
@@ -34,9 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Validate CSRF token for password recovery.
 csrf_validate();
 
-$email = strtolower(trim($_POST['email'] ?? ''));
+$email = InputSanitizer::email($_POST['email'] ?? '');
 
-if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 40) {
+if ($email === '' || !InputSanitizer::validateEmail($email) || strlen($email) > 40) {
     redirigirLogin([
         'tab' => 'recuperar',
         'status' => 'error',

@@ -449,6 +449,38 @@ a {
     border-bottom: 0;
 }
 
+/* Badges de categoría para comunicados */
+.badge-general {
+    background: rgba(59, 168, 106, 0.12);
+    color: #3ba86a;
+}
+
+.badge-urgent {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+}
+
+.badge-event {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+}
+
+.badge-info {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+}
+
+.badge-institutional {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .actions-cell {
     display: flex;
     align-items: center;

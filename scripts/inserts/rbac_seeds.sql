@@ -5,10 +5,12 @@
 -- t_tipos_permisos.
 --
 -- Convención de IDs:
---   Módulos: 1=Inicio, 3=Solicitudes y Permisos, 4=Empleados (CRUD SRC), 5=Comunicados,
+--   Módulos: 1=Inicio, 3=Solicitudes y Permisos, 4=Empleados (CRUD SRC),
+--            5 = Comunicados (público/templates/comunicados.php),
 --            6..21 = módulos de administración (SRC),
 --            22 = Directorio de Empleados (templates/empleados.php + ficha_tecnica.php),
---            23 = Códigos de Registro.
+--            23 = Códigos de Registro,
+--            24 = Administración de Comunicados (SRC/comunicados).
 --   Operaciones por módulo: id_modulo*10 + [1=VER, 2=CREAR, 3=ACTUALIZAR, 4=ELIMINAR, 5=RESTAURAR].
 --   Roles: 1=ADMINISTRADOR, 2=EMPLEADO.
 --
@@ -36,6 +38,7 @@ VALUES
     (4,  'Empleados',                'seed', CURRENT_TIMESTAMP),
     (5,  'Comunicados',              'seed', CURRENT_TIMESTAMP),
     (22, 'Directorio de Empleados',  'seed', CURRENT_TIMESTAMP),
+    (24, 'Administración de Comunicados', 'seed', CURRENT_TIMESTAMP),
     (6,  'Roles Operaciones',        'seed', CURRENT_TIMESTAMP),
     (7,  'Afiliaciones Empleados',   'seed', CURRENT_TIMESTAMP),
     (8,  'Áreas',                    'seed', CURRENT_TIMESTAMP),
@@ -191,6 +194,12 @@ VALUES
     (233, 23, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
     (234, 23, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
 
+    -- 24. Administración de Comunicados
+    (241, 24, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (242, 24, 'CREAR',      'seed', CURRENT_TIMESTAMP),
+    (243, 24, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+    (244, 24, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
+
     -- RESTAURAR (id_modulo * 10 + 5)
     (15,   1, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (35,   3, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
@@ -212,7 +221,8 @@ VALUES
     (195, 19, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (205, 20, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (215, 21, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
-    (235, 23, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
+    (235, 23, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
+    (245, 24, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
 ON CONFLICT (id_operacion) DO UPDATE SET id_modulo       = EXCLUDED.id_modulo,
                                           nombre_operacion = EXCLUDED.nombre_operacion,
                                           fec_delete       = NULL,

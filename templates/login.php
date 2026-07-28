@@ -69,7 +69,7 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
                     <?php echo csrf_input(); ?>
                     <div class="input-group">
                         <label for="login-user">Usuario o Correo Electrónico</label>
-                        <input type="text" id="login-user" name="user" required placeholder="usuario o ejemplo@empresa.com" autocomplete="username" autocapitalize="off" pattern="^[a-z0-9._]+@[a-z0-9.-]+\.[a-z]{2,}$|^[a-z][a-z0-9_.]{2,29}$" title="Ingresa un usuario (solo minúsculas, números, puntos y guiones bajos) o un correo electrónico válido.">
+                        <input type="text" id="login-user" name="user" required placeholder="usuario o ejemplo@empresa.com" autocomplete="username" autocapitalize="off" pattern="^[a-z0-9._]+@[a-z0-9.-]+\.[a-z]{2,}$|^[a-z][a-z0-9_.-]{2,29}$" title="Ingresa un usuario (solo minúsculas, números, puntos, guiones bajos y guiones) o un correo electrónico válido.">
                     </div>
 
                     <div class="input-group">
@@ -124,7 +124,7 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
 
                         <div class="input-group">
                             <label for="reg-username">Usuario</label>
-                            <input type="text" id="reg-username" name="username" required minlength="3" maxlength="30" placeholder="Nombre de usuario" autocomplete="username" autocapitalize="off" pattern="^[a-z][a-z0-9_.]{2,29}$" title="Debe comenzar con una letra minúscula. Solo se permiten letras minúsculas, números, puntos y guiones bajos. Sin espacios ni caracteres especiales.">
+                            <input type="text" id="reg-username" name="username" required minlength="3" maxlength="30" placeholder="Nombre de usuario" autocomplete="username" autocapitalize="off" pattern="^[a-z][a-z0-9_.-]{2,29}$" title="Debe comenzar con una letra minúscula. Solo se permiten letras minúsculas, números, puntos, guiones bajos y guiones. Sin espacios ni caracteres especiales.">
                         </div>
 
                         <div class="input-group">

@@ -424,6 +424,26 @@ CREATE TABLE IF NOT EXISTS t_comunicados (
     PRIMARY KEY (id_comunicado)
 );
 
+-- Tabla auxiliar para tracking de comunicados vistos por usuario
+CREATE TABLE IF NOT EXISTS t_comunicados_vistos (
+    id_visto        SERIAL,
+    id_comunicado   INTEGER NOT NULL,
+    id_usuario      VARCHAR(20) NOT NULL,
+    fec_visto       TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usr_insert      VARCHAR NOT NULL DEFAULT CURRENT_USER,
+    fec_insert      TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_visto),
+    FOREIGN KEY (id_comunicado) REFERENCES t_comunicados(id_comunicado),
+    FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario),
+    CONSTRAINT uq_comunicado_usuario UNIQUE (id_comunicado, id_usuario)
+);
+
+CREATE INDEX IF NOT EXISTS idx_comunicados_vistos_usuario
+    ON t_comunicados_vistos (id_usuario);
+
+CREATE INDEX IF NOT EXISTS idx_comunicados_vistos_comunicado
+    ON t_comunicados_vistos (id_comunicado);
+
 -- Tabla de recuperación de contraseñas
 CREATE TABLE IF NOT EXISTS t_recuperacion_contrasena (
     id_recuperacion SERIAL PRIMARY KEY,

@@ -10,6 +10,7 @@ session_start();
 
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/csrf_guard.php';
+require_once __DIR__ . '/helpers/InputSanitizer.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 
@@ -87,15 +88,11 @@ try {
     $nuevaContrasena     = $_POST['nueva_contrasena'] ?? '';
     $confirmarContrasena = $_POST['confirmar_contrasena'] ?? '';
 
-    if (
-        $nuevaContrasena === '' ||
-        $nuevaContrasena !== $confirmarContrasena ||
-        strlen($nuevaContrasena) < 8 ||
-        strlen($nuevaContrasena) > 255
-    ) {
+    $validacionContrasena = InputSanitizer::validatePassword($nuevaContrasena, $confirmarContrasena);
+    if (!$validacionContrasena['valid']) {
         mostrarFormulario(
             $token,
-            'Las contraseñas no coinciden o no cumplen los requisitos (mínimo 8 caracteres).'
+            implode(' ', $validacionContrasena['errors'])
         );
         exit;
     }
