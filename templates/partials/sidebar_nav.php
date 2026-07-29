@@ -12,6 +12,7 @@ $iconInicio       = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
 $iconComunicados  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
 $iconEmpleados    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>';
 $iconSolicitudes  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>';
+$iconSst           = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>';
 $iconSegSocial    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
 $iconEmpresa      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="6" x2="12.01" y2="6"></line><line x1="12" y1="10" x2="12.01" y2="10"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>';
 $iconSoftware     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>';
@@ -78,6 +79,13 @@ foreach ($grupos as $key => $grupo) {
     }
 }
 
+// Módulos SRC/administrativos sueltos (no agrupados) que el usuario tenga asignados.
+// La clave es el slug usado como $activeItem en cada vista.
+$modulosAdminSueltos = [
+    ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/dlgc_rrhh/src/comunicados/listar_comunicados.php', 'icono' => $iconSrc],
+    ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/dlgc_rrhh/src/sst/listar_quejas.php',              'icono' => $iconSst],
+];
+
 function renderNavItem(string $url, string $titulo, string $icono, string $slug, string $activeItem): string {
     $isActive = $activeItem === $slug;
     $activeClass = $isActive ? ' active' : '';
@@ -125,9 +133,16 @@ function renderGrupo(string $key, array $grupo, string $activeItem, string $icon
         <?php echo renderNavItem('/dlgc_rrhh/templates/comunicados.php',   'Comunicados',           $iconComunicados, 'comunicados', $activeItem); ?>
         <?php echo renderNavItem('/dlgc_rrhh/templates/empleados.php',     'Empleados',             $iconEmpleados,   'empleados',   $activeItem); ?>
         <?php echo renderNavItem('/dlgc_rrhh/templates/solicitud_permiso.php', 'Solicitudes y Permisos', $iconSolicitudes, 'solicitudes', $activeItem); ?>
+        <?php echo renderNavItem('/dlgc_rrhh/templates/sst.php',           'SST',                   $iconSst,         'sst',         $activeItem); ?>
 
         <?php foreach ($gruposVisibles as $key => $grupo): ?>
             <?php echo renderGrupo($key, $grupo, $activeItem, $iconChevron); ?>
+        <?php endforeach; ?>
+
+        <?php foreach ($modulosAdminSueltos as $modulo): ?>
+            <?php if (has_module_access($modulo['id'])): ?>
+                <?php echo renderNavItem($modulo['url'], $modulo['titulo'], $modulo['icono'], $modulo['slug'], $activeItem); ?>
+            <?php endif; ?>
         <?php endforeach; ?>
     </ul>
 </nav>

@@ -10,7 +10,9 @@
 --            6..21 = módulos de administración (SRC),
 --            22 = Directorio de Empleados (templates/empleados.php + ficha_tecnica.php),
 --            23 = Códigos de Registro,
---            24 = Administración de Comunicados (SRC/comunicados).
+--            24 = Administración de Comunicados (SRC/comunicados),
+--            25 = SST (público/templates/sst.php),
+--            26 = Administración SST (SRC/sst).
 --   Operaciones por módulo: id_modulo*10 + [1=VER, 2=CREAR, 3=ACTUALIZAR, 4=ELIMINAR, 5=RESTAURAR].
 --   Roles: 1=ADMINISTRADOR, 2=EMPLEADO.
 --
@@ -39,6 +41,8 @@ VALUES
     (5,  'Comunicados',              'seed', CURRENT_TIMESTAMP),
     (22, 'Directorio de Empleados',  'seed', CURRENT_TIMESTAMP),
     (24, 'Administración de Comunicados', 'seed', CURRENT_TIMESTAMP),
+    (25, 'SST', 'seed', CURRENT_TIMESTAMP),
+    (26, 'Administración SST',       'seed', CURRENT_TIMESTAMP),
     (6,  'Roles Operaciones',        'seed', CURRENT_TIMESTAMP),
     (7,  'Afiliaciones Empleados',   'seed', CURRENT_TIMESTAMP),
     (8,  'Áreas',                    'seed', CURRENT_TIMESTAMP),
@@ -200,6 +204,18 @@ VALUES
     (243, 24, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
     (244, 24, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
 
+    -- 25. Seguridad y Salud en el Trabajo
+    (251, 25, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (252, 25, 'CREAR',      'seed', CURRENT_TIMESTAMP),
+    (253, 25, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+    (254, 25, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
+
+    -- 26. Administración SST
+    (261, 26, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (262, 26, 'CREAR',      'seed', CURRENT_TIMESTAMP),
+    (263, 26, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+    (264, 26, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
+
     -- RESTAURAR (id_modulo * 10 + 5)
     (15,   1, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (35,   3, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
@@ -222,7 +238,9 @@ VALUES
     (205, 20, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (215, 21, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (235, 23, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
-    (245, 24, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
+    (245, 24, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
+    (255, 25, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
+    (265, 26, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
 ON CONFLICT (id_operacion) DO UPDATE SET id_modulo       = EXCLUDED.id_modulo,
                                           nombre_operacion = EXCLUDED.nombre_operacion,
                                           fec_delete       = NULL,
@@ -250,7 +268,9 @@ VALUES
     -- Directorio de Empleados: ver
     (2, 221, 'seed', CURRENT_TIMESTAMP),
     -- Comunicados: ver
-    (2, 51, 'seed', CURRENT_TIMESTAMP)
+    (2, 51, 'seed', CURRENT_TIMESTAMP),
+    -- SST: ver (acceso default para todos los empleados)
+    (2, 251, 'seed', CURRENT_TIMESTAMP)
 ON CONFLICT (id_rol, id_operacion) DO UPDATE SET fec_delete = NULL,
                                                    usr_delete = NULL;
 

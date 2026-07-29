@@ -24,6 +24,14 @@ $activeItem = $activeItem ?? '';
             </a>
         </li>
         <?php endif; ?>
+        <?php if (has_module_access(26)): ?>
+        <li>
+            <a href="/dlgc_rrhh/src/sst/listar_quejas.php" class="nav-item<?php echo ($activeItem === 'admin_sst') ? ' active' : ''; ?>">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+                <span>Administración SST</span>
+            </a>
+        </li>
+        <?php endif; ?>
         <?php if (has_module_access(4)): ?>
         <li>
             <a href="/dlgc_rrhh/src/empleados/listar_empleados.php" class="nav-item<?php echo ($activeItem === 'empleados') ? ' active' : ''; ?>">

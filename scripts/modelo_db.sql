@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS t_sst_buzon_quejas;
+DROP TABLE IF EXISTS t_sst_comite_miembros;
 DROP TABLE IF EXISTS t_usuarios_operaciones;
 DROP TABLE IF EXISTS t_roles_operaciones;
 DROP TABLE IF EXISTS t_permisos_dias_aprobados;
@@ -546,3 +548,56 @@ CREATE TABLE IF NOT EXISTS t_codigos_registro (
 CREATE INDEX idx_codigos_registro_codigo ON t_codigos_registro(codigo);
 CREATE INDEX idx_codigos_registro_tipo ON t_codigos_registro(tipo);
 CREATE INDEX idx_codigos_registro_activo ON t_codigos_registro(tipo, usado, fec_delete);
+
+CREATE TABLE IF NOT EXISTS t_sst_comite_miembros (
+    id_miembro          SERIAL,
+    nombre_completo     VARCHAR(100) NOT NULL,
+    cargo               VARCHAR(50) NOT NULL,
+    tipo_comite         VARCHAR(30) NOT NULL CHECK(tipo_comite IN ('COPASST', 'COMITE_CONVIVENCIA')),
+    correo              VARCHAR(40),
+    telefono            VARCHAR(15),
+    orden_visualizacion INT NOT NULL DEFAULT 0,
+    usr_insert          VARCHAR NOT NULL,
+    fec_insert          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    usr_update          VARCHAR,
+    fec_update          TIMESTAMP WITHOUT TIME ZONE,
+    usr_delete          VARCHAR,
+    fec_delete          TIMESTAMP WITHOUT TIME ZONE,
+    PRIMARY KEY (id_miembro)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sst_comite_tipo_orden
+    ON t_sst_comite_miembros(tipo_comite, orden_visualizacion);
+
+CREATE TABLE IF NOT EXISTS t_sst_buzon_quejas (
+    id_queja            SERIAL,
+    id_usuario          VARCHAR(20) NOT NULL,
+    tipo_peticion       VARCHAR(30) NOT NULL CHECK(tipo_peticion IN ('QUEJA', 'SUGERENCIA', 'RECLAMO', 'DENUNCIA')),
+    asunto              VARCHAR(150) NOT NULL,
+    descripcion         TEXT NOT NULL,
+    estado              VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE' CHECK(estado IN ('PENDIENTE', 'EN PROCESO', 'RESUELTO', 'CANCELADO_USUARIO', 'CANCELADO_ENCARGADO')),
+    respuesta           TEXT,
+    id_encargado        VARCHAR(20),
+    fec_respuesta       TIMESTAMP WITHOUT TIME ZONE,
+    cancelado_por       VARCHAR(20),
+    fec_cancelacion     TIMESTAMP WITHOUT TIME ZONE,
+    usr_insert          VARCHAR NOT NULL,
+    fec_insert          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    usr_update          VARCHAR,
+    fec_update          TIMESTAMP WITHOUT TIME ZONE,
+    usr_delete          VARCHAR,
+    fec_delete          TIMESTAMP WITHOUT TIME ZONE,
+    PRIMARY KEY (id_queja),
+    FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario),
+    FOREIGN KEY (id_encargado) REFERENCES t_usuarios(id_usuario),
+    FOREIGN KEY (cancelado_por) REFERENCES t_usuarios(id_usuario)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sst_quejas_usuario
+    ON t_sst_buzon_quejas(id_usuario, fec_insert DESC);
+
+CREATE INDEX IF NOT EXISTS idx_sst_quejas_estado
+    ON t_sst_buzon_quejas(estado, fec_insert DESC);
+
+-- Auditoría SST
+

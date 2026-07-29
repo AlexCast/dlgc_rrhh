@@ -120,3 +120,9 @@ FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
 
 CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_registros_pendientes
 FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
+
+CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_sst_comite_miembros
+FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
+
+CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_sst_buzon_quejas
+FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
