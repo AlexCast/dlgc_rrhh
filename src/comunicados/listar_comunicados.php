@@ -6,6 +6,10 @@ $moduleId = 24;
 require_once __DIR__ . '/../../app/src_guard.php';
 require_once __DIR__ . '/../../app/conexion.php';
 
+// La base de datos almacena hora local de Colombia; forzamos esa zona en PHP
+// para que los cálculos relativos ("hace X horas") sean correctos.
+date_default_timezone_set('America/Bogota');
+
 $sentencia = $conexion->query('
     SELECT
         c.id_comunicado,
@@ -43,157 +47,246 @@ function mostrarValor(?string $valor): string
     return $limpio !== '' ? htmlspecialchars($limpio, ENT_QUOTES, 'UTF-8') : 'N/A';
 }
 
+function tiempoRelativo(?string $fecha): string
+{
+    if (empty($fecha)) {
+        return 'Fecha desconocida';
+    }
+
+    $dt = date_create($fecha);
+    if ($dt === false) {
+        return htmlspecialchars($fecha, ENT_QUOTES, 'UTF-8');
+    }
+
+    $now = new DateTime();
+    $diff = $now->diff($dt);
+
+    if ($diff->y > 0) {
+        return 'Hace ' . $diff->y . ' año' . ($diff->y > 1 ? 's' : '');
+    }
+    if ($diff->m > 0) {
+        return 'Hace ' . $diff->m . ' mes' . ($diff->m > 1 ? 'es' : '');
+    }
+    if ($diff->d > 0) {
+        return 'Hace ' . $diff->d . ' día' . ($diff->d > 1 ? 's' : '');
+    }
+    if ($diff->h > 0) {
+        return 'Hace ' . $diff->h . ' hora' . ($diff->h > 1 ? 's' : '');
+    }
+    if ($diff->i > 0) {
+        return 'Hace ' . $diff->i . ' minuto' . ($diff->i > 1 ? 's' : '');
+    }
+    return 'Hace un momento';
+}
+
+function truncarTexto(?string $texto, int $limite = 140): string
+{
+    $texto = trim((string) $texto);
+    if (mb_strlen($texto) <= $limite) {
+        return $texto;
+    }
+    return mb_substr($texto, 0, $limite) . '...';
+}
+
+function formatearFechaHora(?string $fecha): string
+{
+    if (empty($fecha)) {
+        return 'N/A';
+    }
+
+    $dt = date_create($fecha);
+    if ($dt === false) {
+        return htmlspecialchars($fecha, ENT_QUOTES, 'UTF-8');
+    }
+
+    return $dt->format('d/m/Y H:i');
+}
+
 $categorias = [
-    'GENERAL' => 'badge-general',
-    'URGENTE' => 'badge-urgent',
-    'EVENTO' => 'badge-event',
-    'INFORMACION' => 'badge-info',
-    'INSTITUCIONAL' => 'badge-institutional',
+    'GENERAL' => 'tag-general',
+    'URGENTE' => 'tag-urgent',
+    'EVENTO' => 'tag-event',
+    'INFORMACION' => 'tag-info',
+    'INSTITUCIONAL' => 'tag-institutional',
 ];
+
+$csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
+
+include_once 'encab_comunicados.php';
 ?>
 
-<?php include_once 'encab_comunicados.php'; ?>
-
 <main class="main-container">
-    <div class="row">
-        <div class="col-12">
-            <h1>Comunicados Registrados</h1>
+    <div class="comunicados-admin-header">
+        <div class="comunicados-admin-title">
+            <h1>Gestión de Comunicados</h1>
+            <p class="text-muted">Administra los comunicados oficiales y consulta quién los ha leído.</p>
+        </div>
 
-            <div class="d-flex gap-3 mb-4">
-                <span class="badge bg-primary p-2">Activos: <?php echo count($activos); ?></span>
-                <span class="badge bg-danger p-2" id="btnEliminados" data-deleted-modal-target="#modalEliminados" style="cursor:pointer;">Eliminados: <?php echo count($eliminados); ?></span>
-            </div>
+        <div class="comunicados-admin-stats">
+            <span class="admin-stat stat-active">
+                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                Activos: <?php echo count($activos); ?>
+            </span>
+            <span class="admin-stat stat-deleted" id="btnEliminados" data-deleted-modal-target="#modalEliminados" role="button" tabindex="0">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                Eliminados: <?php echo count($eliminados); ?>
+            </span>
+        </div>
+    </div>
 
-            <div class="modal" id="modalEliminados" data-deleted-modal aria-labelledby="modalEliminadosLabel" aria-hidden="true">
-                <div class="modal-dialog modal-xl">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="modalEliminadosLabel">Comunicados Eliminados</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body">
-                            <?php if (count($eliminados) === 0): ?>
-                                <div class="alert alert-info">No hay comunicados eliminados.</div>
-                            <?php else: ?>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Título</th>
-                                                <th>Categoría</th>
-                                                <th>Insertado por</th>
-                                                <th>Eliminado por</th>
-                                                <th>Fecha eliminación</th>
-                                                <th class="acciones-fijas">Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($eliminados as $c): ?>
-                                                <tr>
-                                                    <td><?php echo mostrarValor($c->titulo); ?></td>
-                                                    <td><?php echo mostrarValor($c->categoria); ?></td>
-                                                    <td><?php echo mostrarValor($c->usr_insert); ?></td>
-                                                    <td><?php echo mostrarValor($c->usr_delete); ?></td>
-                                                    <td><?php echo mostrarValor($c->fec_delete); ?></td>
-                                                    <td class="acciones-fijas">
-                                                        <?php if (has_module_permission($moduleId, 'restaurar')): ?>
-                                                        <form method="POST" action="restore_comunicados.php" style="display:inline-block;">
-                                                            <?php echo csrf_input(); ?>
-                                                            <input type="hidden" name="id_comunicado" value="<?php echo htmlspecialchars((string) $c->id_comunicado, ENT_QUOTES, 'UTF-8'); ?>">
-                                                            <button type="submit" class="btn btn-sm btn-restore">Restaurar</button>
-                                                        </form>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+    <!-- Modal de comunicados eliminados -->
+    <div class="modal" id="modalEliminados" data-deleted-modal aria-labelledby="modalEliminadosLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalEliminadosLabel">Comunicados Eliminados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-            </div>
-
-            <div class="desktop-view">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-primary">
-                            <tr>
-                                <th>Título</th>
-                                <th>Categoría</th>
-                                <th>Contenido</th>
-                                <th>Vistos</th>
-                                <th>Insertado por</th>
-                                <th class="acciones-fijas">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (count($activos) === 0): ?>
-                                <tr><td colspan="6" class="text-center">No hay comunicados registrados.</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($activos as $c): ?>
+                <div class="modal-body">
+                    <?php if (count($eliminados) === 0): ?>
+                        <div class="alert alert-info">No hay comunicados eliminados.</div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
                                     <tr>
-                                        <td><?php echo mostrarValor($c->titulo); ?></td>
-                                        <td>
-                                            <span class="badge <?php echo $categorias[$c->categoria] ?? 'badge-general'; ?>">
-                                                <?php echo mostrarValor($c->categoria); ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-truncate" style="max-width: 300px;"><?php echo mostrarValor($c->contenido); ?></td>
-                                        <td><?php echo (int) $c->total_vistos; ?></td>
-                                        <td><?php echo mostrarValor($c->usr_insert); ?></td>
-                                        <td class="actions-cell">
-                                            <?php if (has_module_permission($moduleId, 'actualizar')): ?>
-                                            <a class="btn btn-warning btn-sm" href="editar_comunicados.php?id_comunicado=<?php echo urlencode((string) $c->id_comunicado); ?>">Editar</a>
-                                            <?php endif; ?>
-                                            <?php if (has_module_permission($moduleId, 'eliminar')): ?>
-                                            <form method="POST" action="eliminar_comunicados.php" style="display:inline-block;">
-                                                <?php echo csrf_input(); ?>
-                                                <input type="hidden" name="id_comunicado" value="<?php echo htmlspecialchars((string) $c->id_comunicado, ENT_QUOTES, 'UTF-8'); ?>">
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este comunicado?');">Eliminar</button>
-                                            </form>
-                                            <?php endif; ?>
-                                        </td>
+                                        <th>Título</th>
+                                        <th>Categoría</th>
+                                        <th>Insertado por</th>
+                                        <th>Eliminado por</th>
+                                        <th>Fecha eliminación</th>
+                                        <th class="acciones-fijas">Acciones</th>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="mobile-view">
-                <div class="row">
-                    <?php foreach ($activos as $c): ?>
-                        <div class="col-12 mb-3">
-                            <div class="mantenimiento-card card">
-                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                                    <span class="badge <?php echo $categorias[$c->categoria] ?? 'badge-general'; ?>"><?php echo mostrarValor($c->categoria); ?></span>
-                                </div>
-                                <div class="card-body">
-                                    <h5 class="card-title"><?php echo mostrarValor($c->titulo); ?></h5>
-                                    <p class="card-text text-truncate"><?php echo mostrarValor($c->contenido); ?></p>
-                                    <p class="card-text"><small>Vistos: <?php echo (int) $c->total_vistos; ?></small></p>
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <?php if (has_module_permission($moduleId, 'actualizar')): ?>
-                                        <a class="btn btn-warning btn-sm" href="editar_comunicados.php?id_comunicado=<?php echo urlencode((string) $c->id_comunicado); ?>">Editar</a>
-                                        <?php endif; ?>
-                                        <?php if (has_module_permission($moduleId, 'eliminar')): ?>
-                                        <form method="POST" action="eliminar_comunicados.php" style="display:inline-block;">
-                                            <?php echo csrf_input(); ?>
-                                            <input type="hidden" name="id_comunicado" value="<?php echo htmlspecialchars((string) $c->id_comunicado, ENT_QUOTES, 'UTF-8'); ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este comunicado?');">Eliminar</button>
-                                        </form>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($eliminados as $c): ?>
+                                        <tr>
+                                            <td><?php echo mostrarValor($c->titulo); ?></td>
+                                            <td><?php echo mostrarValor($c->categoria); ?></td>
+                                            <td><?php echo mostrarValor($c->usr_insert); ?></td>
+                                            <td><?php echo mostrarValor($c->usr_delete); ?></td>
+                                            <td><?php echo formatearFechaHora($c->fec_delete); ?></td>
+                                            <td class="acciones-fijas">
+                                                <?php if (has_module_permission($moduleId, 'restaurar')): ?>
+                                                <form method="POST" action="restore_comunicados.php" style="display:inline-block;">
+                                                    <?php echo csrf_input(); ?>
+                                                    <input type="hidden" name="id_comunicado" value="<?php echo htmlspecialchars((string) $c->id_comunicado, ENT_QUOTES, 'UTF-8'); ?>">
+                                                    <button type="submit" class="btn btn-sm btn-restore">Restaurar</button>
+                                                </form>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Modal: Visto por -->
+    <div class="modal" id="modalVistoPor" aria-labelledby="modalVistoPorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-visto-por">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <div>
+                        <h5 class="modal-title" id="modalVistoPorLabel">Visto por</h5>
+                        <span id="vistoPorComunicadoInfo" class="modal-subtitle"></span>
+                    </div>
+                    <button type="button" class="btn-close" data-modal-close aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="vistoPorLoader" class="visto-por-loader">
+                        <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Cargando lectores...
+                    </div>
+                    <div id="vistoPorError" class="alert alert-info" style="display:none;"></div>
+                    <ul id="vistoPorLista" class="lectores-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de comunicados -->
+    <div class="comunicados-admin-grid" data-csrf-token="<?php echo $csrfToken; ?>">
+        <?php if (count($activos) === 0): ?>
+            <div class="comunicado-card comunicado-empty">
+                <p>No hay comunicados registrados.</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($activos as $c): ?>
+                <?php
+                $tagClass = $categorias[$c->categoria] ?? 'tag-general';
+                $contenidoCompleto = trim((string) $c->contenido);
+                $requiereExpansion = mb_strlen($contenidoCompleto) > 140;
+                $contenidoCorto = truncarTexto($contenidoCompleto, 140);
+                $totalVistos = (int) $c->total_vistos;
+                ?>
+                <article class="comunicado-card" data-id-comunicado="<?php echo (int) $c->id_comunicado; ?>">
+                    <div class="comunicado-card-inner">
+                        <div class="comunicado-meta">
+                            <span class="comunicado-tag <?php echo $tagClass; ?>">
+                                <?php echo mostrarValor($c->categoria); ?>
+                            </span>
+                            <span class="comunicado-date">
+                                <?php echo tiempoRelativo($c->fec_insert); ?>
+                            </span>
+                        </div>
+
+                        <h3 class="comunicado-title"><?php echo mostrarValor($c->titulo); ?></h3>
+
+                        <div class="comunicado-content-wrapper">
+                            <p class="comunicado-content <?php echo $requiereExpansion ? 'comunicado-truncado' : ''; ?>" data-full-text="<?php echo htmlspecialchars($contenidoCompleto, ENT_QUOTES, 'UTF-8'); ?>">
+                                <?php echo nl2br(htmlspecialchars($contenidoCorto, ENT_QUOTES, 'UTF-8'), false); ?>
+                            </p>
+                            <?php if ($requiereExpansion): ?>
+                                <button type="button" class="btn-ver-mas" data-accion="expandir">Ver más</button>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="comunicado-author admin-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user" aria-hidden="true"></i>
+                            </div>
+                            <div class="author-info">
+                                <span class="author-name"><?php echo mostrarValor($c->usr_insert); ?></span>
+                                <span class="comunicado-date"><?php echo formatearFechaHora($c->fec_insert); ?></span>
+                            </div>
+                        </div>
+
+                        <div class="comunicado-footer admin-footer">
+                            <button
+                                type="button"
+                                class="vistos-count btn-visto-por"
+                                data-id-comunicado="<?php echo (int) $c->id_comunicado; ?>"
+                                data-titulo-comunicado="<?php echo htmlspecialchars((string) $c->titulo, ENT_QUOTES, 'UTF-8'); ?>"
+                            >
+                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                <span class="vistos-text"><?php echo $totalVistos; ?> visto<?php echo $totalVistos !== 1 ? 's' : ''; ?></span>
+                            </button>
+
+                            <div class="admin-actions">
+                                <?php if (has_module_permission($moduleId, 'actualizar')): ?>
+                                    <a class="btn btn-sm btn-warning" href="editar_comunicados.php?id_comunicado=<?php echo urlencode((string) $c->id_comunicado); ?>">
+                                        <i class="fas fa-edit" aria-hidden="true"></i> Editar
+                                    </a>
+                                <?php endif; ?>
+                                <?php if (has_module_permission($moduleId, 'eliminar')): ?>
+                                    <form method="POST" action="eliminar_comunicados.php" class="form-inline">
+                                        <?php echo csrf_input(); ?>
+                                        <input type="hidden" name="id_comunicado" value="<?php echo htmlspecialchars((string) $c->id_comunicado, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este comunicado?');">
+                                            <i class="fas fa-trash-alt" aria-hidden="true"></i> Eliminar
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </main>
 

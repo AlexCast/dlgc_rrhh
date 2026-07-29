@@ -4,6 +4,10 @@ require_once '../app/conexion.php';
 
 require_module_access(5);
 
+// La base de datos almacena hora local de Colombia; forzamos esa zona en PHP
+// para que los cálculos relativos ("hace X horas") sean correctos.
+date_default_timezone_set('America/Bogota');
+
 $rolPerfil = 'Sin cargo';
 $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
 

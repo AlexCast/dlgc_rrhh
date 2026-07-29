@@ -7,6 +7,27 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
     <link rel="stylesheet" href="/dlgc_rrhh/assets/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/src.css">
+    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/comunicados.css">
+    <style>
+        /* Puente de variables para reutilizar comunicados.css dentro del SRC.
+           Se define en body (no en :root) para que respete el tema oscuro. */
+        body {
+            --bg-card: var(--mnt-surface);
+            --border-color: var(--mnt-border);
+            --text-main: var(--mnt-text);
+            --text-muted: var(--mnt-text-muted);
+            --bg-secondary: var(--mnt-bg);
+            --primary-color: var(--mnt-primary);
+        }
+        body.dark-theme {
+            --bg-card: var(--mnt-surface);
+            --border-color: var(--mnt-border);
+            --text-main: var(--mnt-text);
+            --text-muted: var(--mnt-text-muted);
+            --bg-secondary: var(--mnt-bg);
+            --primary-color: var(--mnt-primary);
+        }
+    </style>
     <script src="/dlgc_rrhh/assets/js/src.js" defer></script>
     <script src="/dlgc_rrhh/assets/js/theme.js"></script>
 </head>
