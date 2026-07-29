@@ -119,19 +119,67 @@ function notificarEncargadosSst(PDO $conexion, string $idUsuario, string $tipoPe
         $mailer = new Mailer();
         $subject = 'Nueva ' . ucfirst(strtolower($tipoPeticion)) . ' en el Buzón SST';
 
-        $body = '<h2>Nueva solicitud en el Buzón SST</h2>';
-        $body .= '<p><strong>Tipo:</strong> ' . htmlspecialchars($tipoPeticion) . '</p>';
-        $body .= '<p><strong>De:</strong> ' . htmlspecialchars($nombreUsuario) . ' (' . htmlspecialchars($idUsuario) . ')</p>';
-        $body .= '<p><strong>Asunto:</strong> ' . htmlspecialchars($asunto) . '</p>';
-        $body .= '<p><strong>Descripción:</strong></p>';
-        $body .= '<p>' . nl2br(htmlspecialchars($descripcion)) . '</p>';
-        $body .= '<hr><p>Ingresa al módulo de Administración SST para gestionar la solicitud.</p>';
+        $tipoPeticionHtml = htmlspecialchars(ucfirst(strtolower($tipoPeticion)));
+        $nombreUsuarioHtml = htmlspecialchars($nombreUsuario);
+        $idUsuarioHtml = htmlspecialchars($idUsuario);
+        $asuntoHtml = htmlspecialchars($asunto);
+        $descripcionHtml = nl2br(htmlspecialchars($descripcion));
 
-        $altBody = "Nueva solicitud en el Buzón SST\n";
-        $altBody .= "Tipo: {$tipoPeticion}\n";
-        $altBody .= "De: {$nombreUsuario} ({$idUsuario})\n";
-        $altBody .= "Asunto: {$asunto}\n";
-        $altBody .= "Descripción:\n{$descripcion}\n";
+        $body = sprintf(
+            '<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Nueva solicitud en el Buzón SST</title>
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #ececec; font-family: Inter, system-ui, -apple-system, sans-serif; color: #0D130F;">
+                <div style="width: 100%%; padding: 40px 16px;">
+                    <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; border: 2px solid #3ba86a; box-shadow: 0 12px 30px rgba(59, 168, 106, 0.12); overflow: hidden;">
+                        <div style="background-color: #3ba86a; padding: 24px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 1.25rem; font-weight: 700;">Portal DLGC RRHH</h1>
+                        </div>
+                        <div style="padding: 32px;">
+                            <p style="margin: 0 0 16px; line-height: 1.6; font-size: 0.95rem; color: #0D130F;">Hola <strong style="color: #0D130F;">Equipo de SST</strong>,</p>
+                            <p style="margin: 0 0 16px; line-height: 1.6; font-size: 0.95rem; color: #0D130F;">Se ha recibido una nueva solicitud en el <strong style="color: #0D130F;">Buzón SST</strong> a continuación los detalles:</p>
+
+                            <div style="background-color: #f8faf9; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #e5e7eb;">
+                                <p style="margin: 0 0 12px; line-height: 1.5; font-size: 0.95rem; color: #0D130F;"><strong style="color: #0D130F;">Tipo de petición:</strong> %s</p>
+                                <p style="margin: 0 0 12px; line-height: 1.5; font-size: 0.95rem; color: #0D130F;"><strong style="color: #0D130F;">Enviada por:</strong> %s (%s)</p>
+                                <p style="margin: 0 0 12px; line-height: 1.5; font-size: 0.95rem; color: #0D130F;"><strong style="color: #0D130F;">Asunto:</strong> %s</p>
+                                <p style="margin: 0 0 4px; line-height: 1.5; font-size: 0.95rem; color: #0D130F;"><strong style="color: #0D130F;">Descripción:</strong></p>
+                                <p style="margin: 0; line-height: 1.6; font-size: 0.95rem; color: #0D130F;">%s</p>
+                            </div>
+
+                            <div style="text-align: center; margin: 24px 0;">
+                                <a href="https://dlgchr.com.co" style="display: inline-block; background-color: #3ba86a; color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 1rem;">Ir al módulo SST</a>
+                            </div>
+
+                            <p style="margin: 0; line-height: 1.6; font-size: 0.85rem; color: #6b7280;">Ingresa al módulo de Administración SST para gestionar la solicitud.</p>
+                        </div>
+                        <div style="text-align: center; padding: 16px 32px; font-size: 0.8rem; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                            &copy; Distribuciones La Gran Cacharrería. Todos los derechos reservados.
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>',
+            $tipoPeticionHtml,
+            $nombreUsuarioHtml,
+            $idUsuarioHtml,
+            $asuntoHtml,
+            $descripcionHtml
+        );
+
+        $altBody = "Portal DLGC RRHH\n\n"
+                 . "Hola Equipo de SST,\n\n"
+                 . "Se ha recibido una nueva solicitud en el Buzón SST.\n\n"
+                 . "Tipo de petición: " . ucfirst(strtolower($tipoPeticion)) . "\n"
+                 . "Enviada por: {$nombreUsuario} ({$idUsuario})\n"
+                 . "Asunto: {$asunto}\n"
+                 . "Descripción:\n{$descripcion}\n\n"
+                 . "Ingresa al módulo de Administración SST para gestionar la solicitud.\n\n"
+                 . "Distribuciones La Gran Cacharrería";
 
         foreach ($encargados as $encargado) {
             $ok = $mailer->send($encargado->correo, $encargado->id_usuario, $subject, $body, $altBody);
