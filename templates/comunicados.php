@@ -66,13 +66,34 @@ function tiempoRelativo(?string $fecha): string
     return 'Hace un momento';
 }
 
+require_once __DIR__ . '/../app/helpers/HtmlSanitizer.php';
+
 function truncarTexto(?string $texto, int $limite = 150): string
 {
-    $texto = trim((string) $texto);
-    if (mb_strlen($texto) <= $limite) {
-        return $texto;
+    $textoPlano = strip_tags(trim((string) $texto));
+    if (mb_strlen($textoPlano) <= $limite) {
+        return $textoPlano;
     }
-    return mb_substr($texto, 0, $limite) . '...';
+    return mb_substr($textoPlano, 0, $limite) . '...';
+}
+
+function limpiarContenidoHtml(?string $html): string
+{
+    return HtmlSanitizer::clean($html);
+}
+
+function formatearFechaHora(?string $fecha): string
+{
+    if (empty($fecha)) {
+        return 'N/A';
+    }
+
+    $dt = date_create($fecha);
+    if ($dt === false) {
+        return htmlspecialchars($fecha, ENT_QUOTES, 'UTF-8');
+    }
+
+    return $dt->format('d/m/Y H:i');
 }
 
 $categoriasClase = [
@@ -93,6 +114,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <title>Comunicados | DLGC</title>
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/firstpage.css">
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/comunicados.css">
+    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/comunicados_templates.css">
     <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -154,8 +176,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                 </div>
             </header>
 
-            <div class="dashboard-body fade-in-up">
-                
+            <div class="dashboard-body fade-in-up comunicados-public-app">
+
                 <section class="comunicados-header">
                     <div>
                         <h2>Últimas Noticias</h2>
@@ -178,14 +200,34 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                         <?php foreach ($comunicados as $com): ?>
                             <?php
                             $tagClass = $categoriasClase[$com->categoria] ?? 'tag-general';
-                            $contenidoCompleto = trim((string) $com->contenido);
-                            $requiereExpansion = mb_strlen($contenidoCompleto) > 150;
+                            $contenidoCompleto = limpiarContenidoHtml((string) $com->contenido);
+                            $textoPlano = strip_tags($contenidoCompleto);
+                            $esCorto = mb_strlen($textoPlano) <= 150;
                             $contenidoCorto = truncarTexto($contenidoCompleto, 150);
                             $visto = (bool) $com->visto_por_usuario;
+                            $categoryClassMap = [
+                                'GENERAL' => 'is-general',
+                                'URGENTE' => 'is-urgent',
+                                'EVENTO' => 'is-event',
+                                'INFORMACION' => 'is-info',
+                                'INSTITUCIONAL' => 'is-institutional',
+                            ];
+                            $modalCategoryClass = $categoryClassMap[$com->categoria] ?? 'is-general';
                             ?>
                             <article
                                 class="comunicado-card <?php echo $visto ? 'comunicado-visto' : 'comunicado-nuevo'; ?>"
                                 data-id-comunicado="<?php echo (int) $com->id_comunicado; ?>"
+                                data-titulo="<?php echo htmlspecialchars((string) $com->titulo, ENT_QUOTES, 'UTF-8'); ?>"
+                                data-categoria="<?php echo htmlspecialchars((string) $com->categoria, ENT_QUOTES, 'UTF-8'); ?>"
+                                data-categoria-clase="<?php echo $modalCategoryClass; ?>"
+                                data-autor="<?php echo htmlspecialchars((string) ($com->usr_insert ?? 'Administrador'), ENT_QUOTES, 'UTF-8'); ?>"
+                                data-fecha="<?php echo tiempoRelativo($com->fec_insert); ?>"
+                                data-fecha-completa="<?php echo formatearFechaHora($com->fec_insert); ?>"
+                                data-contenido="<?php echo htmlspecialchars($contenidoCompleto, ENT_QUOTES, 'UTF-8'); ?>"
+                                data-vistos="<?php echo (int) $com->total_vistos; ?>"
+                                data-visto="<?php echo $visto ? '1' : '0'; ?>"
+                                role="button"
+                                tabindex="0"
                             >
                                 <div class="comunicado-meta">
                                     <span class="comunicado-tag <?php echo $tagClass; ?>">
@@ -209,10 +251,14 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                 <h3 class="comunicado-title"><?php echo htmlspecialchars((string) $com->titulo, ENT_QUOTES, 'UTF-8'); ?></h3>
 
                                 <div class="comunicado-content-wrapper">
-                                    <p class="comunicado-content <?php echo $requiereExpansion ? 'comunicado-truncado' : ''; ?>" data-full-text="<?php echo htmlspecialchars($contenidoCompleto, ENT_QUOTES, 'UTF-8'); ?>">
-                                        <?php echo nl2br(htmlspecialchars($contenidoCorto, ENT_QUOTES, 'UTF-8'), false); ?>
-                                    </p>
-                                    <?php if ($requiereExpansion): ?>
+                                    <?php if ($esCorto): ?>
+                                        <div class="comunicado-content">
+                                            <?php echo $contenidoCompleto; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="comunicado-content comunicado-truncado">
+                                            <?php echo nl2br(htmlspecialchars($contenidoCorto, ENT_QUOTES, 'UTF-8'), false); ?>
+                                        </div>
                                         <button type="button" class="btn-ver-mas" data-accion="expandir">
                                             Ver más
                                         </button>
@@ -234,6 +280,42 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                             </article>
                         <?php endforeach; ?>
                     <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Modal de lectura de comunicado -->
+            <div class="cp-modal-overlay" id="cp-modal-comunicado" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cp-modal-title">
+                <div class="cp-modal" role="document">
+                    <header class="cp-modal-header">
+                        <button type="button" class="cp-modal-close" data-cp-close aria-label="Cerrar comunicado">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <span class="cp-modal-category" id="cp-modal-category">Categoría</span>
+                        <h2 class="cp-modal-title" id="cp-modal-title">Título del comunicado</h2>
+                        <div class="cp-modal-meta">
+                            <div class="cp-modal-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="cp-modal-info">
+                                <span class="cp-modal-author" id="cp-modal-author">Autor</span>
+                                <span class="cp-modal-date" id="cp-modal-date">Fecha</span>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="cp-modal-body">
+                        <div class="cp-modal-content" id="cp-modal-content"></div>
+                    </div>
+                    <div class="cp-modal-footer">
+                        <span class="cp-modal-vistos">
+                            <i class="fas fa-eye"></i>
+                            <span id="cp-modal-vistos">0 vistos</span>
+                        </span>
+                        <div class="cp-modal-actions">
+                            <button type="button" class="cp-btn cp-btn-secondary" data-cp-close>
+                                <i class="fas fa-times"></i> Cerrar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>

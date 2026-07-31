@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/dlgc_rrhh/assets/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/src.css">
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/comunicados.css">
+    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/forma_comunicados.css">
     <style>
         /* Puente de variables para reutilizar comunicados.css dentro del SRC.
            Se define en body (no en :root) para que respete el tema oscuro. */

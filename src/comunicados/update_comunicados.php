@@ -20,12 +20,14 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/HtmlSanitizer.php';
+
 $id_comunicado = (int) trim($_POST['id_comunicado']);
 $titulo = trim((string) $_POST['titulo']);
-$contenido = trim((string) $_POST['contenido']);
+$contenido = trim(HtmlSanitizer::clean((string) $_POST['contenido']));
 $categoria = trim((string) $_POST['categoria']);
 
-if ($id_comunicado <= 0 || $titulo === '' || $contenido === '' || $categoria === '') {
+if ($id_comunicado <= 0 || $titulo === '' || strip_tags($contenido) === '' || $categoria === '') {
     header('Location: listar_comunicados.php?error=datos');
     exit();
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 $moduleId = 24;
 require_once __DIR__ . '/../../app/src_guard.php';
 require_once __DIR__ . '/../../app/conexion.php';
+require_once __DIR__ . '/../../app/helpers/HtmlSanitizer.php';
 
 // La base de datos almacena hora local de Colombia; forzamos esa zona en PHP
 // para que los cálculos relativos ("hace X horas") sean correctos.
@@ -81,11 +82,16 @@ function tiempoRelativo(?string $fecha): string
 
 function truncarTexto(?string $texto, int $limite = 140): string
 {
-    $texto = trim((string) $texto);
-    if (mb_strlen($texto) <= $limite) {
-        return $texto;
+    $textoPlano = strip_tags(trim((string) $texto));
+    if (mb_strlen($textoPlano) <= $limite) {
+        return $textoPlano;
     }
-    return mb_substr($texto, 0, $limite) . '...';
+    return mb_substr($textoPlano, 0, $limite) . '...';
+}
+
+function limpiarContenidoHtml(?string $html): string
+{
+    return HtmlSanitizer::clean($html);
 }
 
 function formatearFechaHora(?string $fecha): string
@@ -220,9 +226,9 @@ include_once 'encab_comunicados.php';
             <?php foreach ($activos as $c): ?>
                 <?php
                 $tagClass = $categorias[$c->categoria] ?? 'tag-general';
-                $contenidoCompleto = trim((string) $c->contenido);
-                $requiereExpansion = mb_strlen($contenidoCompleto) > 140;
+                $contenidoCompleto = limpiarContenidoHtml((string) $c->contenido);
                 $contenidoCorto = truncarTexto($contenidoCompleto, 140);
+                $requiereExpansion = mb_strlen(strip_tags($contenidoCompleto)) > 140;
                 $totalVistos = (int) $c->total_vistos;
                 ?>
                 <article class="comunicado-card" data-id-comunicado="<?php echo (int) $c->id_comunicado; ?>">
@@ -239,9 +245,9 @@ include_once 'encab_comunicados.php';
                         <h3 class="comunicado-title"><?php echo mostrarValor($c->titulo); ?></h3>
 
                         <div class="comunicado-content-wrapper">
-                            <p class="comunicado-content <?php echo $requiereExpansion ? 'comunicado-truncado' : ''; ?>" data-full-text="<?php echo htmlspecialchars($contenidoCompleto, ENT_QUOTES, 'UTF-8'); ?>">
+                            <div class="comunicado-content <?php echo $requiereExpansion ? 'comunicado-truncado' : ''; ?>" data-full-text="<?php echo htmlspecialchars($contenidoCompleto, ENT_QUOTES, 'UTF-8'); ?>">
                                 <?php echo nl2br(htmlspecialchars($contenidoCorto, ENT_QUOTES, 'UTF-8'), false); ?>
-                            </p>
+                            </div>
                             <?php if ($requiereExpansion): ?>
                                 <button type="button" class="btn-ver-mas" data-accion="expandir">Ver más</button>
                             <?php endif; ?>

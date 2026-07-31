@@ -1,0 +1,474 @@
+/* =========================================================
+   Comunicados - Vista pública (templates/comunicados.php)
+   CSS dedicado: no modifica otros archivos.
+   ========================================================= */
+
+.comunicados-public-app {
+    --cp-radius: 18px;
+    --cp-radius-sm: 14px;
+    --cp-shadow: 0 18px 50px rgba(13, 19, 15, 0.1);
+    --cp-backdrop: rgba(13, 19, 15, 0.55);
+}
+
+body.dark-theme .comunicados-public-app {
+    --cp-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+    --cp-backdrop: rgba(0, 0, 0, 0.7);
+}
+
+/* Tarjetas interactivas: conserva el look actual y añade feedback */
+.comunicados-public-app .comunicado-card {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.comunicados-public-app .comunicado-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(13, 19, 15, 0.08);
+    border-color: rgba(59, 168, 106, 0.35);
+}
+
+body.dark-theme .comunicados-public-app .comunicado-card:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.comunicados-public-app .comunicado-card * {
+    cursor: auto;
+}
+
+.comunicados-public-app .comunicado-card .btn-ver-mas,
+.comunicados-public-app .comunicado-card .comunicado-footer {
+    cursor: default;
+}
+
+/* El contenido truncado se renderiza como bloque para que el HTML fluya */
+.comunicados-public-app .comunicado-content {
+    display: block;
+}
+
+.comunicados-public-app .comunicado-content > *:last-child {
+    margin-bottom: 0;
+}
+
+.comunicados-public-app .comunicado-content b,
+.comunicados-public-app .comunicado-content strong {
+    font-weight: 700;
+}
+
+.comunicados-public-app .comunicado-content i,
+.comunicados-public-app .comunicado-content em {
+    font-style: italic;
+}
+
+.comunicados-public-app .comunicado-content u {
+    text-decoration: underline;
+    text-decoration-color: var(--primary-color);
+    text-underline-offset: 3px;
+}
+
+.comunicados-public-app .comunicado-content ul,
+.comunicados-public-app .comunicado-content ol {
+    margin: 0 0 1em 1.5em;
+    padding-left: 1em;
+}
+
+.comunicados-public-app .comunicado-content li {
+    margin-bottom: 0.4em;
+}
+
+.comunicados-public-app .comunicado-content blockquote {
+    margin: 0 0 1em;
+    padding: 12px 20px;
+    border-left: 4px solid var(--primary-color);
+    background: rgba(59, 168, 106, 0.06);
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.comunicados-public-app .comunicado-content h2,
+.comunicados-public-app .comunicado-content h3 {
+    margin: 0 0 0.6em;
+    color: var(--text-main);
+}
+
+.comunicados-public-app .comunicado-content h2 {
+    font-size: 1.3rem;
+}
+
+.comunicados-public-app .comunicado-content h3 {
+    font-size: 1.1rem;
+}
+
+/* Botón "Ver más" más prominente */
+.comunicados-public-app .btn-ver-mas {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(59, 168, 106, 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(59, 168, 106, 0.25);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.comunicados-public-app .btn-ver-mas:hover {
+    background: rgba(59, 168, 106, 0.18);
+    transform: translateY(-1px);
+}
+
+
+/* =========================================
+   Modal de lectura de comunicado
+   ========================================= */
+
+.cp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: var(--cp-backdrop);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.cp-modal-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.cp-modal {
+    width: 100%;
+    max-width: 760px;
+    max-height: calc(100vh - 40px);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--cp-radius);
+    box-shadow: var(--cp-shadow);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+.cp-modal-overlay.is-open .cp-modal {
+    transform: translateY(0) scale(1);
+}
+
+.cp-modal-header {
+    position: relative;
+    padding: 28px 28px 22px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.cp-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.cp-modal-close:hover {
+    background: rgba(59, 168, 106, 0.1);
+    color: var(--primary-color);
+    border-color: rgba(59, 168, 106, 0.35);
+}
+
+.cp-modal-category {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+}
+
+.cp-modal-category.is-general {
+    background: rgba(59, 168, 106, 0.12);
+    color: #3ba86a;
+}
+
+.cp-modal-category.is-urgent {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+}
+
+.cp-modal-category.is-event {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+}
+
+.cp-modal-category.is-info {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+}
+
+.cp-modal-category.is-institutional {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+}
+
+.cp-modal-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin: 0 0 18px;
+    color: var(--text-main);
+    letter-spacing: -0.4px;
+    padding-right: 50px;
+    word-break: break-word;
+}
+
+.cp-modal-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cp-modal-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.cp-modal-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.cp-modal-author {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.cp-modal-date {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.cp-modal-body {
+    padding: 28px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.cp-modal-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text-main);
+    word-break: break-word;
+}
+
+.cp-modal-content p {
+    margin: 0 0 1em;
+}
+
+.cp-modal-content p:last-child {
+    margin-bottom: 0;
+}
+
+.cp-modal-content b,
+.cp-modal-content strong {
+    font-weight: 700;
+}
+
+.cp-modal-content i,
+.cp-modal-content em {
+    font-style: italic;
+}
+
+.cp-modal-content u {
+    text-decoration: underline;
+    text-decoration-color: var(--primary-color);
+    text-underline-offset: 3px;
+}
+
+.cp-modal-content ul,
+.cp-modal-content ol {
+    margin: 0 0 1em 1.5em;
+    padding-left: 1em;
+}
+
+.cp-modal-content li {
+    margin-bottom: 0.5em;
+}
+
+.cp-modal-content blockquote {
+    margin: 0 0 1em;
+    padding: 14px 22px;
+    border-left: 4px solid var(--primary-color);
+    background: rgba(59, 168, 106, 0.06);
+    border-radius: 0 12px 12px 0;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.cp-modal-content h2,
+.cp-modal-content h3 {
+    margin: 0 0 0.6em;
+    color: var(--text-main);
+}
+
+.cp-modal-content h2 {
+    font-size: 1.5rem;
+}
+
+.cp-modal-content h3 {
+    font-size: 1.25rem;
+}
+
+.cp-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 28px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-main);
+    flex-shrink: 0;
+}
+
+.cp-modal-vistos {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.cp-modal-vistos i {
+    color: var(--primary-color);
+}
+
+.cp-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.cp-btn:hover {
+    transform: translateY(-1px);
+}
+
+.cp-btn-primary {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.cp-btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.cp-btn-secondary {
+    background: transparent;
+    border-color: var(--border-color);
+    color: var(--text-muted);
+}
+
+.cp-btn-secondary:hover {
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .cp-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .cp-modal {
+        max-height: 92vh;
+        border-radius: var(--cp-radius) var(--cp-radius) 0 0;
+        transform: translateY(100%);
+    }
+
+    .cp-modal-overlay.is-open .cp-modal {
+        transform: translateY(0);
+    }
+
+    .cp-modal-header {
+        padding: 22px 20px 18px;
+    }
+
+    .cp-modal-title {
+        font-size: 1.35rem;
+        padding-right: 44px;
+    }
+
+    .cp-modal-body {
+        padding: 20px;
+    }
+
+    .cp-modal-content {
+        font-size: 1rem;
+    }
+
+    .cp-modal-footer {
+        padding: 14px 20px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cp-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .cp-btn {
+        width: 100%;
+    }
+}

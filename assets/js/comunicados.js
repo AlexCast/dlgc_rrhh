@@ -33,9 +33,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const csrfToken = lista.dataset.csrfToken || '';
     const marcarVistoUrl = '/dlgc_rrhh/src/comunicados/marcar_visto.php';
 
+    // Modal de lectura
+    const modal = document.getElementById('cp-modal-comunicado');
+    const modalTitle = document.getElementById('cp-modal-title');
+    const modalCategory = document.getElementById('cp-modal-category');
+    const modalAuthor = document.getElementById('cp-modal-author');
+    const modalDate = document.getElementById('cp-modal-date');
+    const modalContent = document.getElementById('cp-modal-content');
+    const modalVistos = document.getElementById('cp-modal-vistos');
+
+    let currentArticulo = null;
+
     function actualizarUiVisto(articulo) {
         articulo.classList.remove('comunicado-nuevo');
         articulo.classList.add('comunicado-visto');
+        articulo.dataset.visto = '1';
 
         const nuevoBadge = articulo.querySelector('.comunicado-nuevo-badge');
         if (nuevoBadge) {
@@ -52,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function marcarComoVisto(articulo, idComunicado) {
-        if (articulo.dataset.marcandoVisto === '1' || articulo.classList.contains('comunicado-visto')) {
+        if (articulo.dataset.marcandoVisto === '1' || articulo.dataset.visto === '1') {
             return;
         }
         articulo.dataset.marcandoVisto = '1';
@@ -79,30 +91,110 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function htmlDecode(input) {
+        const decoder = document.createElement('textarea');
+        decoder.innerHTML = input;
+        return decoder.value;
+    }
+
+    function formatVistos(total) {
+        const count = parseInt(total, 10) || 0;
+        return count + ' visto' + (count !== 1 ? 's' : '');
+    }
+
+    function abrirModal(articulo) {
+        if (!modal || !articulo) {
+            return;
+        }
+
+        currentArticulo = articulo;
+
+        const titulo = articulo.dataset.titulo || 'Comunicado';
+        const categoria = articulo.dataset.categoria || 'Categoría';
+        const categoriaClase = articulo.dataset.categoriaClase || 'is-general';
+        const autor = articulo.dataset.autor || 'Administrador';
+        const fecha = articulo.dataset.fechaCompleta || articulo.dataset.fecha || 'Fecha desconocida';
+        const contenido = articulo.dataset.contenido || '';
+        const vistos = articulo.dataset.vistos || '0';
+
+        if (modalTitle) modalTitle.textContent = titulo;
+        if (modalCategory) {
+            modalCategory.textContent = categoria;
+            modalCategory.className = 'cp-modal-category ' + categoriaClase;
+        }
+        if (modalAuthor) modalAuthor.textContent = autor;
+        if (modalDate) modalDate.textContent = fecha;
+        if (modalContent) modalContent.innerHTML = htmlDecode(contenido);
+        if (modalVistos) modalVistos.textContent = formatVistos(vistos);
+
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+
+        const idComunicado = articulo.dataset.idComunicado;
+        if (idComunicado) {
+            marcarComoVisto(articulo, idComunicado);
+        }
+    }
+
+    function cerrarModal() {
+        if (!modal) {
+            return;
+        }
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        currentArticulo = null;
+    }
+
+    if (modal) {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal || event.target.closest('[data-cp-close]')) {
+                event.preventDefault();
+                cerrarModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                cerrarModal();
+            }
+        });
+    }
+
     lista.addEventListener('click', (event) => {
         const boton = event.target.closest('.btn-ver-mas');
-        if (!boton) {
+        const articulo = event.target.closest('.comunicado-card');
+
+        if (!articulo || articulo.classList.contains('comunicado-empty')) {
+            return;
+        }
+
+        // Si se hace clic en un elemento interactivo que no es "Ver más", no abrir modal.
+        const esInteractivo = event.target.closest('a, button, [role="button"]');
+        if (esInteractivo && !boton) {
             return;
         }
 
         event.preventDefault();
-        const articulo = boton.closest('.comunicado-card');
-        const parrafo = articulo ? articulo.querySelector('.comunicado-content') : null;
-        const idComunicado = articulo ? articulo.dataset.idComunicado : null;
+        abrirModal(articulo);
+    });
 
-        if (!articulo || !parrafo || !idComunicado) {
+    lista.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
             return;
         }
 
-        const textoCompleto = parrafo.dataset.fullText || parrafo.textContent;
-        parrafo.innerHTML = textoCompleto.replace(/\n/g, '<br>');
-        parrafo.classList.remove('comunicado-truncado');
-        boton.remove();
+        const articulo = event.target.closest('.comunicado-card');
+        if (!articulo || articulo.classList.contains('comunicado-empty')) {
+            return;
+        }
 
-        marcarComoVisto(articulo, idComunicado);
+        event.preventDefault();
+        abrirModal(articulo);
     });
 
-    // Comunicados cortos (sin botón "Ver más") se consideran leídos al cargar la lista,
+    // Comunicados cortos se consideran leídos al cargar la lista,
     // porque su contenido completo es visible sin interacción adicional.
     const comunicadosCortos = lista.querySelectorAll('.comunicado-card.comunicado-nuevo:not(:has(.btn-ver-mas))');
     comunicadosCortos.forEach((articulo, index) => {

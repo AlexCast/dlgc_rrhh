@@ -10,7 +10,9 @@
         }
 
         var textoCompleto = parrafo.dataset.fullText || parrafo.textContent;
-        parrafo.innerHTML = textoCompleto.replace(/\n/g, '<br>');
+        var decoder = document.createElement('textarea');
+        decoder.innerHTML = textoCompleto;
+        parrafo.innerHTML = decoder.value;
         parrafo.classList.remove('comunicado-truncado');
         boton.remove();
     }

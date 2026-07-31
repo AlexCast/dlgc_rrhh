@@ -19,11 +19,13 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/HtmlSanitizer.php';
+
 $titulo = trim((string) $_POST['titulo']);
-$contenido = trim((string) $_POST['contenido']);
+$contenido = trim(HtmlSanitizer::clean((string) $_POST['contenido']));
 $categoria = trim((string) $_POST['categoria']);
 
-if ($titulo === '' || $contenido === '' || $categoria === '') {
+if ($titulo === '' || strip_tags($contenido) === '' || $categoria === '') {
     header('Location: forma_comunicados.php?error=datos');
     exit();
 }
