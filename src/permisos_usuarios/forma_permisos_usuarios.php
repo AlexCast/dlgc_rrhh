@@ -23,6 +23,9 @@ $operaciones = $conexion->query("
 ?>
 
 <?php include_once 'encab_permisos_usuarios.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <section class="editor-shell">
@@ -33,7 +36,7 @@ $operaciones = $conexion->query("
             </header>
 
             <div class="editor-body">
-                <form action="insertar_permisos_usuarios.php" method="POST" novalidate>
+                <form action="insertar_permisos_usuarios.php" method="POST" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <div class="row g-3">

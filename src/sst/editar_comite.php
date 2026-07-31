@@ -32,6 +32,8 @@ if (!$registro) {
 $tiposComite = ['COPASST', 'COMITE_CONVIVENCIA'];
 
 include_once 'encab_sst.php';
+require_once __DIR__ . '/../../app/alert_helper.php';
+render_alert_banner();
 ?>
 
 <main class="main-container">
@@ -43,7 +45,7 @@ include_once 'encab_sst.php';
             </header>
 
             <div class="editor-body">
-                <form action="update_comite.php" method="POST" novalidate>
+                <form action="update_comite.php" method="POST" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <input type="hidden" name="id_miembro" value="<?php echo htmlspecialchars((string) $registro->id_miembro, ENT_QUOTES, 'UTF-8'); ?>">

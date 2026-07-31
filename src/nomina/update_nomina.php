@@ -43,7 +43,7 @@ $sentencia->execute([
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_nomina.php');
+    header('Location: listar_nomina.php?success=' . urlencode('Nómina actualizada correctamente.'));
     exit();
 }
 

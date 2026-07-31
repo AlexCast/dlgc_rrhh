@@ -37,6 +37,9 @@ $relacionesEliminadas = array_filter($relaciones, function ($rel) {
 ?>
 
 <?php include_once 'encab_roles_operaciones.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <div class="row">

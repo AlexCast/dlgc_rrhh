@@ -12,7 +12,9 @@ BEGIN
     END IF;
 
     UPDATE t_caja_compensacion
-    SET nombre_caja = wnombre_caja
+    SET nombre_caja = wnombre_caja,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_caja = wid_caja
             AND fec_delete IS NULL;
             

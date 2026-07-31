@@ -31,7 +31,7 @@ $sentencia->execute([$id_eps, $nombre_eps]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_eps.php');
+    header('Location: listar_eps.php?success=' . urlencode('EPS actualizada correctamente.'));
     exit();
 }
 

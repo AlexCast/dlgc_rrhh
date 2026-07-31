@@ -38,7 +38,7 @@ $sentencia->execute([$nombreCompleto, $cargo, $tipoComite, $correo, $telefono, $
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_comite.php');
+    header('Location: listar_comite.php?success=' . urlencode('Miembro del comité creado correctamente.'));
     exit();
 }
 

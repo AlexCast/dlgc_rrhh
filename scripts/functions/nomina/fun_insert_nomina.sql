@@ -19,8 +19,22 @@ BEGIN
         RETURN 'El salario no puede ser nulo o negativo.';
     END IF;
 
-    INSERT INTO t_nomina (id_usuario, id_banco, num_cuenta, salario)
-    VALUES (wid_usuario, wid_banco, wnum_cuenta, wsalario);
+    INSERT INTO t_nomina (
+        id_usuario,
+        id_banco,
+        num_cuenta,
+        salario,
+        usr_insert,
+        fec_insert
+    )
+    VALUES (
+        wid_usuario,
+        wid_banco,
+        wnum_cuenta,
+        wsalario,
+        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        CURRENT_TIMESTAMP
+    );
     
     RAISE NOTICE 'Ya inserté la nómina para el usuario %', wid_usuario;
     RETURN 'Esta vaina funcionó.. Somos duros en ADSO';

@@ -44,6 +44,9 @@ $contratosEliminados = array_filter($contratosRegistros, function ($contrato) {
 ?>
 
 <?php include_once 'encab_contratos_empleados.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <div class="row">

@@ -35,7 +35,7 @@ $sentencia->execute([$titulo, $contenido, $categoria]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_comunicados.php');
+    header('Location: listar_comunicados.php?success=' . urlencode('Comunicado publicado correctamente.'));
     exit();
 }
 

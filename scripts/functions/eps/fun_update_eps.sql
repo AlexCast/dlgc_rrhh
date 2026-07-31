@@ -12,7 +12,9 @@ BEGIN
     END IF;
 
     UPDATE t_eps
-    SET nombre_eps = wnombre_eps
+    SET nombre_eps = wnombre_eps,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_eps = wid_eps
             AND fec_delete IS NULL;
             

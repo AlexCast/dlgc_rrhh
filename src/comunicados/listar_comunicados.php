@@ -114,6 +114,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
 include_once 'encab_comunicados.php';
 ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
 
 <main class="main-container">
     <div class="comunicados-admin-header">

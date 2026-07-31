@@ -52,7 +52,9 @@ BEGIN
     UPDATE t_sst_buzon_quejas
     SET tipo_peticion = UPPER(TRIM(wtipo_peticion)),
         asunto = TRIM(wasunto),
-        descripcion = TRIM(wdescripcion)
+        descripcion = TRIM(wdescripcion),
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
     WHERE id_queja = wid_queja
       AND id_usuario = wid_usuario
       AND estado = 'PENDIENTE';

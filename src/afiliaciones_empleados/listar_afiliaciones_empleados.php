@@ -39,6 +39,9 @@ $afiliaciones_empleadosEliminadas = array_filter($afiliaciones_empleadosRegistro
 ?>
 
 <?php include_once 'encab_afiliaciones_empleados.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <div class="row">

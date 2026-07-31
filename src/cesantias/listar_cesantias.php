@@ -21,6 +21,9 @@ $cesantiaEliminadas = array_filter($cesantiaRegistros, function ($cesantia) {
 ?>
 
 <?php include_once 'encab_cesantias.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <div class="row">

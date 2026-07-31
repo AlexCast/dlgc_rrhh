@@ -46,7 +46,7 @@ $sentencia->execute([
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_afiliaciones_empleados.php');
+    header('Location: listar_afiliaciones_empleados.php?success=' . urlencode('Afiliación actualizada correctamente.'));
     exit();
 }
 

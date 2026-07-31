@@ -12,7 +12,9 @@ BEGIN
     END IF;
 
     UPDATE t_pension
-    SET nombre_pension = wnombre_pension
+    SET nombre_pension = wnombre_pension,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_pension = wid_pension
             AND fec_delete IS NULL;
             

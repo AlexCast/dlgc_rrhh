@@ -7,8 +7,16 @@ BEGIN
         RETURN 'El nombre del área debe tener al menos 3 caracteres y no puede ser nulo.';
     END IF;
 
-    INSERT INTO t_areas (nombre_area)
-    VALUES (wnombre_area);
+    INSERT INTO t_areas (
+        nombre_area,
+        usr_insert,
+        fec_insert
+    )
+    VALUES (
+        wnombre_area,
+        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        CURRENT_TIMESTAMP
+    );
     
     RAISE NOTICE 'Ya inserté el área %', wnombre_area;
     RETURN 'Esta vaina funcionó.. Somos duros en ADSO';

@@ -7,10 +7,10 @@ BEGIN
     WHERE id_area = wid_area AND fec_delete IS NOT NULL;
 
     IF FOUND THEN
-        RAISE NOTICE 'Área % restaurada correctamente.', wid_area;
+        RAISE NOTICE 'Area % restaurada correctamente.', wid_area;
         RETURN TRUE;
     ELSE
-        RAISE NOTICE 'No se encontró el área eliminada.';
+        RAISE NOTICE 'No se encontro el area eliminada.';
         RETURN FALSE;
     END IF;
 END;

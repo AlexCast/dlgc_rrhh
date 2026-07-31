@@ -21,6 +21,8 @@ $quejas = $sentencia->fetchAll(PDO::FETCH_OBJ);
 $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
 include_once 'encab_sst.php';
+require_once __DIR__ . '/../../app/alert_helper.php';
+render_alert_banner();
 ?>
 
 <main class="main-container">
@@ -30,13 +32,6 @@ include_once 'encab_sst.php';
             <p class="comunicados-admin-subtitle">Gestiona las solicitudes recibidas. Recuerda: no puedes modificar el contenido de una queja.</p>
         </div>
     </div>
-
-    <?php if (isset($_GET['error'])): ?>
-        <div class="alert alert-danger"><?php echo htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8'); ?></div>
-    <?php endif; ?>
-    <?php if (isset($_GET['ok'])): ?>
-        <div class="alert alert-success">Estado actualizado correctamente.</div>
-    <?php endif; ?>
 
     <section class="data-card">
         <form method="GET" class="row g-3 mb-3">

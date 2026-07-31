@@ -29,7 +29,7 @@ $sentencia->execute([
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false || stripos($resultado, 'Esta vaina funcionó') !== false) {
-    header('Location: listar_roles.php');
+    header('Location: listar_roles.php?success=' . urlencode('Rol creado correctamente.'));
     exit();
 }
 

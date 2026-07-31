@@ -5,17 +5,17 @@ RETURNS BOOLEAN AS
 $$
 BEGIN
     UPDATE t_areas
-    SET 
+    SET
         fec_delete = CURRENT_TIMESTAMP,
         usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
         WHERE id_area = wid_area
       AND fec_delete IS NULL;
 
     IF FOUND THEN
-        RAISE NOTICE 'Área % eliminada lógicamente.', wid_area;
+        RAISE NOTICE 'Area % eliminada logicamente.', wid_area;
         RETURN TRUE;
     ELSE
-        RAISE NOTICE 'No se encontró el área o ya está eliminada.';
+        RAISE NOTICE 'No se encontro el area o ya esta eliminada.';
         RETURN FALSE;
     END IF;
 END;

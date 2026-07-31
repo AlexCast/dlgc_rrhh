@@ -28,7 +28,7 @@ $resultado = $sentencia->fetchColumn();
 $ok = $resultado === true || $resultado === 1 || $resultado === '1' || $resultado === 't' || $resultado === 'true';
 
 if ($ok) {
-    header('Location: listar_pension.php?restaurado=1');
+    header('Location: listar_pension.php?success=' . urlencode('Pensión restaurada correctamente.'));
     exit();
 }
 

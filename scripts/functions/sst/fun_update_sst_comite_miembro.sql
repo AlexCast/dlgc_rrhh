@@ -31,7 +31,9 @@ BEGIN
         tipo_comite = UPPER(TRIM(wtipo_comite)),
         correo = NULLIF(TRIM(wcorreo), ''),
         telefono = NULLIF(TRIM(wtelefono), ''),
-        orden_visualizacion = COALESCE(worden_visualizacion, 0)
+        orden_visualizacion = COALESCE(worden_visualizacion, 0),
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
     WHERE id_miembro = wid_miembro
       AND fec_delete IS NULL;
 

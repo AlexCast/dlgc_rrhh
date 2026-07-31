@@ -35,7 +35,7 @@ $sentencia->execute([$id_rol_actual, $id_operacion_actual, $id_rol_nuevo, $id_op
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_roles_operaciones.php');
+    header('Location: listar_roles_operaciones.php?success=' . urlencode('Rol-Operación actualizado correctamente.'));
     exit();
 }
 

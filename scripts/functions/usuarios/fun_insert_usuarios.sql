@@ -30,8 +30,34 @@ BEGIN
         RETURN 'La contraseña no puede ser nula o vacía.';
     END IF;
 
-    INSERT INTO t_usuarios (id_usuario, id_rol, username, tipo_documento, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo, contrasena)
-    VALUES (wid_usuario, wid_rol, wusername, wtipo_documento, wprimer_nombre, wsegundo_nombre, wprimer_apellido, wsegundo_apellido, wcorreo, wcontrasena);
+    INSERT INTO t_usuarios (
+        id_usuario,
+        id_rol,
+        username,
+        tipo_documento,
+        primer_nombre,
+        segundo_nombre,
+        primer_apellido,
+        segundo_apellido,
+        correo,
+        contrasena,
+        usr_insert,
+        fec_insert
+    )
+    VALUES (
+        wid_usuario,
+        wid_rol,
+        wusername,
+        wtipo_documento,
+        wprimer_nombre,
+        wsegundo_nombre,
+        wprimer_apellido,
+        wsegundo_apellido,
+        wcorreo,
+        wcontrasena,
+        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        CURRENT_TIMESTAMP
+    );
 
     RAISE NOTICE 'Ya inserté el usuario %', wusername;
     RETURN 'Esta vaina funcionó.. Somos duros en ADSO';

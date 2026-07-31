@@ -21,6 +21,9 @@ $pensionEliminadas = array_filter($pensionRegistros, function ($pension) {
 ?>
 
 <?php include_once 'encab_pension.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <div class="row">

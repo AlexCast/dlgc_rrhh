@@ -51,7 +51,9 @@ BEGIN
         estado_civil,
         direccion_casa,
         numero_celular,
-        foto_perfil
+        foto_perfil,
+        usr_insert,
+        fec_insert
     )
     VALUES (
         wid_usuario,
@@ -65,7 +67,9 @@ BEGIN
         westado_civil,
         wdireccion_casa,
         wnumero_celular,
-        wfoto_perfil
+        wfoto_perfil,
+        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        CURRENT_TIMESTAMP
     );
 
     RAISE NOTICE 'Empleado % insertado correctamente.', wid_usuario;

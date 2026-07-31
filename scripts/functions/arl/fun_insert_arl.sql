@@ -7,8 +7,16 @@ BEGIN
         RETURN 'El nombre de la ARL debe tener al menos 3 caracteres y no puede ser nulo.';
     END IF;
 
-    INSERT INTO t_arl (nombre_arl)
-    VALUES (wnombre_arl);
+    INSERT INTO t_arl (
+        nombre_arl,
+        usr_insert,
+        fec_insert
+    )
+    VALUES (
+        wnombre_arl,
+        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        CURRENT_TIMESTAMP
+    );
     
     RAISE NOTICE 'Ya inserté la ARL %', wnombre_arl;
     RETURN 'Esta vaina funcionó.. Somos duros en ADSO';

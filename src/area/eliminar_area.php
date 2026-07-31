@@ -28,7 +28,7 @@ $resultado = $sentencia->fetchColumn();
 $ok = $resultado === true || $resultado === 1 || $resultado === '1' || $resultado === 't' || $resultado === 'true';
 
 if ($ok) {
-    header('Location: listar_area.php');
+    header('Location: listar_area.php?success=' . urlencode('Área eliminada correctamente.'));
     exit();
 }
 

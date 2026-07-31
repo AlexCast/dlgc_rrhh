@@ -51,7 +51,9 @@ BEGIN
         estado_civil = westado_civil,
         direccion_casa = wdireccion_casa,
         numero_celular = wnumero_celular,
-        foto_perfil = wfoto_perfil
+        foto_perfil = wfoto_perfil,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
     WHERE id_usuario = wid_usuario
       AND fec_delete IS NULL;
 

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/src.css">
     <script src="/dlgc_rrhh/assets/js/src.js" defer></script>
     <script src="/dlgc_rrhh/assets/js/theme.js"></script>
+    <script src="/dlgc_rrhh/assets/js/alert-banner.js" defer></script>
 </head>
 <body>
     <header class="header-container">

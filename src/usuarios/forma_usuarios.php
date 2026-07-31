@@ -15,6 +15,9 @@ $t_roles_registros = $sentencia->fetchAll(PDO::FETCH_OBJ);
 ?>
 
 <?php include_once 'encab_usuarios.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <section class="editor-shell">
@@ -25,7 +28,7 @@ $t_roles_registros = $sentencia->fetchAll(PDO::FETCH_OBJ);
             </header>
 
             <div class="editor-body">
-                <form action="insertar_usuarios.php" method="POST" novalidate>
+                <form action="insertar_usuarios.php" method="POST" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <div class="row g-3">

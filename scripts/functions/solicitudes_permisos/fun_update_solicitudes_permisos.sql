@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION fun_update_solicitudes_permisos(
     wfecha_fin t_solicitudes_permisos.fecha_fin%TYPE,
     whora_inicio t_solicitudes_permisos.hora_inicio%TYPE DEFAULT NULL,
     whora_fin t_solicitudes_permisos.hora_fin%TYPE DEFAULT NULL,
-    westado t_solicitudes_permisos.estado%TYPE,
+    westado t_solicitudes_permisos.estado%TYPE DEFAULT NULL,
     wid_aprobador t_solicitudes_permisos.id_aprobador%TYPE DEFAULT NULL,
     wobservacion_aprobador t_solicitudes_permisos.observacion_aprobador%TYPE DEFAULT NULL,
     wurl_evidencia t_solicitudes_permisos.url_evidencia%TYPE DEFAULT NULL,
@@ -29,6 +29,10 @@ BEGIN
         IF whora_inicio IS NOT NULL OR whora_fin IS NOT NULL THEN
             RETURN 'Para permisos por días no se deben enviar horas.';
         END IF;
+    END IF;
+
+    IF westado IS NULL OR TRIM(westado) = '' THEN
+        RETURN 'El estado de la solicitud es obligatorio.';
     END IF;
 
     UPDATE t_solicitudes_permisos

@@ -40,7 +40,7 @@ $sentencia->execute([$idQueja, $idEncargado, $estado, $respuesta]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_quejas.php?ok=1');
+    header('Location: listar_quejas.php?success=' . urlencode('Estado actualizado correctamente.'));
     exit();
 }
 

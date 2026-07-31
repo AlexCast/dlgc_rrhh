@@ -12,7 +12,9 @@ BEGIN
     END IF;
 
     UPDATE t_cesantias
-    SET nombre_cesantia = wnombre_cesantia
+    SET nombre_cesantia = wnombre_cesantia,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_cesantia = wid_cesantia
             AND fec_delete IS NULL;
             

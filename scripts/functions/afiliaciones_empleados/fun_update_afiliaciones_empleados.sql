@@ -9,7 +9,9 @@ CREATE OR REPLACE FUNCTION fun_update_afiliaciones_empleados(
 $$
 BEGIN
     UPDATE t_afiliaciones_empleados
-    SET id_cesantia = wid_cesantia
+    SET id_cesantia = wid_cesantia,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_usuario = wid_usuario
             AND id_eps = wid_eps
             AND id_arl = wid_arl

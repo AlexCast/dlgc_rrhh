@@ -28,7 +28,7 @@ $resultado = $sentencia->fetchColumn();
 $ok = $resultado === true || $resultado === 1 || $resultado === '1' || $resultado === 't' || $resultado === 'true';
 
 if ($ok) {
-    header('Location: listar_banco.php');
+    header('Location: listar_banco.php?success=' . urlencode('Banco eliminado correctamente.'));
     exit();
 }
 

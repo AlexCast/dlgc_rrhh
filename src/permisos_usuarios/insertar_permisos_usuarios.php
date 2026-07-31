@@ -28,7 +28,7 @@ $sentencia->execute([$id_usuario, $id_operacion]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_permisos_usuarios.php');
+    header('Location: listar_permisos_usuarios.php?success=' . urlencode('Permiso de usuario creado correctamente.'));
     exit();
 }
 

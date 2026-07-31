@@ -7,8 +7,16 @@ BEGIN
         RETURN 'El nombre de la entidad de Pensión debe tener al menos 3 caracteres y no puede ser nulo.';
     END IF;
 
-    INSERT INTO t_pension (nombre_pension)
-    VALUES (wnombre_pension);
+    INSERT INTO t_pension (
+        nombre_pension,
+        usr_insert,
+        fec_insert
+    )
+    VALUES (
+        wnombre_pension,
+        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        CURRENT_TIMESTAMP
+    );
     
     RAISE NOTICE 'Ya inserté la entidad de Pensión %', wnombre_pension;
     RETURN 'Esta vaina funcionó.. Somos duros en ADSO';

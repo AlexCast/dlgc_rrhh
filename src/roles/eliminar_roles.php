@@ -23,7 +23,7 @@ $resultado = $sentencia->fetchColumn();
 $ok = $resultado === true || $resultado === 1 || $resultado === '1' || $resultado === 't' || $resultado === 'true';
 
 if ($ok) {
-    header('Location: listar_roles.php');
+    header('Location: listar_roles.php?success=' . urlencode('Rol eliminado correctamente.'));
     exit();
 }
 

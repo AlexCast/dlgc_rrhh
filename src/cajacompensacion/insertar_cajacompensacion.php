@@ -24,7 +24,7 @@ $sentencia->execute([$nombre_caja]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_cajacompensacion.php');
+    header('Location: listar_cajacompensacion.php?success=' . urlencode('Caja de compensación creada correctamente.'));
     exit();
 }
 

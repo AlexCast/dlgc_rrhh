@@ -29,6 +29,9 @@ if (!$registro) {
 ?>
 
 <?php include_once 'encab_modulos.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <section class="editor-shell">
@@ -39,7 +42,7 @@ if (!$registro) {
             </header>
 
             <div class="editor-body">
-                <form action="update_modulos.php" method="POST" novalidate>
+                <form action="update_modulos.php" method="POST" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <input type="hidden" name="id_modulo" value="<?php echo htmlspecialchars((string) $registro->id_modulo, ENT_QUOTES, 'UTF-8'); ?>">

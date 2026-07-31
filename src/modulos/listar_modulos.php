@@ -21,6 +21,9 @@ $eliminados = array_filter($registros, function ($row) {
 ?>
 
 <?php include_once 'encab_modulos.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <div class="row">

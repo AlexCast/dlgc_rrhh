@@ -23,7 +23,7 @@ $resultado = $sentencia->fetchColumn();
 $ok = $resultado === true || $resultado === 1 || $resultado === '1' || $resultado === 't' || $resultado === 'true';
 
 if ($ok) {
-    header('Location: listar_operaciones.php?restaurado=1');
+    header('Location: listar_operaciones.php?success=' . urlencode('Operación restaurada correctamente.'));
     exit();
 }
 

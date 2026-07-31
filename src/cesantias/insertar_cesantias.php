@@ -24,7 +24,7 @@ $sentencia->execute([$nombre_cesantia]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_cesantias.php');
+    header('Location: listar_cesantias.php?success=' . urlencode('Cesantías creada correctamente.'));
     exit();
 }
 

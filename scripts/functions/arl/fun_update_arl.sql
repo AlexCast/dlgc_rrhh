@@ -12,7 +12,9 @@ BEGIN
     END IF;
 
     UPDATE t_arl
-    SET nombre_arl = wnombre_arl
+    SET nombre_arl = wnombre_arl,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_arl = wid_arl
             AND fec_delete IS NULL;
             

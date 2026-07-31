@@ -12,7 +12,9 @@ BEGIN
     END IF;
 
     UPDATE t_areas
-    SET nombre_area = wnombre_area
+    SET nombre_area = wnombre_area,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_area = wid_area
             AND fec_delete IS NULL;
             

@@ -6,7 +6,7 @@ DECLARE
     wreg_contrato t_contratos_empleados%ROWTYPE;
 BEGIN
     IF wid_contrato IS NULL OR wid_contrato <= 0 THEN
-        RAISE NOTICE 'El ID del contrato no es válido.';
+        RAISE NOTICE 'El ID del contrato no es valido.';
         RETURN FALSE;
     END IF;
 
@@ -21,7 +21,7 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'Contrato: %, Usuario: %, Área: %, Puesto: %, Inicio: %, Fin: %',
+    RAISE NOTICE 'Contrato: %, Usuario: %, Area: %, Puesto: %, Inicio: %, Fin: %',
         wreg_contrato.id_contrato,
         wreg_contrato.id_usuario,
         wreg_contrato.id_area,

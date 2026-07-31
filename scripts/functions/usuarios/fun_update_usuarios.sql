@@ -20,7 +20,9 @@ BEGIN
         segundo_nombre = wsegundo_nombre,
         primer_apellido = wprimer_apellido,
         segundo_apellido = wsegundo_apellido,
-        correo = wcorreo
+        correo = wcorreo,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_usuario = wid_usuario
             AND fec_delete IS NULL;
             

@@ -31,7 +31,7 @@ $sentencia->execute([$id_arl, $nombre_arl]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_arl.php');
+    header('Location: listar_arl.php?success=' . urlencode('ARL actualizada correctamente.'));
     exit();
 }
 

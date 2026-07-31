@@ -28,7 +28,7 @@ $sentencia->execute([$id_rol, $id_operacion]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_roles_operaciones.php');
+    header('Location: listar_roles_operaciones.php?success=' . urlencode('Rol-Operación creado correctamente.'));
     exit();
 }
 

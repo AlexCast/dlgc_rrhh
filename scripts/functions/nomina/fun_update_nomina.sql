@@ -15,7 +15,9 @@ BEGIN
     SET id_usuario = wid_usuario,
         id_banco = wid_banco,
         num_cuenta = wnum_cuenta,
-        salario = wsalario
+        salario = wsalario,
+        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        fec_update = CURRENT_TIMESTAMP
         WHERE id_nomina = wid_nomina
             AND fec_delete IS NULL;
             

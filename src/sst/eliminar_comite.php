@@ -30,7 +30,7 @@ $resultado = $sentencia->fetchColumn();
 $ok = $resultado === true || $resultado === 1 || $resultado === '1' || $resultado === 't' || $resultado === 'true';
 
 if ($ok) {
-    header('Location: listar_comite.php');
+    header('Location: listar_comite.php?success=' . urlencode('Miembro del comité eliminado correctamente.'));
     exit();
 }
 

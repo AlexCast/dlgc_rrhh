@@ -31,7 +31,7 @@ $sentencia->execute([$id_area, $nombre_area]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_area.php');
+    header('Location: listar_area.php?success=' . urlencode('Área actualizada correctamente.'));
     exit();
 }
 

@@ -24,7 +24,7 @@ $sentencia->execute([$nombre_pension]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_pension.php');
+    header('Location: listar_pension.php?success=' . urlencode('Pensión creada correctamente.'));
     exit();
 }
 

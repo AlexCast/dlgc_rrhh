@@ -66,7 +66,7 @@ $sentencia->execute([
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_empleados.php');
+    header('Location: listar_empleados.php?success=' . urlencode('Empleado actualizado correctamente.'));
     exit();
 }
 

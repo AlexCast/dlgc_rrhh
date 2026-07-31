@@ -35,7 +35,7 @@ $sentencia->execute([$id_usuario_actual, $id_operacion_actual, $id_usuario_nuevo
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_permisos_usuarios.php');
+    header('Location: listar_permisos_usuarios.php?success=' . urlencode('Permiso de usuario actualizado correctamente.'));
     exit();
 }
 

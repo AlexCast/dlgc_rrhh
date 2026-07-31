@@ -9,6 +9,8 @@ require_once __DIR__ . '/../../app/src_guard.php';
 $tiposComite = ['COPASST', 'COMITE_CONVIVENCIA'];
 
 include_once 'encab_sst.php';
+require_once __DIR__ . '/../../app/alert_helper.php';
+render_alert_banner();
 ?>
 
 <main class="main-container">
@@ -20,7 +22,7 @@ include_once 'encab_sst.php';
             </header>
 
             <div class="editor-body">
-                <form action="insertar_comite.php" method="POST" novalidate>
+                <form action="insertar_comite.php" method="POST" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <div class="row g-3">

@@ -31,7 +31,7 @@ $sentencia->execute([$id_pension, $nombre_pension]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_pension.php');
+    header('Location: listar_pension.php?success=' . urlencode('Pensión actualizada correctamente.'));
     exit();
 }
 

@@ -12,8 +12,26 @@ BEGIN
         RETURN 'El id_usuario no puede ser nulo o vacío.';
     END IF;
 
-    INSERT INTO t_afiliaciones_empleados (id_usuario, id_eps, id_arl, id_caja, id_pension, id_cesantia)
-    VALUES (wid_usuario, wid_eps, wid_arl, wid_caja, wid_pension, wid_cesantia);
+    INSERT INTO t_afiliaciones_empleados (
+        id_usuario,
+        id_eps,
+        id_arl,
+        id_caja,
+        id_pension,
+        id_cesantia,
+        usr_insert,
+        fec_insert
+    )
+    VALUES (
+        wid_usuario,
+        wid_eps,
+        wid_arl,
+        wid_caja,
+        wid_pension,
+        wid_cesantia,
+        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        CURRENT_TIMESTAMP
+    );
     
     RAISE NOTICE 'Ya inserté las afiliaciones para el usuario %', wid_usuario;
     RETURN 'Esta vaina funcionó.. Somos duros en ADSO';

@@ -51,7 +51,7 @@ $sentencia->execute([
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false || stripos($resultado, 'Esta vaina funcionó') !== false) {
-    header('Location: listar_usuarios.php');
+    header('Location: listar_usuarios.php?success=' . urlencode('Usuario actualizado correctamente.'));
     exit();
 }
 

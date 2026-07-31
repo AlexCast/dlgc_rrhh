@@ -33,6 +33,9 @@ if (!$registro) {
 ?>
 
 <?php include_once 'encab_eps.php'; ?>
+<?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
+<?php render_alert_banner(); ?>
+
 
 <main class="main-container">
     <section class="editor-shell">
@@ -43,7 +46,7 @@ if (!$registro) {
             </header>
 
             <div class="editor-body">
-                <form action="update_eps.php" method="POST" novalidate>
+                <form action="update_eps.php" method="POST" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <input type="hidden" name="id_eps" value="<?php echo (int) $registro->id_eps; ?>">

@@ -29,7 +29,7 @@ $sentencia->execute([
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false || stripos($resultado, 'Esta vaina funcionó') !== false) {
-    header('Location: listar_modulos.php');
+    header('Location: listar_modulos.php?success=' . urlencode('Módulo creado correctamente.'));
     exit();
 }
 

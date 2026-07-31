@@ -24,7 +24,7 @@ $sentencia->execute([$nombre_banco]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false) {
-    header('Location: listar_banco.php');
+    header('Location: listar_banco.php?success=' . urlencode('Banco creado correctamente.'));
     exit();
 }
 
