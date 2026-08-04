@@ -2,10 +2,13 @@ DROP TABLE IF EXISTS t_sst_buzon_quejas;
 DROP TABLE IF EXISTS t_sst_comite_miembros;
 DROP TABLE IF EXISTS t_usuarios_operaciones;
 DROP TABLE IF EXISTS t_roles_operaciones;
+DROP TABLE IF EXISTS t_permisos_evidencias;
+DROP TABLE IF EXISTS t_permisos_aprobaciones;
 DROP TABLE IF EXISTS t_permisos_dias_aprobados;
 DROP TABLE IF EXISTS t_solicitudes_permisos_motivos;
 DROP TABLE IF EXISTS t_solicitudes_permisos;
 DROP TABLE IF EXISTS t_tipos_permisos;
+DROP TABLE IF EXISTS t_dias_festivos_excepciones;
 DROP TABLE IF EXISTS t_dias_festivos;
 DROP TABLE IF EXISTS t_afiliaciones_empleados;
 DROP TABLE IF EXISTS t_nomina;
@@ -314,10 +317,14 @@ CREATE TABLE IF NOT EXISTS t_afiliaciones_empleados (
 );
 
 -- Tabla de configuración para los días festivos
+-- tipo_festivo distingue festivos oficiales (NACIONAL) de los declarados por la empresa (EMPRESA).
+-- descuenta_salario indica si, por defecto, ese día se descuenta del salario de todos los empleados.
 CREATE TABLE IF NOT EXISTS t_dias_festivos (
     id_festivo          SERIAL,
     fecha               DATE NOT NULL UNIQUE,
     descripcion         VARCHAR(100) NOT NULL,
+    tipo_festivo        VARCHAR(20) NOT NULL DEFAULT 'NACIONAL' CHECK (tipo_festivo IN ('NACIONAL', 'EMPRESA')),
+    descuenta_salario   BOOLEAN NOT NULL DEFAULT TRUE,
     usr_insert          VARCHAR NOT NULL,
     fec_insert          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     usr_update          VARCHAR,
@@ -327,18 +334,45 @@ CREATE TABLE IF NOT EXISTS t_dias_festivos (
     PRIMARY KEY (id_festivo)
 );
 
--- Tabla maestra para administrar las categorías de permisos
-CREATE TABLE IF         NOT EXISTS t_tipos_permisos (
-    id_tipo_permiso     SERIAL,
-    nombre_tipo         VARCHAR(50) NOT NULL,
-    descuenta_tiempo    BOOLEAN NOT NULL DEFAULT FALSE,
+-- Excepciones puntuales por empleado a la regla general de un festivo (caso excepcional: sí/no descontar).
+CREATE TABLE IF NOT EXISTS t_dias_festivos_excepciones (
+    id_excepcion        SERIAL,
+    id_festivo          INT NOT NULL,
+    id_empleado         VARCHAR(20) NOT NULL,
+    descuenta_salario   BOOLEAN NOT NULL,
+    motivo              VARCHAR(255),
     usr_insert          VARCHAR NOT NULL,
     fec_insert          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     usr_update          VARCHAR,
     fec_update          TIMESTAMP WITHOUT TIME ZONE,
     usr_delete          VARCHAR,
     fec_delete          TIMESTAMP WITHOUT TIME ZONE,
-    PRIMARY KEY (id_tipo_permiso)
+    PRIMARY KEY (id_excepcion),
+    CONSTRAINT uq_festivo_excepcion_empleado UNIQUE (id_festivo, id_empleado),
+    FOREIGN KEY (id_festivo) REFERENCES t_dias_festivos(id_festivo),
+    FOREIGN KEY (id_empleado) REFERENCES t_empleados(id_usuario)
+);
+
+-- Tabla maestra para administrar las categorías de permisos.
+-- requiere_evidencia habilita/deshabilita el campo de adjuntos en el formulario para ese tipo.
+-- porcentaje_descuento solo aplica cuando descuenta_tiempo = TRUE (flexibilidad pedida por RRHH).
+CREATE TABLE IF NOT EXISTS t_tipos_permisos (
+    id_tipo_permiso      SERIAL,
+    nombre_tipo          VARCHAR(50) NOT NULL,
+    descuenta_tiempo     BOOLEAN NOT NULL DEFAULT FALSE,
+    porcentaje_descuento NUMERIC(5,2) CHECK (porcentaje_descuento IS NULL OR (porcentaje_descuento >= 0 AND porcentaje_descuento <= 100)),
+    requiere_evidencia   BOOLEAN NOT NULL DEFAULT FALSE,
+    usr_insert           VARCHAR NOT NULL,
+    fec_insert           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    usr_update           VARCHAR,
+    fec_update           TIMESTAMP WITHOUT TIME ZONE,
+    usr_delete           VARCHAR,
+    fec_delete           TIMESTAMP WITHOUT TIME ZONE,
+    PRIMARY KEY (id_tipo_permiso),
+    CONSTRAINT chk_tipos_permisos_descuento CHECK (
+        (descuenta_tiempo = FALSE AND porcentaje_descuento IS NULL) OR
+        (descuenta_tiempo = TRUE AND porcentaje_descuento IS NOT NULL)
+    )
 );
 
 
@@ -346,18 +380,19 @@ CREATE TABLE IF         NOT EXISTS t_tipos_permisos (
 -- Nota: el motivo (o motivos) de la solicitud NO vive aquí; una solicitud puede tener
 -- varios motivos a la vez, por lo que se modela en la tabla puente
 -- t_solicitudes_permisos_motivos (relación N:M con t_tipos_permisos).
+-- id_jefe_responsable es una "foto" del jefe directo (t_empleados.id_jefe) al momento de radicar
+-- la solicitud: si el empleado cambia de jefe después, el histórico de bandejas no se altera.
+-- La aprobación en sí (jefe/RRHH) vive en t_permisos_aprobaciones; estado aquí es el resultado agregado.
 CREATE TABLE IF NOT EXISTS t_solicitudes_permisos (
     id_permiso              SERIAL,
     id_empleado             VARCHAR(20) NOT NULL,
+    id_jefe_responsable     VARCHAR(20) NOT NULL,
     es_por_horas            BOOLEAN NOT NULL DEFAULT FALSE, -- Manejo del tiempo
     fecha_inicio            DATE NOT NULL,
     fecha_fin               DATE NOT NULL CHECK (fecha_fin >= fecha_inicio),
     hora_inicio             TIME,
     hora_fin                TIME,
-    estado                  VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE' CHECK(estado IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),     -- Flujo de aprobación
-    id_aprobador            VARCHAR(20),
-    observacion_aprobador   VARCHAR(255),
-    url_evidencia           VARCHAR(255),
+    estado                  VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE' CHECK(estado IN ('PENDIENTE', 'EN_REVISION', 'APROBADO', 'RECHAZADO', 'CANCELADO')),     -- Resultado agregado del flujo de doble aprobación
     metodo_descuento        VARCHAR(20) CHECK(metodo_descuento IN ('N/A', 'VACACIONES', 'DINERO')),     -- Reglas de nómina y descuentos
     usr_insert              VARCHAR NOT NULL,
     fec_insert              TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -367,7 +402,7 @@ CREATE TABLE IF NOT EXISTS t_solicitudes_permisos (
     fec_delete              TIMESTAMP WITHOUT TIME ZONE,
     PRIMARY KEY (id_permiso),
     FOREIGN KEY (id_empleado) REFERENCES t_empleados(id_usuario),
-    FOREIGN KEY (id_aprobador) REFERENCES t_usuarios(id_usuario),
+    FOREIGN KEY (id_jefe_responsable) REFERENCES t_usuarios(id_usuario),
     -- Si es_por_horas=TRUE, hora_inicio/hora_fin son obligatorias y coherentes;
     -- si es_por_horas=FALSE (permiso por días), no deben diligenciarse horas.
     CONSTRAINT chk_t_solicitudes_permisos_horas CHECK (
@@ -393,6 +428,57 @@ CREATE TABLE IF NOT EXISTS t_solicitudes_permisos_motivos (
     FOREIGN KEY (id_permiso) REFERENCES t_solicitudes_permisos(id_permiso),
     FOREIGN KEY (id_tipo_permiso) REFERENCES t_tipos_permisos(id_tipo_permiso)
 );
+
+-- Doble aprobación por solicitud: exactamente 2 filas por permiso (JEFE y RRHH), creadas en PENDIENTE
+-- al radicar la solicitud. El estado agregado en t_solicitudes_permisos se deriva de estas dos filas.
+-- id_aprobador es nullable: el nivel JEFE se fija al crear (id_jefe_responsable), pero el nivel
+-- RRHH no tiene un usuario fijo (cualquiera con permiso del módulo 27 puede resolverlo) y solo
+-- queda registrado el que efectivamente aprobó/rechazó.
+CREATE TABLE IF NOT EXISTS t_permisos_aprobaciones (
+    id_aprobacion           SERIAL,
+    id_permiso              INT NOT NULL,
+    nivel_aprobacion        VARCHAR(10) NOT NULL CHECK (nivel_aprobacion IN ('JEFE', 'RRHH')),
+    id_aprobador            VARCHAR(20),
+    estado                  VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
+    observacion             VARCHAR(255),
+    fec_resolucion          TIMESTAMP WITHOUT TIME ZONE,
+    usr_insert              VARCHAR NOT NULL,
+    fec_insert              TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    usr_update              VARCHAR,
+    fec_update              TIMESTAMP WITHOUT TIME ZONE,
+    usr_delete              VARCHAR,
+    fec_delete              TIMESTAMP WITHOUT TIME ZONE,
+    PRIMARY KEY (id_aprobacion),
+    CONSTRAINT uq_permiso_nivel_aprobacion UNIQUE (id_permiso, nivel_aprobacion),
+    FOREIGN KEY (id_permiso) REFERENCES t_solicitudes_permisos(id_permiso),
+    FOREIGN KEY (id_aprobador) REFERENCES t_usuarios(id_usuario)
+);
+
+CREATE INDEX idx_permisos_aprobaciones_aprobador ON t_permisos_aprobaciones(id_aprobador, estado);
+
+-- Evidencias adjuntas a la solicitud (0..N archivos). El archivo en sí NUNCA se guarda en la DB ni en el
+-- proyecto: solo se persiste la referencia (proveedor + storage_key + url_publica) al servicio externo
+-- (Bunny.net / Cloudflare / B2, ver app/helpers/FileStorage).
+CREATE TABLE IF NOT EXISTS t_permisos_evidencias (
+    id_evidencia            SERIAL,
+    id_permiso              INT NOT NULL,
+    proveedor               VARCHAR(20) NOT NULL DEFAULT 'BUNNY' CHECK (proveedor IN ('BUNNY', 'R2', 'B2', 'CLOUDFLARE_IMAGES')),
+    storage_key             VARCHAR(255) NOT NULL,
+    url_publica             VARCHAR(500),
+    nombre_original         VARCHAR(255) NOT NULL,
+    mime_type               VARCHAR(100) NOT NULL CHECK (mime_type IN ('image/jpeg', 'image/png', 'application/pdf')),
+    tamano_bytes            INT NOT NULL CHECK (tamano_bytes > 0 AND tamano_bytes <= 10485760),
+    usr_insert              VARCHAR NOT NULL,
+    fec_insert              TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    usr_update              VARCHAR,
+    fec_update              TIMESTAMP WITHOUT TIME ZONE,
+    usr_delete              VARCHAR,
+    fec_delete              TIMESTAMP WITHOUT TIME ZONE,
+    PRIMARY KEY (id_evidencia),
+    FOREIGN KEY (id_permiso) REFERENCES t_solicitudes_permisos(id_permiso)
+);
+
+CREATE INDEX idx_permisos_evidencias_permiso ON t_permisos_evidencias(id_permiso);
 
 -- Tabla de expansión para pintar el calendario de disponibilidad
 CREATE TABLE IF NOT EXISTS t_permisos_dias_aprobados (

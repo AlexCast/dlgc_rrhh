@@ -37,20 +37,20 @@ require_once __DIR__ . '/../../app/conexion.php';
 
 $sentencia = $conexion->prepare('SELECT fun_insert_usuarios(:id_usuario, :id_rol, :username, :tipo_documento, :primer_nombre, :segundo_nombre, :primer_apellido, :segundo_apellido, :correo, :contrasena);');
 $sentencia->execute([
-    ':id_usuario' => id_usuario,
-        ':id_rol' => id_rol,
-        ':username' => username,
-        ':tipo_documento' => tipo_documento,
-        ':primer_nombre' => primer_nombre,
-        ':segundo_nombre' => segundo_nombre,
-        ':primer_apellido' => primer_apellido,
-        ':segundo_apellido' => segundo_apellido,
-        ':correo' => correo,
-        ':contrasena' => contrasena,
+    ':id_usuario'       => $id_usuario,
+    ':id_rol'           => $id_rol,
+    ':username'         => $username,
+    ':tipo_documento'   => $tipo_documento,
+    ':primer_nombre'    => $primer_nombre,
+    ':segundo_nombre'   => $segundo_nombre,
+    ':primer_apellido'  => $primer_apellido,
+    ':segundo_apellido' => $segundo_apellido,
+    ':correo'           => $correo,
+    ':contrasena'       => $contrasena,
 ]);
 $resultado = (string) $sentencia->fetchColumn();
 
-if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false || stripos($resultado, 'Esta vaina funcionó') !== false) {
+if ($resultado === 'OK') {
     header('Location: listar_usuarios.php?success=' . urlencode('Usuario creado correctamente.'));
     exit();
 }

@@ -1,0 +1,26 @@
+<?php
+/**
+ * Configuración del proveedor externo de almacenamiento de evidencias.
+ * Copia este archivo como storage_config.php y completa tus credenciales reales.
+ * storage_config.php debe agregarse a .gitignore (igual que mail_config.php).
+ *
+ * Ningún archivo de evidencia se guarda en la base de datos ni dentro del
+ * proyecto: solo se persiste la referencia (proveedor + storage_key + url_publica)
+ * en t_permisos_evidencias.
+ */
+
+return [
+    // Proveedor activo: 'BUNNY', 'NULL' (modo desarrollo, no sube archivos reales).
+    'provider' => 'NULL',
+
+    'bunny' => [
+        // Nombre de la Storage Zone en Bunny.net (panel > Storage).
+        'storage_zone_name' => 'TU_STORAGE_ZONE',
+        // Storage API Password / AccessKey de la Storage Zone (NO el API Key de cuenta).
+        'access_key' => 'TU_ACCESS_KEY',
+        // Endpoint regional de almacenamiento (ver documentación de Bunny.net; por defecto Falkenstein).
+        'storage_host' => 'storage.bunnycdn.com',
+        // Hostname de la Pull Zone (CDN) conectada a la Storage Zone, usado para servir las evidencias.
+        'pull_zone_host' => 'tu-pull-zone.b-cdn.net',
+    ],
+];

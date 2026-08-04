@@ -630,6 +630,14 @@ body.dark-theme .alert-banner .btn-close-banner:hover {
     gap: 8px;
 }
 
+.actions-placeholder {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    color: var(--mnt-text-muted, #9ca3af);
+}
+
 .empleados-table-scroll {
     overflow-x: auto;
     width: 100%;

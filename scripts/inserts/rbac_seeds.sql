@@ -12,9 +12,15 @@
 --            23 = Códigos de Registro,
 --            24 = Administración de Comunicados (SRC/comunicados),
 --            25 = SST (público/templates/sst.php),
---            26 = Administración SST (SRC/sst).
+--            26 = Administración SST (SRC/sst),
+--            27 = Aprobación RRHH de Permisos (bandeja RRHH de solicitud_permiso.php).
+--            28 = Días Festivos (SRC/dias_festivos, festivos de EMPRESA; los NACIONAL se
+--                 siembran con fun_sembrar_festivos_colombia y son de solo lectura).
 --   Operaciones por módulo: id_modulo*10 + [1=VER, 2=CREAR, 3=ACTUALIZAR, 4=ELIMINAR, 5=RESTAURAR].
 --   Roles: 1=ADMINISTRADOR, 2=EMPLEADO.
+--   Nota: la aprobación de JEFE directo NO tiene módulo RBAC propio; usa la operación 33
+--   (ACTUALIZAR de módulo 3), otorgada a todo el rol EMPLEADO, y se restringe en runtime
+--   comparando t_solicitudes_permisos.id_jefe_responsable con el usuario en sesión.
 --
 -- Ejecutar después de crear el esquema (modelo_db.sql) y antes de usar la app.
 -- ============================================================
@@ -43,6 +49,8 @@ VALUES
     (24, 'Administración de Comunicados', 'seed', CURRENT_TIMESTAMP),
     (25, 'SST', 'seed', CURRENT_TIMESTAMP),
     (26, 'Administración SST',       'seed', CURRENT_TIMESTAMP),
+    (27, 'Aprobación RRHH de Permisos', 'seed', CURRENT_TIMESTAMP),
+    (28, 'Días Festivos',              'seed', CURRENT_TIMESTAMP),
     (6,  'Roles Operaciones',        'seed', CURRENT_TIMESTAMP),
     (7,  'Afiliaciones Empleados',   'seed', CURRENT_TIMESTAMP),
     (8,  'Áreas',                    'seed', CURRENT_TIMESTAMP),
@@ -216,6 +224,11 @@ VALUES
     (263, 26, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
     (264, 26, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
 
+    -- 27. Aprobación RRHH de Permisos (sin CREAR/ELIMINAR/RESTAURAR propios: las aprobaciones
+    -- se generan automáticamente al crear la solicitud y se resuelven actualizando su estado)
+    (271, 27, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (273, 27, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+
     -- RESTAURAR (id_modulo * 10 + 5)
     (15,   1, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (35,   3, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
@@ -246,6 +259,28 @@ ON CONFLICT (id_operacion) DO UPDATE SET id_modulo       = EXCLUDED.id_modulo,
                                           fec_delete       = NULL,
                                           usr_delete       = NULL;
 
+-- Nota: no se agrega fila RESTAURAR (275) para el módulo 27 porque la bandeja RRHH no maneja
+-- borrado lógico propio; las aprobaciones se anulan actualizando su estado, no eliminándolas.
+INSERT INTO t_operaciones (id_operacion, id_modulo, nombre_operacion, usr_insert, fec_insert)
+VALUES (274, 27, 'ELIMINAR', 'seed', CURRENT_TIMESTAMP)
+ON CONFLICT (id_operacion) DO UPDATE SET id_modulo       = EXCLUDED.id_modulo,
+                                          nombre_operacion = EXCLUDED.nombre_operacion,
+                                          fec_delete       = NULL,
+                                          usr_delete       = NULL;
+
+-- Módulo 28: Días Festivos (CRUD completo, solo para festivos de EMPRESA).
+INSERT INTO t_operaciones (id_operacion, id_modulo, nombre_operacion, usr_insert, fec_insert)
+VALUES
+    (281, 28, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (282, 28, 'CREAR',      'seed', CURRENT_TIMESTAMP),
+    (283, 28, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+    (284, 28, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
+    (285, 28, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
+ON CONFLICT (id_operacion) DO UPDATE SET id_modulo       = EXCLUDED.id_modulo,
+                                          nombre_operacion = EXCLUDED.nombre_operacion,
+                                          fec_delete       = NULL,
+                                          usr_delete       = NULL;
+
 -- --------------------------------------------------------
 -- 4. Asignaciones Rol-Operación
 -- --------------------------------------------------------
@@ -262,9 +297,10 @@ INSERT INTO t_roles_operaciones (id_rol, id_operacion, usr_insert, fec_insert)
 VALUES
     -- Inicio: ver
     (2, 11, 'seed', CURRENT_TIMESTAMP),
-    -- Solicitudes y Permisos: ver + crear
+    -- Solicitudes y Permisos: ver + crear + actualizar (aprobar/rechazar como jefe directo de subordinados)
     (2, 31, 'seed', CURRENT_TIMESTAMP),
     (2, 32, 'seed', CURRENT_TIMESTAMP),
+    (2, 33, 'seed', CURRENT_TIMESTAMP),
     -- Directorio de Empleados: ver
     (2, 221, 'seed', CURRENT_TIMESTAMP),
     -- Comunicados: ver

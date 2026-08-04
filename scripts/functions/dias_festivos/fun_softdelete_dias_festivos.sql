@@ -7,6 +7,7 @@ BEGIN
     SET fec_delete = CURRENT_TIMESTAMP,
         usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
     WHERE id_festivo = wid_festivo
+      AND tipo_festivo = 'EMPRESA'
       AND fec_delete IS NULL;
 
     IF FOUND THEN

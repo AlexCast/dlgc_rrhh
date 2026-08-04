@@ -60,6 +60,7 @@ class Mailer
     public function send(string $toEmail, string $toName, string $subject, string $body, string $altBody = ''): bool
     {
         try {
+            $this->mail->clearAddresses();
             $this->mail->addAddress($toEmail, $toName);
             $this->mail->isHTML(true);
             $this->mail->Subject = $subject;

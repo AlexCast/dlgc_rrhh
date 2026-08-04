@@ -7,6 +7,7 @@ BEGIN
     SET fec_delete = NULL,
         usr_delete = NULL
     WHERE id_festivo = wid_festivo
+      AND tipo_festivo = 'EMPRESA'
       AND fec_delete IS NOT NULL;
 
     IF FOUND THEN

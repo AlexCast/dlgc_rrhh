@@ -126,3 +126,12 @@ FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
 
 CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_sst_buzon_quejas
 FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
+
+CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_permisos_aprobaciones
+FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
+
+CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_permisos_evidencias
+FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
+
+CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_dias_festivos_excepciones
+FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();

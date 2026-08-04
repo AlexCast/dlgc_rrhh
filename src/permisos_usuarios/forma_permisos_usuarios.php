@@ -18,7 +18,7 @@ $operaciones = $conexion->query("
     FROM t_operaciones o
     INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
     WHERE o.fec_delete IS NULL
-    ORDER BY m.nombre_modulo, o.nombre_operacion, o.id_operacion
+    ORDER BY m.id_modulo::integer, o.id_operacion
 ")->fetchAll(PDO::FETCH_OBJ);
 ?>
 
@@ -40,47 +40,59 @@ $operaciones = $conexion->query("
                     <?php echo csrf_input(); ?>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 field-wrap-usuario">
                             <div class="field-wrap">
-                                <label for="id_usuario" class="form-label">Usuario</label>
+                                <label for="busqueda_usuario" class="form-label">Usuario</label>
                                 <div class="input-group">
                                     <span class="input-group-text">USR</span>
-                                    <select name="id_usuario" id="id_usuario" class="form-select" required>
-                                        <option value="" disabled selected>Seleccione un usuario</option>
-                                        <?php foreach ($usuarios as $u): ?>
-                                            <option value="<?php echo htmlspecialchars((string) $u->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
-                                                <?php echo htmlspecialchars((string) ($u->nombre_usuario ?? $u->username ?? $u->id_usuario), ENT_QUOTES, 'UTF-8'); ?> (<?php echo htmlspecialchars((string) $u->id_usuario, ENT_QUOTES, 'UTF-8'); ?>)
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <input type="text"
+                                           id="busqueda_usuario"
+                                           class="form-control"
+                                           list="datalist-usuarios"
+                                           placeholder="Escriba nombre o usuario..."
+                                           autocomplete="off"
+                                           required>
+                                    <input type="hidden" name="id_usuario" id="id_usuario">
                                 </div>
+                                <datalist id="datalist-usuarios">
+                                    <?php foreach ($usuarios as $u): ?>
+                                        <?php
+                                            $etiquetaUsuario = ($u->nombre_usuario ?? $u->username ?? $u->id_usuario) . ' (' . $u->username . ')';
+                                        ?>
+                                        <option data-id="<?php echo (int) $u->id_usuario; ?>"
+                                                value="<?php echo htmlspecialchars((string) $etiquetaUsuario, ENT_QUOTES, 'UTF-8'); ?>">
+                                        </option>
+                                    <?php endforeach; ?>
+                                </datalist>
+                                <small class="field-tip">Empiece a escribir el nombre o el usuario para buscar.</small>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-6 field-wrap-operacion">
                             <div class="field-wrap">
-                                <label for="id_operacion" class="form-label">Operación</label>
+                                <label for="busqueda_operacion" class="form-label">Operación</label>
                                 <div class="input-group">
                                     <span class="input-group-text">OP</span>
-                                    <select name="id_operacion" id="id_operacion" class="form-select" required>
-                                        <option value="" disabled selected>Seleccione una operación</option>
-                                        <?php
-                                        $moduloActual = null;
-                                        foreach ($operaciones as $op):
-                                            if ($moduloActual !== $op->nombre_modulo):
-                                                if ($moduloActual !== null) echo '</optgroup>';
-                                                $moduloActual = $op->nombre_modulo;
-                                                echo '<optgroup label="' . htmlspecialchars((string) $moduloActual, ENT_QUOTES, 'UTF-8') . '">';
-                                            endif;
-                                        ?>
-                                            <option value="<?php echo (int) $op->id_operacion; ?>">
-                                                <?php echo htmlspecialchars((string) $op->nombre_operacion, ENT_QUOTES, 'UTF-8'); ?>
-                                            </option>
-                                        <?php endforeach;
-                                        if ($moduloActual !== null) echo '</optgroup>';
-                                        ?>
-                                    </select>
+                                    <input type="text"
+                                           id="busqueda_operacion"
+                                           class="form-control"
+                                           list="datalist-operaciones"
+                                           placeholder="Escriba operación o módulo..."
+                                           autocomplete="off"
+                                           required>
+                                    <input type="hidden" name="id_operacion" id="id_operacion">
                                 </div>
+                                <datalist id="datalist-operaciones">
+                                    <?php foreach ($operaciones as $op): ?>
+                                        <?php
+                                            $etiquetaOperacion = '[' . $op->id_modulo . '] ' . $op->nombre_modulo . ' - ' . $op->nombre_operacion;
+                                        ?>
+                                        <option data-id="<?php echo (int) $op->id_operacion; ?>"
+                                                value="<?php echo htmlspecialchars((string) $etiquetaOperacion, ENT_QUOTES, 'UTF-8'); ?>">
+                                        </option>
+                                    <?php endforeach; ?>
+                                </datalist>
+                                <small class="field-tip">Escriba la operación o el módulo para filtrar las sugerencias.</small>
                             </div>
                         </div>
                     </div>
@@ -95,4 +107,75 @@ $operaciones = $conexion->query("
     </section>
 </main>
 
+<style>
+    .field-wrap-operacion {
+        position: relative;
+        z-index: 20;
+    }
+
+    .field-wrap-usuario {
+        position: relative;
+        z-index: 10;
+    }
+</style>
+
+<script>
+(function () {
+    function vincularDatalist(inputId, hiddenId) {
+        var input = document.getElementById(inputId);
+        var hidden = document.getElementById(hiddenId);
+        if (!input || !hidden) return;
+        var datalist = document.getElementById(input.getAttribute('list'));
+        if (!datalist) return;
+
+        function sincronizar() {
+            var opciones = datalist.querySelectorAll('option');
+            var id = '';
+            for (var i = 0; i < opciones.length; i++) {
+                if (opciones[i].value === input.value) {
+                    id = opciones[i].getAttribute('data-id') || '';
+                    break;
+                }
+            }
+            hidden.value = id;
+        }
+
+        input.addEventListener('input', sincronizar);
+        input.addEventListener('change', sincronizar);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        vincularDatalist('busqueda_usuario', 'id_usuario');
+        vincularDatalist('busqueda_operacion', 'id_operacion');
+
+        var form = document.querySelector('form[data-validate]');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            var inputUsuario = document.getElementById('busqueda_usuario');
+            var inputOperacion = document.getElementById('busqueda_operacion');
+            var hiddenUsuario = form.querySelector('input[name="id_usuario"]');
+            var hiddenOperacion = form.querySelector('input[name="id_operacion"]');
+
+            if (inputUsuario && inputUsuario.value.trim() !== '' && (!hiddenUsuario || hiddenUsuario.value === '')) {
+                e.preventDefault();
+                if (window.AlertBanner) {
+                    AlertBanner.show('danger', 'Seleccione un usuario válido de las sugerencias.');
+                }
+                inputUsuario.focus();
+                return;
+            }
+
+            if (inputOperacion && inputOperacion.value.trim() !== '' && (!hiddenOperacion || hiddenOperacion.value === '')) {
+                e.preventDefault();
+                if (window.AlertBanner) {
+                    AlertBanner.show('danger', 'Seleccione una operación válida de las sugerencias.');
+                }
+                inputOperacion.focus();
+                return;
+            }
+        });
+    });
+})();
+</script>
 <?php include_once 'pie_permisos_usuarios.php'; ?>

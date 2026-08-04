@@ -59,16 +59,13 @@ BEGIN
         CURRENT_TIMESTAMP
     );
 
-    RAISE NOTICE 'Ya inserté el usuario %', wusername;
-    RETURN 'Esta vaina funcionó.. Somos duros en ADSO';
+    RETURN 'OK';
 
 EXCEPTION
-    WHEN SQLSTATE '23505' THEN  
-        RAISE NOTICE 'El registro ya existe.. Trabaje bien o ábrase llaveee';
+    WHEN SQLSTATE '23505' THEN
         RETURN 'El documento, usuario o correo ya están registrados.';
     WHEN OTHERS THEN
-        RAISE NOTICE 'Esta vaina se totió.. Y no fue de la risa.. Déjeme trabajar';
-        RETURN 'Esta vaina se totió.. Y no fue de la risa.. Déjeme trabajar';
+        RETURN 'Error inesperado al crear el usuario: ' || SQLERRM;
 END;
 $$ 
 LANGUAGE PLPGSQL;

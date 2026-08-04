@@ -22,14 +22,49 @@ $sentencia = $conexion->query('
     INNER JOIN t_usuarios u ON u.id_usuario = uo.id_usuario AND u.fec_delete IS NULL
     INNER JOIN t_operaciones o ON o.id_operacion = uo.id_operacion AND o.fec_delete IS NULL
     INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
-    ORDER BY nombre_usuario, m.nombre_modulo, o.nombre_operacion
+    ORDER BY nombre_usuario, m.id_modulo::integer, o.id_operacion
 ');
 $relaciones = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
+function construirArbolPermisos($relaciones) {
+    $arbol = [];
+    foreach ($relaciones as $rel) {
+        if (!empty($rel->fec_delete)) {
+            continue;
+        }
+        $idUsuario = (string) $rel->id_usuario;
+        $nombreUsuario = htmlspecialchars((string) ($rel->nombre_usuario ?? $rel->username ?? $rel->id_usuario ?? ''), ENT_QUOTES, 'UTF-8');
+        $idModulo = (string) $rel->id_modulo;
+        $nombreModulo = htmlspecialchars((string) ($rel->nombre_modulo ?? ''), ENT_QUOTES, 'UTF-8');
+
+        if (!isset($arbol[$idUsuario])) {
+            $arbol[$idUsuario] = [
+                'nombre' => $nombreUsuario,
+                'username' => htmlspecialchars((string) ($rel->username ?? ''), ENT_QUOTES, 'UTF-8'),
+                'modulos' => []
+            ];
+        }
+
+        if (!isset($arbol[$idUsuario]['modulos'][$idModulo])) {
+            $arbol[$idUsuario]['modulos'][$idModulo] = [
+                'nombre' => $nombreModulo,
+                'operaciones' => []
+            ];
+        }
+
+        $arbol[$idUsuario]['modulos'][$idModulo]['operaciones'][] = $rel;
+    }
+    return $arbol;
+}
+
+$arbolPermisos = construirArbolPermisos($relaciones);
 $relacionesEliminadas = array_filter($relaciones, function ($rel) {
     return !empty($rel->fec_delete);
 });
+$totalPermisosActivos = count($relaciones) - count($relacionesEliminadas);
 ?>
+
+<link rel="stylesheet" href="/dlgc_rrhh/src/permisos_usuarios/permisos_usuarios.css">
 
 <?php include_once 'encab_permisos_usuarios.php'; ?>
 <?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>
@@ -42,7 +77,7 @@ $relacionesEliminadas = array_filter($relaciones, function ($rel) {
             <h1>Permisos por Usuario Registrados</h1>
 
             <div class="d-flex gap-3 mb-4">
-                <span class="badge bg-primary p-2">Total: <?php echo count($relaciones); ?> registros</span>
+                <span class="badge bg-primary p-2">Total: <?php echo $totalPermisosActivos; ?> permisos</span>
                 <span class="badge bg-danger p-2" id="btnEliminados" data-deleted-modal-target="#modalEliminados" style="cursor:pointer;">Eliminados: <?php echo count($relacionesEliminadas); ?></span>
             </div>
 
@@ -99,99 +134,104 @@ $relacionesEliminadas = array_filter($relaciones, function ($rel) {
                 </div>
             </div>
 
-            <div class="desktop-view">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-primary">
-                            <tr>
-                                <th>Usuario</th>
-                                <th>Operación</th>
-                                <th>Módulo</th>
-                                <th>Usuario Inserto</th>
-                                <th>Fecha Insercion</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (count($relaciones) === 0): ?>
-                                <tr><td colspan="6" class="text-center">No hay registros</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($relaciones as $rel): ?>
-                                    <?php if (!empty($rel->fec_delete)) { continue; } ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars((string) ($rel->nombre_usuario ?? $rel->username ?? $rel->id_usuario ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($rel->nombre_operacion ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($rel->nombre_modulo ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($rel->usr_insert ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($rel->fec_insert ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td class="actions-cell">
-                                            <?php if (has_module_permission(21, 'actualizar')): ?>
-                                            <a class="btn btn-warning btn-sm" href="editar_permisos_usuarios.php?id_usuario=<?php echo urlencode((string) $rel->id_usuario); ?>&id_operacion=<?php echo (int) $rel->id_operacion; ?>">Editar</a>
-                                            <?php endif; ?>
-                                            <?php if (has_module_permission(21, 'eliminar')): ?>
-                                            <form method="POST" action="eliminar_permisos_usuarios.php" style="display:inline-block;">
-                                                <?php echo csrf_input(); ?>
-                                                <input type="hidden" name="id_usuario" value="<?php echo htmlspecialchars((string) $rel->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
-                                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                            </form>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="mobile-view">
-                <div class="row">
-                    <?php foreach ($relaciones as $rel): ?>
-                        <?php if (!empty($rel->fec_delete)) { continue; } ?>
-                        <div class="col-12 mb-3">
-                            <div class="mantenimiento-card card">
-                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0"><?php echo htmlspecialchars((string) ($rel->nombre_usuario ?? $rel->username ?? $rel->id_usuario ?? ''), ENT_QUOTES, 'UTF-8'); ?></h5>
-                                    <div class="d-flex gap-2">
-                                        <?php if (has_module_permission(21, 'actualizar')): ?>
-                                        <a class="btn btn-warning btn-sm" href="editar_permisos_usuarios.php?id_usuario=<?php echo urlencode((string) $rel->id_usuario); ?>&id_operacion=<?php echo (int) $rel->id_operacion; ?>">Editar</a>
-                                        <?php endif; ?>
-                                        <?php if (has_module_permission(21, 'eliminar')): ?>
-                                        <form method="POST" action="eliminar_permisos_usuarios.php" style="display:inline-block;">
-                                            <?php echo csrf_input(); ?>
-                                            <input type="hidden" name="id_usuario" value="<?php echo htmlspecialchars((string) $rel->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                        </form>
-                                        <?php endif; ?>
+            <div class="permisos-acordeon">
+                <?php if (empty($arbolPermisos)): ?>
+                    <div class="alert alert-info">No hay permisos registrados.</div>
+                <?php else: ?>
+                    <?php foreach ($arbolPermisos as $idUsuario => $usuario): ?>
+                        <div class="pu-acordeon-item">
+                            <button type="button" class="pu-acordeon-cabecera pu-cabecera-usuario" aria-expanded="false">
+                                <span class="pu-cabecera-texto">
+                                    <i class="fas fa-user-circle pu-icono"></i>
+                                    <?php echo $usuario['nombre']; ?>
+                                    <?php if ($usuario['username'] !== ''): ?>
+                                        <small class="pu-cabecera-sub">@<?php echo $usuario['username']; ?></small>
+                                    <?php endif; ?>
+                                </span>
+                                <span class="pu-cabecera-meta">
+                                    <span class="badge bg-primary p-2"><?php echo count($usuario['modulos']); ?> módulo(s)</span>
+                                    <i class="fas fa-chevron-down pu-flecha"></i>
+                                </span>
+                            </button>
+                            <div class="pu-acordeon-cuerpo pu-cuerpo-usuario">
+                                <?php foreach ($usuario['modulos'] as $idModulo => $modulo): ?>
+                                    <div class="pu-acordeon-item">
+                                        <button type="button" class="pu-acordeon-cabecera pu-cabecera-modulo" aria-expanded="false">
+                                            <span class="pu-cabecera-texto">
+                                                <i class="fas fa-folder pu-icono"></i>
+                                                <?php echo $modulo['nombre']; ?>
+                                            </span>
+                                            <span class="pu-cabecera-meta">
+                                                <span class="badge bg-primary p-2"><?php echo count($modulo['operaciones']); ?> op.</span>
+                                                <i class="fas fa-chevron-down pu-flecha"></i>
+                                            </span>
+                                        </button>
+                                        <div class="pu-acordeon-cuerpo pu-cuerpo-modulo">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead class="table-primary">
+                                                        <tr>
+                                                            <th>Operación</th>
+                                                            <th>Usuario Inserto</th>
+                                                            <th>Fecha Inserción</th>
+                                                            <th>Acciones</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php foreach ($modulo['operaciones'] as $rel): ?>
+                                                            <tr>
+                                                                <td><?php echo htmlspecialchars((string) ($rel->nombre_operacion ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                                                <td><?php echo htmlspecialchars((string) ($rel->usr_insert ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                                                <td><?php echo htmlspecialchars((string) ($rel->fec_insert ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                                                <td class="actions-cell">
+                                                                    <?php if (has_module_permission(21, 'actualizar')): ?>
+                                                                    <a class="btn btn-warning btn-sm" href="editar_permisos_usuarios.php?id_usuario=<?php echo urlencode((string) $rel->id_usuario); ?>&id_operacion=<?php echo (int) $rel->id_operacion; ?>">Editar</a>
+                                                                    <?php endif; ?>
+                                                                    <?php if (has_module_permission(21, 'eliminar')): ?>
+                                                                    <form method="POST" action="eliminar_permisos_usuarios.php" style="display:inline-block;">
+                                                                        <?php echo csrf_input(); ?>
+                                                                        <input type="hidden" name="id_usuario" value="<?php echo htmlspecialchars((string) $rel->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
+                                                                        <input type="hidden" name="id_operacion" value="<?php echo (int) $rel->id_operacion; ?>">
+                                                                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                                                    </form>
+                                                                    <?php endif; ?>
+                                                                </td>
+                                                            </tr>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <strong>Operación</strong>
-                                            <span><?php echo htmlspecialchars((string) ($rel->nombre_operacion ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <strong>Módulo</strong>
-                                            <span><?php echo htmlspecialchars((string) ($rel->nombre_modulo ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <strong>Usuario Inserto</strong>
-                                            <span><?php echo htmlspecialchars((string) ($rel->usr_insert ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <strong>Fecha Insercion</strong>
-                                            <span><?php echo htmlspecialchars((string) ($rel->fec_insert ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
-                                        </li>
-                                    </ul>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </main>
 
+<script>
+(function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.pu-acordeon-cabecera').forEach(function (cabecera) {
+            cabecera.addEventListener('click', function () {
+                var expandido = this.getAttribute('aria-expanded') === 'true';
+                var cuerpo = this.nextElementSibling;
+                var flecha = this.querySelector('.pu-flecha');
+
+                this.setAttribute('aria-expanded', String(!expandido));
+                if (cuerpo) {
+                    cuerpo.classList.toggle('pu-abierto', !expandido);
+                }
+                if (flecha) {
+                    flecha.classList.toggle('pu-rotada', !expandido);
+                }
+            });
+        });
+    });
+})();
+</script>
 <?php include_once 'pie_permisos_usuarios.php'; ?>

@@ -141,7 +141,7 @@ if (!$registro) {
                                 <label for="id_municipio" class="form-label">Municipio</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Mpio</span>
-                                    <select name="municipio" id="id_municipio" class="form-select" required>
+                                    <select name="id_municipio" id="id_municipio" class="form-select" required>
                                         <option value="">Seleccione departamento primero</option>
                                         <?php foreach ($municipiosRegistros as $municipio): ?>
                                             <option value="<?php echo htmlspecialchars((string) $municipio->id_municipio, ENT_QUOTES, 'UTF-8'); ?>" data-departamento-id="<?php echo htmlspecialchars((string) $municipio->departamento_id, ENT_QUOTES, 'UTF-8'); ?>" <?php echo (string) $municipio->id_municipio === (string) $registro->id_municipio ? 'selected' : ''; ?>>

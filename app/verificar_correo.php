@@ -89,14 +89,33 @@ try {
     ]);
     $resultado = $sentenciaInsert->fetchColumn();
 
-    $mensajeExito = 'Esta vaina funcionó.. Somos duros en ADSO';
+    $mensajeExito = 'OK';
     if ($resultado !== $mensajeExito) {
-        error_log('Error creando usuario tras verificación: ' . $resultado);
-        redirigirLogin([
-            'tab' => 'login',
-            'status' => 'error',
-            'code' => 'error_servidor',
+        // Si el usuario ya existe, es posible que un intento previo haya
+        // creado la fila en t_usuarios pero no haya marcado el token como
+        // usado (por ejemplo, por un problema de codificación en la
+        // respuesta de la función). En ese caso, completamos la activación.
+        $sentenciaExiste = $conexion->prepare(
+            "SELECT id_usuario
+             FROM t_usuarios
+             WHERE id_usuario = :id_usuario
+               AND correo = :correo
+             LIMIT 1"
+        );
+        $sentenciaExiste->execute([
+            ':id_usuario' => $verificacion['id_usuario'],
+            ':correo'     => $verificacion['correo'],
         ]);
+        $usuarioExistente = $sentenciaExiste->fetch();
+
+        if (!$usuarioExistente) {
+            error_log('Error creando usuario tras verificación: ' . $resultado);
+            redirigirLogin([
+                'tab' => 'login',
+                'status' => 'error',
+                'code' => 'error_servidor',
+            ]);
+        }
     }
 
     // Marcar correo como verificado.
