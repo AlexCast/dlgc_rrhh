@@ -84,6 +84,11 @@ $sentenciaPermisos = $conexion->prepare(
 $sentenciaPermisos->execute($parametros);
 $permisos = $sentenciaPermisos->fetchAll(PDO::FETCH_ASSOC);
 
+// Los permisos por horas y por días se exportan en tablas separadas: unidades y columnas distintas
+// (una fecha única + rango horario vs. rango de fechas + días hábiles) no deben mezclarse en una sola tabla.
+$permisosDias = array_values(array_filter($permisos, static fn(array $p): bool => !filter_var($p['es_por_horas'], FILTER_VALIDATE_BOOLEAN)));
+$permisosHoras = array_values(array_filter($permisos, static fn(array $p): bool => filter_var($p['es_por_horas'], FILTER_VALIDATE_BOOLEAN)));
+
 $sentenciaFestivos = $conexion->prepare(
     "SELECT df.fecha, df.descripcion, df.tipo_festivo, df.descuenta_salario,
             (SELECT COUNT(*) FROM t_empleados e
@@ -184,24 +189,24 @@ function estilarFilasDatos(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $hoja, 
 }
 
 if ($formato === 'pdf') {
-    generarPdf($titulo, $permisos, $festivos, $mes, $anio, $vista);
+    generarPdf($titulo, $permisosDias, $permisosHoras, $festivos, $mes, $anio, $vista);
 } else {
-    generarExcel($titulo, $permisos, $festivos, $mes, $anio, $vista);
+    generarExcel($titulo, $permisosDias, $permisosHoras, $festivos, $mes, $anio, $vista);
 }
 
-function generarExcel(string $titulo, array $permisos, array $festivos, int $mes, int $anio, string $vista): void
+function generarExcel(string $titulo, array $permisosDias, array $permisosHoras, array $festivos, int $mes, int $anio, string $vista): void
 {
     $spreadsheet = new Spreadsheet();
     $colorMarca = '3BA86A';
 
-    $hojaPermisos = $spreadsheet->getActiveSheet();
-    $hojaPermisos->setTitle('Permisos');
-    $encabezadosPermisos = ['ID', 'Empleado', 'Documento', 'Fecha Inicio', 'Fecha Fin', 'Días Hábiles', 'Motivo(s)', '% Descuento Ref.', 'Método Descuento', 'Estado'];
-    estilarHojaReporte($hojaPermisos, $titulo, $encabezadosPermisos, $colorMarca);
+    $hojaDias = $spreadsheet->getActiveSheet();
+    $hojaDias->setTitle('Permisos por Días');
+    $encabezadosDias = ['ID', 'Empleado', 'Documento', 'Fecha Inicio', 'Fecha Fin', 'Días Hábiles', 'Motivo(s)', '% Descuento Ref.', 'Método Descuento', 'Estado'];
+    estilarHojaReporte($hojaDias, $titulo . ' - Permisos por Días', $encabezadosDias, $colorMarca);
 
     $fila = 4;
-    foreach ($permisos as $p) {
-        $hojaPermisos->fromArray([
+    foreach ($permisosDias as $p) {
+        $hojaDias->fromArray([
             $p['id_permiso'],
             trim($p['primer_nombre'] . ' ' . $p['primer_apellido']),
             $p['id_empleado'],
@@ -215,11 +220,40 @@ function generarExcel(string $titulo, array $permisos, array $festivos, int $mes
         ], null, 'A' . $fila);
         $fila++;
     }
-    estilarFilasDatos($hojaPermisos, count($encabezadosPermisos), $fila - 1);
-    if (empty($permisos)) {
-        $mensajeVacioPermisos = $vista === 'nomina' ? 'Sin permisos con descuento aprobados en el periodo.' : 'Sin permisos aprobados en el periodo.';
-        $hojaPermisos->setCellValue('A4', $mensajeVacioPermisos);
-        $hojaPermisos->mergeCells('A4:' . chr(64 + count($encabezadosPermisos)) . '4');
+    estilarFilasDatos($hojaDias, count($encabezadosDias), $fila - 1);
+    if (empty($permisosDias)) {
+        $mensajeVacioDias = $vista === 'nomina' ? 'Sin permisos por días con descuento aprobados en el periodo.' : 'Sin permisos por días aprobados en el periodo.';
+        $hojaDias->setCellValue('A4', $mensajeVacioDias);
+        $hojaDias->mergeCells('A4:' . chr(64 + count($encabezadosDias)) . '4');
+    }
+
+    $hojaHoras = $spreadsheet->createSheet();
+    $hojaHoras->setTitle('Permisos por Horas');
+    $encabezadosHoras = ['ID', 'Empleado', 'Documento', 'Fecha', 'Hora Inicio', 'Hora Fin', 'Total Horas', 'Motivo(s)', '% Descuento Ref.', 'Método Descuento', 'Estado'];
+    estilarHojaReporte($hojaHoras, $titulo . ' - Permisos por Horas', $encabezadosHoras, $colorMarca);
+
+    $filaH = 4;
+    foreach ($permisosHoras as $p) {
+        $hojaHoras->fromArray([
+            $p['id_permiso'],
+            trim($p['primer_nombre'] . ' ' . $p['primer_apellido']),
+            $p['id_empleado'],
+            $p['fecha_inicio'],
+            $p['hora_inicio'],
+            $p['hora_fin'],
+            etiquetaDiasHabilesPermiso($p),
+            $p['motivos'],
+            $p['porcentaje_descuento'] !== null ? $p['porcentaje_descuento'] . '%' : 'N/A',
+            etiquetaMetodoDescuento($p['metodo_descuento']),
+            $p['estado'],
+        ], null, 'A' . $filaH);
+        $filaH++;
+    }
+    estilarFilasDatos($hojaHoras, count($encabezadosHoras), $filaH - 1);
+    if (empty($permisosHoras)) {
+        $mensajeVacioHoras = $vista === 'nomina' ? 'Sin permisos por horas con descuento aprobados en el periodo.' : 'Sin permisos por horas aprobados en el periodo.';
+        $hojaHoras->setCellValue('A4', $mensajeVacioHoras);
+        $hojaHoras->mergeCells('A4:' . chr(64 + count($encabezadosHoras)) . '4');
     }
 
     $hojaFestivos = $spreadsheet->createSheet();
@@ -257,17 +291,34 @@ function generarExcel(string $titulo, array $permisos, array $festivos, int $mes
     exit;
 }
 
-function generarPdf(string $titulo, array $permisos, array $festivos, int $mes, int $anio, string $vista): void
+function generarPdf(string $titulo, array $permisosDias, array $permisosHoras, array $festivos, int $mes, int $anio, string $vista): void
 {
-    $filasPermisos = '';
-    foreach ($permisos as $p) {
-        $filasPermisos .= sprintf(
+    $filasDias = '';
+    foreach ($permisosDias as $p) {
+        $filasDias .= sprintf(
             '<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
             $p['id_permiso'],
             htmlspecialchars(trim($p['primer_nombre'] . ' ' . $p['primer_apellido'])),
             htmlspecialchars($p['id_empleado']),
             htmlspecialchars($p['fecha_inicio']),
             htmlspecialchars($p['fecha_fin']),
+            htmlspecialchars(etiquetaDiasHabilesPermiso($p)),
+            htmlspecialchars($p['motivos'] ?? ''),
+            $p['porcentaje_descuento'] !== null ? htmlspecialchars($p['porcentaje_descuento']) . '%' : 'N/A',
+            htmlspecialchars(etiquetaMetodoDescuento($p['metodo_descuento']))
+        );
+    }
+
+    $filasHoras = '';
+    foreach ($permisosHoras as $p) {
+        $filasHoras .= sprintf(
+            '<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
+            $p['id_permiso'],
+            htmlspecialchars(trim($p['primer_nombre'] . ' ' . $p['primer_apellido'])),
+            htmlspecialchars($p['id_empleado']),
+            htmlspecialchars($p['fecha_inicio']),
+            htmlspecialchars(substr((string) $p['hora_inicio'], 0, 5)),
+            htmlspecialchars(substr((string) $p['hora_fin'], 0, 5)),
             htmlspecialchars(etiquetaDiasHabilesPermiso($p)),
             htmlspecialchars($p['motivos'] ?? ''),
             $p['porcentaje_descuento'] !== null ? htmlspecialchars($p['porcentaje_descuento']) . '%' : 'N/A',
@@ -301,8 +352,10 @@ function generarPdf(string $titulo, array $permisos, array $festivos, int $mes, 
     $notaPermisos = $vista === 'nomina'
         ? 'Solo se listan permisos y festivos que generan un descuento real de sueldo o vacaciones.'
         : 'Informe completo de RRHH: incluye todos los permisos aprobados y todos los días festivos del periodo, se descuenten o no.';
-    $tituloSeccionPermisos = $vista === 'nomina' ? 'Permisos aprobados con descuento' : 'Permisos aprobados (todos)';
-    $sinPermisosTexto = $vista === 'nomina' ? 'Sin permisos con descuento aprobados en el periodo.' : 'Sin permisos aprobados en el periodo.';
+    $tituloSeccionDias = $vista === 'nomina' ? 'Permisos por Días con descuento' : 'Permisos por Días (todos)';
+    $tituloSeccionHoras = $vista === 'nomina' ? 'Permisos por Horas con descuento' : 'Permisos por Horas (todos)';
+    $sinDiasTexto = $vista === 'nomina' ? 'Sin permisos por días con descuento aprobados en el periodo.' : 'Sin permisos por días aprobados en el periodo.';
+    $sinHorasTexto = $vista === 'nomina' ? 'Sin permisos por horas con descuento aprobados en el periodo.' : 'Sin permisos por horas aprobados en el periodo.';
     $tituloSeccionFestivos = $vista === 'nomina' ? 'Festivos de empresa con descuento de salario' : 'Días festivos del periodo (todos)';
     $notaFestivos = $vista === 'nomina'
         ? 'Aplican automáticamente a todos los empleados activos ese día; no requieren solicitud individual de permiso. Los festivos nacionales no se incluyen porque por ley no se descuentan.'
@@ -321,9 +374,13 @@ function generarPdf(string $titulo, array $permisos, array $festivos, int $mes, 
     </style></head><body>'
         . '<h1>' . htmlspecialchars($titulo) . '</h1>'
         . '<p style="font-size:10px;color:#555;">' . htmlspecialchars($notaPermisos) . '</p>'
-        . '<h2>' . htmlspecialchars($tituloSeccionPermisos) . '</h2>'
+        . '<h2>' . htmlspecialchars($tituloSeccionDias) . '</h2>'
         . '<table><thead><tr><th>ID</th><th>Empleado</th><th>Documento</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Días Hábiles</th><th>Motivo(s)</th><th>% Ref.</th><th>Método</th></tr></thead><tbody>'
-        . ($filasPermisos ?: '<tr><td colspan="9">' . htmlspecialchars($sinPermisosTexto) . '</td></tr>')
+        . ($filasDias ?: '<tr><td colspan="9">' . htmlspecialchars($sinDiasTexto) . '</td></tr>')
+        . '</tbody></table>'
+        . '<h2>' . htmlspecialchars($tituloSeccionHoras) . '</h2>'
+        . '<table><thead><tr><th>ID</th><th>Empleado</th><th>Documento</th><th>Fecha</th><th>Hora Inicio</th><th>Hora Fin</th><th>Total Horas</th><th>Motivo(s)</th><th>% Ref.</th><th>Método</th></tr></thead><tbody>'
+        . ($filasHoras ?: '<tr><td colspan="10">' . htmlspecialchars($sinHorasTexto) . '</td></tr>')
         . '</tbody></table>'
         . '<h2>' . htmlspecialchars($tituloSeccionFestivos) . '</h2>'
         . '<p style="font-size:10px;color:#555;">' . htmlspecialchars($notaFestivos) . '</p>'

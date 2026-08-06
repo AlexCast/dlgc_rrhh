@@ -34,6 +34,96 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         $saldoVacaciones = $filaSaldo;
     }
 }
+
+$totalIncapacidadesAnio = 0;
+$solicitudesEnProceso = 0;
+$ultimosTramites = [];
+
+function formatearFechaCorta(string $fecha): string {
+    $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    $ts = strtotime($fecha);
+    if ($ts === false) {
+        return htmlspecialchars($fecha);
+    }
+    return date('j', $ts) . ' ' . ucfirst($meses[(int) date('n', $ts) - 1]) . ', ' . date('Y', $ts);
+}
+
+function claseBadgeEstado(string $estado): string {
+    return in_array($estado, ['APROBADO', 'Activo', 'Registrada'], true) ? 'status-approved' : 'status-pending';
+}
+
+function textoBadgeEstado(string $estado): string {
+    return match ($estado) {
+        'APROBADO' => 'Aprobada',
+        'PENDIENTE' => 'Pendiente',
+        'EN_REVISION' => 'En revisión',
+        'RECHAZADO' => 'Rechazada',
+        'CANCELADO' => 'Cancelada',
+        default => $estado,
+    };
+}
+
+function formatearDuracionTramite(array $tramite): string {
+    if (!empty($tramite['es_por_horas'])) {
+        $horas = (float) $tramite['duracion'];
+        $entero = ($horas == (int) $horas);
+        return number_format($horas, $entero ? 0 : 1, '.', ',') . ' hora' . ($horas == 1 ? '' : 's');
+    }
+    $dias = (int) $tramite['duracion'];
+    return $dias . ' día' . ($dias === 1 ? '' : 's');
+}
+
+function formatearDiasMetrica(float $valor): string {
+    if ($valor == (int) $valor) {
+        return (string) (int) $valor;
+    }
+    return number_format($valor, 1, '.', ',');
+}
+
+if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
+    $stmtIncap = $conexion->prepare("SELECT COALESCE(SUM(
+            CASE
+                WHEN sp.es_por_horas THEN EXTRACT(EPOCH FROM (sp.hora_fin - sp.hora_inicio)) / 3600 / 8
+                ELSE fun_dias_habiles_rango(sp.fecha_inicio, sp.fecha_fin)
+            END
+        ), 0) AS dias
+        FROM t_solicitudes_permisos sp
+        JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
+        JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
+        WHERE sp.id_empleado = :id_usuario
+          AND sp.estado = 'APROBADO'
+          AND sp.fec_delete IS NULL
+          AND tp.nombre_tipo ILIKE ANY (ARRAY['Incapacidad%', 'Consulta Médica'])
+          AND EXTRACT(YEAR FROM sp.fecha_inicio) = EXTRACT(YEAR FROM CURRENT_DATE)");
+    $stmtIncap->execute([':id_usuario' => $idUsuarioSesion]);
+    $totalIncapacidadesAnio = (float) $stmtIncap->fetchColumn();
+
+    $stmtProc = $conexion->prepare("SELECT COUNT(*)
+        FROM t_solicitudes_permisos
+        WHERE id_empleado = :id_usuario
+          AND estado IN ('PENDIENTE', 'EN_REVISION')
+          AND fec_delete IS NULL");
+    $stmtProc->execute([':id_usuario' => $idUsuarioSesion]);
+    $solicitudesEnProceso = (int) $stmtProc->fetchColumn();
+
+    $stmtUlt = $conexion->prepare("SELECT sp.id_permiso, sp.fecha_inicio, sp.fecha_fin, sp.es_por_horas,
+               sp.estado,
+               CASE
+                   WHEN sp.es_por_horas THEN ROUND(EXTRACT(EPOCH FROM (sp.hora_fin - sp.hora_inicio)) / 3600, 1)
+                   ELSE fun_dias_habiles_rango(sp.fecha_inicio, sp.fecha_fin)
+               END AS duracion,
+               STRING_AGG(tp.nombre_tipo, ', ' ORDER BY tp.nombre_tipo) AS tipos
+        FROM t_solicitudes_permisos sp
+        LEFT JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
+        LEFT JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
+        WHERE sp.id_empleado = :id_usuario
+          AND sp.fec_delete IS NULL
+        GROUP BY sp.id_permiso
+        ORDER BY sp.fec_insert DESC
+        LIMIT 5");
+    $stmtUlt->execute([':id_usuario' => $idUsuarioSesion]);
+    $ultimosTramites = $stmtUlt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -128,11 +218,11 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                     </div>
                     <div class="metric-card">
                         <span class="metric-title">Incapacidades este año</span>
-                        <span class="metric-value">3 <small>Días</small></span>
+                        <span class="metric-value"><?php echo formatearDiasMetrica($totalIncapacidadesAnio); ?> <small>Días</small></span>
                     </div>
                     <div class="metric-card">
                         <span class="metric-title">Solicitudes en Proceso</span>
-                        <span class="metric-value">1 <small>Activa</small></span>
+                        <span class="metric-value"><?php echo (int) $solicitudesEnProceso; ?> <small>Activa<?php echo $solicitudesEnProceso === 1 ? '' : 's'; ?></small></span>
                     </div>
                 </section>
 
@@ -151,24 +241,23 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <?php if (empty($ultimosTramites)): ?>
                                     <tr>
-                                        <td>Incapacidad Médica (General)</td>
-                                        <td>15 Jun, 2026</td>
-                                        <td>2 días</td>
-                                        <td><span class="badge status-approved">Aprobada</span></td>
+                                        <td colspan="4" class="text-center">No hay trámites recientes</td>
                                     </tr>
+                                    <?php else: ?>
+                                    <?php foreach ($ultimosTramites as $tramite): ?>
                                     <tr>
-                                        <td>Permiso por Calamidad Doméstica</td>
-                                        <td>02 May, 2026</td>
-                                        <td>1 día</td>
-                                        <td><span class="badge status-approved">Aprobada</span></td>
+                                        <td><?php
+                                            $tipoTramite = trim($tramite['tipos'] ?? '');
+                                            echo htmlspecialchars($tipoTramite !== '' ? $tipoTramite : 'Solicitud de permiso');
+                                        ?></td>
+                                        <td><?php echo formatearFechaCorta($tramite['fecha_inicio']); ?></td>
+                                        <td><?php echo formatearDuracionTramite($tramite); ?></td>
+                                        <td><span class="badge <?php echo claseBadgeEstado($tramite['estado']); ?>"><?php echo textoBadgeEstado($tramite['estado']); ?></span></td>
                                     </tr>
-                                    <tr>
-                                        <td>Solicitud de Vacaciones</td>
-                                        <td>10 Jul, 2026</td>
-                                        <td>5 días</td>
-                                        <td><span class="badge status-pending">En revisión</span></td>
-                                    </tr>
+                                    <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>

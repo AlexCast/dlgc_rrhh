@@ -149,7 +149,8 @@ function initDatePicker(wrapper) {
         btnPrev.type = 'button';
         btnPrev.className = 'date-picker-nav';
         btnPrev.textContent = '‹';
-        btnPrev.addEventListener('click', () => {
+        btnPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
             vistaMes--;
             if (vistaMes < 0) { vistaMes = 11; vistaAnio--; }
             renderPanel();
@@ -163,7 +164,8 @@ function initDatePicker(wrapper) {
         btnNext.type = 'button';
         btnNext.className = 'date-picker-nav';
         btnNext.textContent = '›';
-        btnNext.addEventListener('click', () => {
+        btnNext.addEventListener('click', (e) => {
+            e.stopPropagation();
             vistaMes++;
             if (vistaMes > 11) { vistaMes = 0; vistaAnio++; }
             renderPanel();
@@ -261,6 +263,148 @@ function initializeDatePickers() {
 }
 
 // -------------------------------------------------
+// Selector de horas personalizado
+// -------------------------------------------------
+function initTimePicker(wrapper) {
+    const targetId = wrapper.dataset.target;
+    const hiddenInput = document.getElementById(targetId);
+    const displayInput = wrapper.querySelector('.time-picker-input');
+    const icono = wrapper.querySelector('.time-picker-icon');
+    let panel = null;
+
+    function cerrarPanel() {
+        if (panel) {
+            panel.remove();
+            panel = null;
+            document.removeEventListener('click', manejarClickFuera);
+        }
+    }
+
+    function manejarClickFuera(event) {
+        if (panel && !panel.contains(event.target) && !wrapper.contains(event.target)) {
+            cerrarPanel();
+        }
+    }
+
+    function formatearHora(horas, minutos) {
+        return String(horas).padStart(2, '0') + ':' + String(minutos).padStart(2, '0');
+    }
+
+    function seleccionarHora(horas, minutos) {
+        const valor = formatearHora(horas, minutos);
+        hiddenInput.value = valor;
+        displayInput.value = valor;
+        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+        cerrarPanel();
+    }
+
+    function renderPanel() {
+        if (panel) panel.remove();
+
+        panel = document.createElement('div');
+        panel.className = 'time-picker-panel';
+
+        const [horaSel = -1, minSel = -1] = hiddenInput.value ? hiddenInput.value.split(':').map(Number) : [];
+
+        const columnaHoras = document.createElement('div');
+        columnaHoras.className = 'time-picker-column';
+        const tituloHoras = document.createElement('span');
+        tituloHoras.className = 'time-picker-column-title';
+        tituloHoras.textContent = 'Hora';
+        columnaHoras.appendChild(tituloHoras);
+
+        for (let h = 0; h < 24; h++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'time-picker-option';
+            btn.textContent = String(h).padStart(2, '0');
+            if (h === horaSel) btn.classList.add('time-picker-option--selected');
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const hora = h;
+                const minuto = minSel >= 0 ? minSel : 0;
+                seleccionarHora(hora, minuto);
+            });
+            columnaHoras.appendChild(btn);
+        }
+
+        const columnaMinutos = document.createElement('div');
+        columnaMinutos.className = 'time-picker-column';
+        const tituloMinutos = document.createElement('span');
+        tituloMinutos.className = 'time-picker-column-title';
+        tituloMinutos.textContent = 'Min';
+        columnaMinutos.appendChild(tituloMinutos);
+
+        const minutosOpciones = [0, 15, 30, 45];
+        minutosOpciones.forEach(m => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'time-picker-option';
+            btn.textContent = String(m).padStart(2, '0');
+            if (m === minSel) btn.classList.add('time-picker-option--selected');
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const hora = horaSel >= 0 ? horaSel : 0;
+                const minuto = m;
+                seleccionarHora(hora, minuto);
+            });
+            columnaMinutos.appendChild(btn);
+        });
+
+        const body = document.createElement('div');
+        body.className = 'time-picker-body';
+        body.append(columnaHoras, columnaMinutos);
+
+        const footer = document.createElement('div');
+        footer.className = 'time-picker-footer';
+
+        const btnLimpiar = document.createElement('button');
+        btnLimpiar.type = 'button';
+        btnLimpiar.className = 'time-picker-btn time-picker-btn--secondary';
+        btnLimpiar.textContent = 'Limpiar';
+        btnLimpiar.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hiddenInput.value = '';
+            displayInput.value = '';
+            hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            cerrarPanel();
+        });
+
+        const btnCerrar = document.createElement('button');
+        btnCerrar.type = 'button';
+        btnCerrar.className = 'time-picker-btn time-picker-btn--primary';
+        btnCerrar.textContent = 'Cerrar';
+        btnCerrar.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cerrarPanel();
+        });
+
+        footer.append(btnLimpiar, btnCerrar);
+        panel.append(body, footer);
+        wrapper.appendChild(panel);
+
+        setTimeout(() => {
+            const seleccionado = panel.querySelector('.time-picker-option--selected');
+            if (seleccionado) seleccionado.scrollIntoView({ block: 'center' });
+        }, 0);
+
+        setTimeout(() => document.addEventListener('click', manejarClickFuera), 0);
+    }
+
+    function abrirPanel() {
+        if (panel) { cerrarPanel(); return; }
+        renderPanel();
+    }
+
+    displayInput.addEventListener('click', abrirPanel);
+    icono.addEventListener('click', abrirPanel);
+}
+
+function initializeTimePickers() {
+    document.querySelectorAll('.time-picker').forEach(initTimePicker);
+}
+
+// -------------------------------------------------
 // Pestañas
 // -------------------------------------------------
 function initializeTabs() {
@@ -315,6 +459,7 @@ function initializeForm() {
     tipoRadios.forEach(radio => radio.addEventListener('change', handleTipoSolicitudChange));
 
     initializeDatePickers();
+    initializeTimePickers();
 
     const fechaInicio = document.getElementById('fecha_inicio');
     const fechaFin = document.getElementById('fecha_fin');
@@ -325,6 +470,9 @@ function initializeForm() {
     if (fechaFin) fechaFin.addEventListener('change', calculateTotalDias);
     if (horaInicio) horaInicio.addEventListener('change', calculateTotalHoras);
     if (horaFin) horaFin.addEventListener('change', calculateTotalHoras);
+
+    const fechaPermisoHoras = document.getElementById('fecha_permiso_horas');
+    if (fechaPermisoHoras) fechaPermisoHoras.addEventListener('change', syncFechaPermisoHoras);
 
     const motivoSelect = document.getElementById('motivo');
     if (motivoSelect) {
@@ -345,15 +493,31 @@ function handleTipoSolicitudChange(event) {
         datesSection.style.display = 'block';
         hoursSection.style.display = 'none';
         document.getElementById('hora_inicio').value = '';
+        document.getElementById('hora_inicio_display').value = '';
         document.getElementById('hora_fin').value = '';
+        document.getElementById('hora_fin_display').value = '';
         document.getElementById('total_horas').value = '';
+        document.getElementById('fecha_permiso_horas').value = '';
+        document.getElementById('fecha_permiso_horas_display').value = '';
     } else if (tipo === 'horas') {
         datesSection.style.display = 'none';
         hoursSection.style.display = 'block';
+        document.getElementById('fecha_inicio').value = '';
+        document.getElementById('fecha_inicio_display').value = '';
         document.getElementById('fecha_fin').value = '';
         document.getElementById('fecha_fin_display').value = '';
         document.getElementById('total_dias').value = '';
     }
+}
+
+/**
+ * El permiso por horas aplica a un único día; sincroniza ese día elegido hacia los
+ * mismos campos fecha_inicio/fecha_fin que consume el backend para permisos por días.
+ */
+function syncFechaPermisoHoras() {
+    const valor = document.getElementById('fecha_permiso_horas').value;
+    document.getElementById('fecha_inicio').value = valor;
+    document.getElementById('fecha_fin').value = valor;
 }
 
 function calculateTotalDias() {
@@ -459,6 +623,10 @@ function handleFormSubmit(event) {
             return;
         }
     } else if (tipoSolicitud.value === 'horas') {
+        if (!document.getElementById('fecha_permiso_horas').value) {
+            mostrarFeedbackForm('Selecciona el día en el que tomarás el permiso por horas.', 'error');
+            return;
+        }
         if (!document.getElementById('hora_inicio').value || !document.getElementById('hora_fin').value) {
             mostrarFeedbackForm('Completa las horas de inicio y fin.', 'error');
             return;
@@ -589,7 +757,7 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
                 <span>Remunerado: ${metodoDescuentoTexto}</span>
             </div>
             ${puedeResolverRrhh ? `
-            <div class="form-group">
+            <div class="perm-field">
                 <label>¿El permiso es remunerado?</label>
                 <select class="metodo-descuento-select" data-id="${sol.id_permiso}">
                     <option value="">-- Selecciona una opción --</option>
@@ -599,7 +767,7 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
                 </select>
             </div>` : ''}
             ${(puedeResolverJefe || puedeResolverRrhh) ? `
-            <div class="form-actions">
+            <div class="perm-actions">
                 <input type="text" class="observacion-input" placeholder="Observación (opcional)" data-id="${sol.id_permiso}">
                 <button class="btn btn-primary btn-aprobar" data-id="${sol.id_permiso}" data-nivel="${vista === 'jefe' ? 'JEFE' : 'RRHH'}">Aprobar</button>
                 <button class="btn btn-outline btn-rechazar" data-id="${sol.id_permiso}" data-nivel="${vista === 'jefe' ? 'JEFE' : 'RRHH'}">Rechazar</button>

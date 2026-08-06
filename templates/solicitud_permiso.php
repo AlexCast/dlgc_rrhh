@@ -9,6 +9,18 @@ $puedeCrear = has_module_permission(3, 'crear');
 $esJefe     = has_module_permission(3, 'actualizar');
 $esRrhh     = has_module_access(27);
 
+$tieneSubordinados = false;
+if ($conexion && $esJefe) {
+    $sentenciaSubordinados = $conexion->prepare(
+        'SELECT COUNT(*) AS total
+         FROM t_empleados
+         WHERE id_jefe = :id_jefe
+           AND fec_delete IS NULL'
+    );
+    $sentenciaSubordinados->execute([':id_jefe' => $_SESSION['id_usuario'] ?? null]);
+    $tieneSubordinados = ((int) ($sentenciaSubordinados->fetch(PDO::FETCH_ASSOC)['total'] ?? 0)) > 0;
+}
+
 $tiposPermiso = [];
 if ($conexion) {
     $sentenciaTipos = $conexion->query(
@@ -38,7 +50,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 </head>
 <body
     data-puede-crear="<?php echo $puedeCrear ? '1' : '0'; ?>"
-    data-es-jefe="<?php echo $esJefe ? '1' : '0'; ?>"
+    data-es-jefe="<?php echo ($esJefe && $tieneSubordinados) ? '1' : '0'; ?>"
     data-es-rrhh="<?php echo $esRrhh ? '1' : '0'; ?>"
     data-csrf="<?php echo $csrfToken; ?>"
 >
@@ -97,12 +109,12 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                 </div>
             </header>
 
-            <div class="form-container fade-in-up">
+            <div class="perm-page fade-in-up">
 
                 <div class="sst-tabs" role="tablist">
                     <button class="sst-tab active" data-tab="nueva" role="tab" aria-selected="true">Nueva Solicitud</button>
                     <button class="sst-tab" data-tab="mias" role="tab" aria-selected="false">Mis Solicitudes</button>
-                    <?php if ($esJefe): ?>
+                    <?php if ($esJefe && $tieneSubordinados): ?>
                     <button class="sst-tab" data-tab="jefe" role="tab" aria-selected="false">Bandeja de Jefe</button>
                     <?php endif; ?>
                     <?php if ($esRrhh): ?>
@@ -112,180 +124,167 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
                 <!-- Pestaña: Nueva Solicitud -->
                 <section id="tab-nueva" class="sst-tab-panel active">
-                <section class="form-card">
-                    <form id="permiso-form" class="permission-form" enctype="multipart/form-data">
-                        <?php echo csrf_input(); ?>
+                    <section class="perm-card">
+                        <h2 class="perm-card-title">Nueva Solicitud</h2>
+                        <form id="permiso-form" class="perm-form" enctype="multipart/form-data">
+                            <?php echo csrf_input(); ?>
 
-                        <!-- Información del Empleado -->
-                        <fieldset class="form-section">
-                            <legend>Información del Empleado</legend>
-                            
-                            <div class="form-group">
-                                <label for="fecha_solicitud">Fecha de Solicitud:</label>
-                                <input type="date" id="fecha_solicitud" name="fecha_solicitud" value="<?php echo date('Y-m-d'); ?>" readonly class="auto-fill">
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="nombre_empleado">Nombre Completo:</label>
-                                    <input type="text" id="nombre_empleado" name="nombre_empleado" value="<?php 
-                                        // Concatenamos validando que si no hay segundo nombre/apellido no queden espacios dobles
-                                        $nombres = trim(($_SESSION['primer_nombre'] ?? '') . ' ' . ($_SESSION['segundo_nombre'] ?? ''));
-                                        $apellidos = trim(($_SESSION['primer_apellido'] ?? '') . ' ' . ($_SESSION['segundo_apellido'] ?? ''));
-                                        echo htmlspecialchars(trim($nombres . ' ' . $apellidos)); 
-                                    ?>" readonly class="auto-fill">
-                                </div>
-                                <div class="form-group">
-                                    <label for="documento_empleado">Número de Identificación:</label>
-                                    <input type="text" id="documento_empleado" name="documento_empleado" value="<?php echo htmlspecialchars($_SESSION['id_usuario'] ?? ''); ?>" readonly class="auto-fill">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="cargo_empleado">Cargo:</label>
-                                <input type="text" id="cargo_empleado" name="cargo_empleado" value="Pendiente por asignar" readonly class="auto-fill">
-                            </div>
-
-                        </fieldset>
-
-                        <!-- Tipo de Solicitud -->
-                        <fieldset class="form-section">
-                            <legend>Tipo de Solicitud</legend>
-                            
-                            <div class="radio-group">
-                                <div class="radio-item">
-                                    <input type="radio" id="tipo_dias" name="tipo_solicitud" value="dias" required>
-                                    <label for="tipo_dias">Permiso por Días</label>
-                                </div>
-                                <div class="radio-item">
-                                    <input type="radio" id="tipo_horas" name="tipo_solicitud" value="horas" required>
-                                    <label for="tipo_horas">Permiso por Horas</label>
-                                </div>
-                            </div>
-
-                        </fieldset>
-
-                        <!-- Selector de Fechas o Horas -->
-                        <fieldset class="form-section" id="dates-section" style="display: none;">
-                            <legend>Seleccionar Fechas</legend>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="fecha_inicio_display">Fecha Inicial:</label>
-                                    <div class="date-picker" data-target="fecha_inicio">
-                                        <input type="text" id="fecha_inicio_display" class="date-picker-input" placeholder="dd/mm/aaaa" readonly autocomplete="off">
-                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                        <input type="hidden" id="fecha_inicio" name="fecha_inicio">
+                            <!-- Tipo de Solicitud -->
+                            <div class="perm-section">
+                                <h3 class="perm-section-title">Tipo de Solicitud</h3>
+                                <div class="perm-radio-group">
+                                    <div class="perm-radio-item">
+                                        <input type="radio" id="tipo_dias" name="tipo_solicitud" value="dias" required>
+                                        <label for="tipo_dias">Permiso por Días</label>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="fecha_fin_display">Fecha Final:</label>
-                                    <div class="date-picker" data-target="fecha_fin">
-                                        <input type="text" id="fecha_fin_display" class="date-picker-input" placeholder="dd/mm/aaaa" readonly autocomplete="off">
-                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                        <input type="hidden" id="fecha_fin" name="fecha_fin">
+                                    <div class="perm-radio-item">
+                                        <input type="radio" id="tipo_horas" name="tipo_solicitud" value="horas" required>
+                                        <label for="tipo_horas">Permiso por Horas</label>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="date-picker-legend">
-                                <span class="date-picker-legend-item"><i class="legend-dot legend-dot--festivo"></i> Festivo nacional (Colombia)</span>
-                                <span class="date-picker-legend-item"><i class="legend-dot legend-dot--festivo-empresa"></i> Festivo de empresa</span>
-                                <span class="date-picker-legend-item"><i class="legend-dot legend-dot--domingo"></i> Domingo</span>
-                            </div>
+                            <!-- Selector de Fechas o Horas -->
+                            <div class="perm-section" id="dates-section" style="display: none;">
+                                <h3 class="perm-section-title">Seleccionar Fechas</h3>
 
-                            <div class="form-group">
-                                <label for="total_dias">Total de Días Hábiles:</label>
-                                <input type="number" id="total_dias" name="total_dias" readonly min="0">
-                                <p class="form-hint">No cuenta domingos ni festivos en Colombia.</p>
-                            </div>
-
-                        </fieldset>
-
-                        <fieldset class="form-section" id="hours-section" style="display: none;">
-                            <legend>Seleccionar Horas</legend>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="hora_inicio">Hora de Inicio:</label>
-                                    <input type="time" id="hora_inicio" name="hora_inicio">
+                                <div class="perm-row">
+                                    <div class="perm-field">
+                                        <label for="fecha_inicio_display">Fecha Inicial</label>
+                                        <div class="date-picker" data-target="fecha_inicio">
+                                            <input type="text" id="fecha_inicio_display" class="date-picker-input" placeholder="dd/mm/aaaa" readonly autocomplete="off">
+                                            <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                            <input type="hidden" id="fecha_inicio" name="fecha_inicio">
+                                        </div>
+                                    </div>
+                                    <div class="perm-field">
+                                        <label for="fecha_fin_display">Fecha Final</label>
+                                        <div class="date-picker" data-target="fecha_fin">
+                                            <input type="text" id="fecha_fin_display" class="date-picker-input" placeholder="dd/mm/aaaa" readonly autocomplete="off">
+                                            <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                            <input type="hidden" id="fecha_fin" name="fecha_fin">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="hora_fin">Hora de Fin:</label>
-                                    <input type="time" id="hora_fin" name="hora_fin">
+
+                                <div class="date-picker-legend">
+                                    <span class="date-picker-legend-item"><i class="legend-dot legend-dot--festivo"></i> Festivo nacional (Colombia)</span>
+                                    <span class="date-picker-legend-item"><i class="legend-dot legend-dot--festivo-empresa"></i> Festivo de empresa</span>
+                                    <span class="date-picker-legend-item"><i class="legend-dot legend-dot--domingo"></i> Domingo</span>
+                                </div>
+
+                                <div class="perm-field">
+                                    <label for="total_dias">Total de Días Hábiles</label>
+                                    <input type="number" id="total_dias" name="total_dias" readonly min="0">
+                                    <p class="perm-field-hint">No cuenta domingos ni festivos en Colombia.</p>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="total_horas">Total de Horas:</label>
-                                <input type="number" id="total_horas" name="total_horas" readonly min="0" step="0.5">
+                            <div class="perm-section" id="hours-section" style="display: none;">
+                                <h3 class="perm-section-title">Seleccionar Horas</h3>
+
+                                <div class="perm-field">
+                                    <label for="fecha_permiso_horas_display">Día del Permiso</label>
+                                    <div class="date-picker" data-target="fecha_permiso_horas">
+                                        <input type="text" id="fecha_permiso_horas_display" class="date-picker-input" placeholder="dd/mm/aaaa" readonly autocomplete="off">
+                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <input type="hidden" id="fecha_permiso_horas" name="fecha_permiso_horas">
+                                    </div>
+                                </div>
+
+                                <div class="date-picker-legend">
+                                    <span class="date-picker-legend-item"><i class="legend-dot legend-dot--festivo"></i> Festivo nacional (Colombia)</span>
+                                    <span class="date-picker-legend-item"><i class="legend-dot legend-dot--festivo-empresa"></i> Festivo de empresa</span>
+                                    <span class="date-picker-legend-item"><i class="legend-dot legend-dot--domingo"></i> Domingo</span>
+                                </div>
+
+                                <div class="perm-row">
+                                    <div class="perm-field">
+                                        <label for="hora_inicio_display">Hora de Inicio</label>
+                                        <div class="time-picker" data-target="hora_inicio">
+                                            <input type="text" id="hora_inicio_display" class="time-picker-input" placeholder="hh:mm" readonly autocomplete="off">
+                                            <svg class="time-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                            <input type="hidden" id="hora_inicio" name="hora_inicio">
+                                        </div>
+                                    </div>
+                                    <div class="perm-field">
+                                        <label for="hora_fin_display">Hora de Fin</label>
+                                        <div class="time-picker" data-target="hora_fin">
+                                            <input type="text" id="hora_fin_display" class="time-picker-input" placeholder="hh:mm" readonly autocomplete="off">
+                                            <svg class="time-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                            <input type="hidden" id="hora_fin" name="hora_fin">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="perm-field">
+                                    <label for="total_horas">Total de Horas</label>
+                                    <input type="number" id="total_horas" name="total_horas" readonly min="0" step="0.5">
+                                </div>
                             </div>
 
-                        </fieldset>
+                            <!-- Motivo del Permiso -->
+                            <div class="perm-section">
+                                <h3 class="perm-section-title">Motivo del Permiso a Tramitar</h3>
 
-                        <!-- Motivo del Permiso (única opción, definida por RRHH en t_tipos_permisos) -->
-                        <fieldset class="form-section">
-                            <legend>Motivo del Permiso a Tramitar</legend>
+                                <div class="perm-field">
+                                    <label for="motivo">Selecciona un motivo</label>
+                                    <select id="motivo" name="motivo" required>
+                                        <option value="">Selecciona un motivo</option>
+                                        <?php foreach ($tiposPermiso as $tipo): ?>
+                                        <option value="<?php echo (int) $tipo['id_tipo_permiso']; ?>"
+                                                data-requiere-evidencia="<?php echo $tipo['requiere_evidencia'] === 't' || $tipo['requiere_evidencia'] === true ? '1' : '0'; ?>">
+                                            <?php echo htmlspecialchars($tipo['nombre_tipo']); ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
 
-                            <div class="form-group">
-                                <label for="motivo">Selecciona un motivo:</label>
-                                <select id="motivo" name="motivo" required>
-                                    <option value="">Selecciona un motivo</option>
-                                    <?php foreach ($tiposPermiso as $tipo): ?>
-                                    <option value="<?php echo (int) $tipo['id_tipo_permiso']; ?>"
-                                            data-requiere-evidencia="<?php echo $tipo['requiere_evidencia'] === 't' || $tipo['requiere_evidencia'] === true ? '1' : '0'; ?>">
-                                        <?php echo htmlspecialchars($tipo['nombre_tipo']); ?>
-                                    </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <div class="perm-field perm-detalle" id="detalle-motivo-group" style="display: none;">
+                                    <label for="detalle_motivo">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 0.4rem;">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                        Detalle (opcional)
+                                    </label>
+                                    <input type="text" id="detalle_motivo" name="detalle_motivo" placeholder="Describe con más detalle el motivo de tu solicitud">
+                                </div>
+
+                                <div class="perm-field perm-file" id="evidencia-section" style="display: none;">
+                                    <label for="evidencias">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 0.4rem;">
+                                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                                        </svg>
+                                        Evidencia (JPG, PNG o PDF, máx. 10MB c/u)
+                                    </label>
+                                    <input type="file" id="evidencias" name="evidencias[]" accept=".jpg,.jpeg,.png,.pdf" multiple>
+                                    <p class="perm-field-hint">El motivo seleccionado requiere evidencia.</p>
+                                </div>
                             </div>
 
-                            <div class="form-group" id="detalle-motivo-group" style="display: none;">
-                                <label for="detalle_motivo">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 0.4rem;">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                    </svg>
-                                    Detalle (opcional)
-                                </label>
-                                <input type="text" id="detalle_motivo" name="detalle_motivo" placeholder="Describe con más detalle el motivo de tu solicitud">
+                            <p id="permiso-form-feedback" class="sst-feedback"></p>
+
+                            <!-- Botones -->
+                            <div class="perm-actions">
+                                <?php if ($puedeCrear): ?>
+                                <button type="submit" class="btn btn-primary">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    Enviar Solicitud
+                                </button>
+                                <?php else: ?>
+                                <button type="button" class="btn btn-primary" disabled title="No tienes permiso para crear solicitudes">
+                                    Enviar Solicitud
+                                </button>
+                                <?php endif; ?>
+                                <a href="/dlgc_rrhh/templates/firstpage.php" class="btn btn-outline">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    Cancelar
+                                </a>
                             </div>
 
-                            <div class="form-group" id="evidencia-section" style="display: none;">
-                                <label for="evidencias">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 0.4rem;">
-                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                                    </svg>
-                                    Evidencia (JPG, PNG o PDF, máx. 10MB c/u)
-                                </label>
-                                <input type="file" id="evidencias" name="evidencias[]" accept=".jpg,.jpeg,.png,.pdf" multiple>
-                                <p class="form-hint">El motivo seleccionado requiere evidencia.</p>
-                            </div>
-
-                        </fieldset>
-
-                        <p id="permiso-form-feedback" class="sst-feedback"></p>
-
-                        <!-- Firma y Botones -->
-                        <div class="form-section form-actions">
-                            <?php if ($puedeCrear): ?>
-                            <button type="submit" class="btn btn-primary">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Enviar Solicitud
-                            </button>
-                            <?php else: ?>
-                            <button type="button" class="btn btn-primary" disabled title="No tienes permiso para crear solicitudes">
-                                Enviar Solicitud
-                            </button>
-                            <?php endif; ?>
-                            <a href="/dlgc_rrhh/templates/firstpage.php" class="btn btn-outline">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                Cancelar
-                            </a>
-                        </div>
-
-                    </form>
-                </section>
+                        </form>
+                    </section>
                 </section>
 
                 <!-- Pestaña: Mis Solicitudes -->
@@ -297,7 +296,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                     <div id="lista-mias" class="permiso-lista"></div>
                 </section>
 
-                <?php if ($esJefe): ?>
+                <?php if ($esJefe && $tieneSubordinados): ?>
                 <!-- Pestaña: Bandeja de Jefe -->
                 <section id="tab-jefe" class="sst-tab-panel" hidden>
                     <div class="sst-section-header">
@@ -342,7 +341,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
                         <div class="modal-box-body">
                             <div class="reporte-filtros">
-                                <div class="form-group">
+                                <div class="perm-field">
                                     <label for="reporte-mes">Mes</label>
                                     <select id="reporte-mes">
                                         <?php
@@ -354,7 +353,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div class="form-group">
+                                <div class="perm-field">
                                     <label for="reporte-anio">Año</label>
                                     <select id="reporte-anio">
                                         <?php for ($a = (int) date('Y') - 1; $a <= (int) date('Y') + 1; $a++): ?>
@@ -365,16 +364,16 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                             </div>
 
                             <div class="reporte-grupo">
-                                <p class="form-hint"><strong>Para Nómina</strong> — solo permisos y festivos que generan un descuento real.</p>
-                                <div class="form-actions">
+                                <p class="perm-field-hint"><strong>Para Nómina</strong> — solo permisos y festivos que generan un descuento real.</p>
+                                <div class="perm-actions">
                                     <a class="btn btn-outline reporte-link" data-vista="nomina" data-formato="excel" href="#">Descargar Nómina (Excel)</a>
                                     <a class="btn btn-outline reporte-link" data-vista="nomina" data-formato="pdf" href="#">Descargar Nómina (PDF)</a>
                                 </div>
                             </div>
 
                             <div class="reporte-grupo">
-                                <p class="form-hint"><strong>Para RRHH</strong> — informe completo de todos los permisos aprobados, se descuenten o no.</p>
-                                <div class="form-actions">
+                                <p class="perm-field-hint"><strong>Para RRHH</strong> — informe completo de todos los permisos aprobados, se descuenten o no.</p>
+                                <div class="perm-actions">
                                     <a class="btn btn-outline reporte-link" data-vista="rrhh" data-formato="excel" href="#">Descargar Informe RRHH (Excel)</a>
                                     <a class="btn btn-outline reporte-link" data-vista="rrhh" data-formato="pdf" href="#">Descargar Informe RRHH (PDF)</a>
                                 </div>

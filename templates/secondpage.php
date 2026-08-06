@@ -30,6 +30,82 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         $rolPerfil = (string) $puestoContrato;
     }
 }
+
+$totalEmpleadosActivos = 0;
+$afiliacionesPendientes = 0;
+$novedadesSemana = 0;
+$ultimosTramitesAdmin = [];
+
+function formatearFechaCorta(string $fecha): string {
+    $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    $ts = strtotime($fecha);
+    if ($ts === false) {
+        return htmlspecialchars($fecha);
+    }
+    return date('j', $ts) . ' ' . ucfirst($meses[(int) date('n', $ts) - 1]) . ', ' . date('Y', $ts);
+}
+
+function claseBadgeEstado(string $estado): string {
+    return in_array($estado, ['APROBADO', 'Activo', 'Registrada'], true) ? 'status-approved' : 'status-pending';
+}
+
+function textoBadgeEstado(string $estado): string {
+    return match ($estado) {
+        'APROBADO' => 'Aprobada',
+        'PENDIENTE' => 'Pendiente',
+        'EN_REVISION' => 'En revisión',
+        'RECHAZADO' => 'Rechazada',
+        'CANCELADO' => 'Cancelada',
+        default => $estado,
+    };
+}
+
+$stmt = $conexion->query("SELECT COUNT(*) FROM t_empleados WHERE fecha_egreso IS NULL OR fecha_egreso > CURRENT_DATE");
+$totalEmpleadosActivos = (int) $stmt->fetchColumn();
+
+$stmt = $conexion->query("SELECT COUNT(*)
+    FROM t_empleados e
+    WHERE (e.fecha_egreso IS NULL OR e.fecha_egreso > CURRENT_DATE)
+      AND NOT EXISTS (
+          SELECT 1 FROM t_afiliaciones_empleados a
+          WHERE a.id_usuario = e.id_usuario AND a.fec_delete IS NULL
+      )");
+$afiliacionesPendientes = (int) $stmt->fetchColumn();
+
+$stmt = $conexion->query("SELECT COUNT(*) FROM t_solicitudes_permisos WHERE fec_insert >= CURRENT_DATE - INTERVAL '7 days' AND fec_delete IS NULL");
+$novedadesSemana = (int) $stmt->fetchColumn();
+
+$stmtUlt = $conexion->query("WITH ultimos AS (
+    SELECT
+        'Permiso' AS tipo_tramite,
+        STRING_AGG(DISTINCT tp.nombre_tipo, ', ' ORDER BY tp.nombre_tipo) AS detalle,
+        sp.fec_insert::date AS fecha_registro,
+        sp.estado
+    FROM t_solicitudes_permisos sp
+    JOIN t_usuarios u ON sp.id_empleado = u.id_usuario
+    LEFT JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
+    LEFT JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
+    WHERE sp.fec_delete IS NULL
+    GROUP BY sp.id_permiso, sp.fec_insert, sp.estado
+
+    UNION ALL
+
+    SELECT
+        'Afiliación' AS tipo_tramite,
+        ('EPS: ' || e.nombre_eps || ' | ARL: ' || a.nombre_arl) AS detalle,
+        ae.fec_insert::date AS fecha_registro,
+        'Activo' AS estado
+    FROM t_afiliaciones_empleados ae
+    JOIN t_usuarios u ON ae.id_usuario = u.id_usuario
+    JOIN t_eps e ON ae.id_eps = e.id_eps
+    JOIN t_arl a ON ae.id_arl = a.id_arl
+    WHERE ae.fec_delete IS NULL
+)
+SELECT tipo_tramite, detalle, fecha_registro, estado
+FROM ultimos
+ORDER BY fecha_registro DESC
+LIMIT 5");
+$ultimosTramitesAdmin = $stmtUlt ? $stmtUlt->fetchAll(PDO::FETCH_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -110,15 +186,15 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                 <section class="metrics-grid" aria-label="Resumen de gestión">
                     <div class="metric-card">
                         <span class="metric-title">Empleados Activos</span>
-                        <span class="metric-value">45 <small>Registrados</small></span>
+                        <span class="metric-value"><?php echo (int) $totalEmpleadosActivos; ?> <small>Registrados</small></span>
                     </div>
                     <div class="metric-card">
                         <span class="metric-title">Afiliaciones Pendientes</span>
-                        <span class="metric-value">8 <small>Por procesar</small></span>
+                        <span class="metric-value"><?php echo (int) $afiliacionesPendientes; ?> <small>Por procesar</small></span>
                     </div>
                     <div class="metric-card">
                         <span class="metric-title">Novedades Reportadas</span>
-                        <span class="metric-value">3 <small>Esta semana</small></span>
+                        <span class="metric-value"><?php echo (int) $novedadesSemana; ?> <small>Esta semana</small></span>
                     </div>
                 </section>
 
@@ -137,24 +213,26 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <?php if (empty($ultimosTramitesAdmin)): ?>
                                     <tr>
-                                        <td>Afiliación Pensión</td>
-                                        <td>Colpensiones</td>
-                                        <td>14 Jul, 2026</td>
-                                        <td><span class="badge status-pending">En proceso</span></td>
+                                        <td colspan="4" class="text-center">No hay trámites recientes</td>
                                     </tr>
+                                    <?php else: ?>
+                                    <?php foreach ($ultimosTramitesAdmin as $tramite): ?>
                                     <tr>
-                                        <td>Registro ARL</td>
-                                        <td>ARL Colmena</td>
-                                        <td>12 Jul, 2026</td>
-                                        <td><span class="badge status-approved">Activo</span></td>
+                                        <td>
+                                            <?php if ($tramite['tipo_tramite'] === 'Afiliación'): ?>
+                                            Afiliación de Empleado
+                                            <?php else: ?>
+                                            Solicitud de Permiso
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($tramite['detalle'] ?? ''); ?></td>
+                                        <td><?php echo formatearFechaCorta($tramite['fecha_registro']); ?></td>
+                                        <td><span class="badge <?php echo claseBadgeEstado($tramite['estado']); ?>"><?php echo textoBadgeEstado($tramite['estado']); ?></span></td>
                                     </tr>
-                                    <tr>
-                                        <td>Incapacidad Médica</td>
-                                        <td>EPS Sanitas - 3 días</td>
-                                        <td>10 Jul, 2026</td>
-                                        <td><span class="badge status-approved">Registrada</span></td>
-                                    </tr>
+                                    <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>

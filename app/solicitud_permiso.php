@@ -62,6 +62,9 @@ if (!in_array($tipoSolicitud, ['dias', 'horas'], true)) {
 }
 if ($fechaInicio === '' || $fechaFin === '') {
     $errores[] = 'Las fechas de inicio y fin son obligatorias.';
+} elseif ($tipoSolicitud === 'horas' && $fechaInicio !== $fechaFin) {
+    // Un permiso por horas es de un único día; fecha_inicio y fecha_fin deben coincidir.
+    $errores[] = 'El permiso por horas debe corresponder a un único día.';
 }
 if (empty($idsTiposPermiso)) {
     $errores[] = 'Debes seleccionar al menos un motivo.';
