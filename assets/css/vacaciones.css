@@ -1,0 +1,227 @@
+/* =========================================
+   Módulo: Gestión de Vacaciones
+   Usa los tokens de tema definidos en firstpage.css (--bg-card, --text-main,
+   --border-color, --primary-color, etc.) para soportar claro/oscuro sin
+   duplicar variables.
+   ========================================= */
+
+.vac-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1100px;
+    padding: 32px 24px 40px;
+}
+
+.fade-in-up { animation: vacFadeInUp 0.4s ease-out; }
+
+@keyframes vacFadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Encabezado + barra de acciones --- */
+.vac-hero {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.vac-hero-text { max-width: 620px; }
+.vac-hero-text h2 { font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+.vac-hero-text p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+.vac-hero-text strong { color: var(--text-main); }
+
+.vac-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* --- Botones propios del módulo --- */
+.vac-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.vac-btn-outline {
+    background-color: transparent;
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+.vac-btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+.vac-btn-primary {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    align-self: flex-start;
+}
+.vac-btn-primary:hover { background-color: var(--primary-hover); }
+
+/* --- Tarjetas genéricas --- */
+.vac-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.vac-card-title { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 16px; }
+
+.vac-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+
+.vac-select {
+    width: 100%;
+    max-width: 420px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+}
+.vac-select:focus { border-color: var(--primary-color); }
+
+.vac-empleado-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+.vac-empleado-row .vac-toolbar { margin-left: auto; }
+
+/* --- Resumen de saldo (stat cards) --- */
+.vac-resumen { margin-top: 20px; }
+
+.vac-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.vac-stat {
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vac-stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+.vac-stat-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+.vac-stat--highlight { border-color: var(--primary-color); }
+.vac-stat--highlight .vac-stat-value { color: var(--primary-color); }
+
+.vac-cycle { font-size: 0.82rem; color: var(--text-muted); margin-top: 14px; }
+
+.vac-alert {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: var(--status-pending-bg);
+    color: var(--status-pending-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.vac-empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+}
+
+/* --- Formulario + historial en dos columnas --- */
+.vac-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.vac-form { display: flex; flex-direction: column; gap: 16px; }
+.vac-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.vac-field { display: flex; flex-direction: column; gap: 6px; }
+.vac-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-main); }
+.vac-field input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+}
+.vac-field input:focus { border-color: var(--primary-color); }
+.vac-field input:disabled { opacity: 0.6; cursor: not-allowed; }
+.vac-field-hint { font-size: 0.75rem; color: var(--text-muted); }
+
+.vac-feedback { font-size: 0.85rem; font-weight: 600; min-height: 1.2em; }
+.vac-feedback.success { color: var(--status-approved-text); }
+.vac-feedback.error { color: #dc2626; }
+
+/* --- Historial de ajustes --- */
+.vac-lista { display: flex; flex-direction: column; gap: 12px; max-height: 460px; overflow-y: auto; }
+
+.vac-item {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vac-item-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.vac-item-dias { font-weight: 700; color: var(--text-main); }
+.vac-item-motivo { font-size: 0.85rem; color: var(--text-muted); }
+.vac-item-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75rem; color: var(--text-muted); }
+.vac-item-actions { margin-top: 4px; }
+
+.vac-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+.vac-badge--activo { background-color: var(--status-approved-bg); color: var(--status-approved-text); }
+.vac-badge--anulado { background-color: var(--status-pending-bg); color: var(--status-pending-text); }
+
+@media (max-width: 900px) {
+    .vac-grid { grid-template-columns: 1fr; }
+    .vac-form-row { grid-template-columns: 1fr; }
+    .vac-empleado-row .vac-toolbar { margin-left: 0; }
+}
+
+@media (max-width: 640px) {
+    .vac-hero { flex-direction: column; align-items: flex-start; }
+    .vac-card { padding: 18px; }
+}

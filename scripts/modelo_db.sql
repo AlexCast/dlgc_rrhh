@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS t_roles_operaciones;
 DROP TABLE IF EXISTS t_permisos_evidencias;
 DROP TABLE IF EXISTS t_permisos_aprobaciones;
 DROP TABLE IF EXISTS t_permisos_dias_aprobados;
+DROP TABLE IF EXISTS t_vacaciones_ajustes;
 DROP TABLE IF EXISTS t_solicitudes_permisos_motivos;
 DROP TABLE IF EXISTS t_solicitudes_permisos;
 DROP TABLE IF EXISTS t_tipos_permisos;
@@ -548,6 +549,30 @@ CREATE TABLE IF NOT EXISTS t_recuperacion_contrasena (
 );
 
 -- Índices de rendimiento para consultas frecuentes
+-- Ledger de ajustes manuales de saldo de vacaciones (saldo inicial al migrar a este sistema,
+-- correcciones puntuales). Append-only: dias_ajuste positivo = crédito, negativo = débito
+-- (p. ej. días ya disfrutados antes de existir este módulo). motivo es obligatorio para auditoría.
+-- fun_calcular_saldo_vacaciones() suma estos ajustes al saldo calculado dinámicamente.
+CREATE TABLE IF NOT EXISTS t_vacaciones_ajustes (
+    id_ajuste           SERIAL,
+    id_empleado         VARCHAR(20) NOT NULL,
+    dias_ajuste         NUMERIC(5,2) NOT NULL CHECK (dias_ajuste <> 0),
+    motivo              VARCHAR(255) NOT NULL,
+    -- Ciclo aniversario (no calendario) al que pertenece el ajuste; deja de contar
+    -- automáticamente cuando ese ciclo se reinicia (vacaciones no acumulables).
+    fecha_ajuste        DATE NOT NULL DEFAULT CURRENT_DATE,
+    usr_insert          VARCHAR NOT NULL,
+    fec_insert          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    usr_update          VARCHAR,
+    fec_update          TIMESTAMP WITHOUT TIME ZONE,
+    usr_delete          VARCHAR,
+    fec_delete          TIMESTAMP WITHOUT TIME ZONE,
+    PRIMARY KEY (id_ajuste),
+    FOREIGN KEY (id_empleado) REFERENCES t_empleados(id_usuario)
+);
+
+CREATE INDEX idx_vacaciones_ajustes_empleado ON t_vacaciones_ajustes (id_empleado);
+
 CREATE INDEX idx_permisos_empleado ON t_solicitudes_permisos (id_empleado);
 CREATE INDEX idx_permisos_dias_calendario ON t_permisos_dias_aprobados (id_empleado, fecha);
 

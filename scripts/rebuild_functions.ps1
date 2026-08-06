@@ -131,6 +131,18 @@ try {
     $psqlPath = Test-PsqlAvailable
     Write-Host "psql encontrado en: $psqlPath" -ForegroundColor Cyan
 
+    # Si no se pasó -PgPassword, pedirla UNA sola vez (oculta) y reutilizarla en todos los
+    # archivos; si queda vacía, psql la pediría en cada uno de los ~26+ archivos por separado.
+    if ([string]::IsNullOrEmpty($PgPassword)) {
+        $securePassword = Read-Host -Prompt "Password para el usuario $PgUser" -AsSecureString
+        $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+        try {
+            $PgPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+        } finally {
+            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+        }
+    }
+
     if (-not (Test-Path -Path $FunctionsDir)) {
         throw "No se encontró el directorio de funciones: $FunctionsDir"
     }

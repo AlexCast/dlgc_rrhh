@@ -16,6 +16,9 @@
 --            27 = Aprobación RRHH de Permisos (bandeja RRHH de solicitud_permiso.php).
 --            28 = Días Festivos (SRC/dias_festivos, festivos de EMPRESA; los NACIONAL se
 --                 siembran con fun_sembrar_festivos_colombia y son de solo lectura).
+--            29 = Gestión de Vacaciones (saldo por ciclo aniversario, ajustes manuales,
+--                 reportes; templates/vacaciones.php). Sin CREAR/ELIMINAR/RESTAURAR amplios
+--                 para EMPLEADO: RRHH se asigna por usuario individual, igual que el 27.
 --   Operaciones por módulo: id_modulo*10 + [1=VER, 2=CREAR, 3=ACTUALIZAR, 4=ELIMINAR, 5=RESTAURAR].
 --   Roles: 1=ADMINISTRADOR, 2=EMPLEADO.
 --   Nota: la aprobación de JEFE directo NO tiene módulo RBAC propio; usa la operación 33
@@ -51,6 +54,7 @@ VALUES
     (26, 'Administración SST',       'seed', CURRENT_TIMESTAMP),
     (27, 'Aprobación RRHH de Permisos', 'seed', CURRENT_TIMESTAMP),
     (28, 'Días Festivos',              'seed', CURRENT_TIMESTAMP),
+    (29, 'Gestión de Vacaciones',      'seed', CURRENT_TIMESTAMP),
     (6,  'Roles Operaciones',        'seed', CURRENT_TIMESTAMP),
     (7,  'Afiliaciones Empleados',   'seed', CURRENT_TIMESTAMP),
     (8,  'Áreas',                    'seed', CURRENT_TIMESTAMP),
@@ -276,6 +280,20 @@ VALUES
     (283, 28, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
     (284, 28, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
     (285, 28, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
+ON CONFLICT (id_operacion) DO UPDATE SET id_modulo       = EXCLUDED.id_modulo,
+                                          nombre_operacion = EXCLUDED.nombre_operacion,
+                                          fec_delete       = NULL,
+                                          usr_delete       = NULL;
+
+-- Módulo 29: Gestión de Vacaciones (saldo por ciclo aniversario + ajustes manuales).
+-- ACTUALIZAR (293) reservada sin uso hoy: los ajustes son append-only.
+INSERT INTO t_operaciones (id_operacion, id_modulo, nombre_operacion, usr_insert, fec_insert)
+VALUES
+    (291, 29, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (292, 29, 'CREAR',      'seed', CURRENT_TIMESTAMP),
+    (293, 29, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+    (294, 29, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
+    (295, 29, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
 ON CONFLICT (id_operacion) DO UPDATE SET id_modulo       = EXCLUDED.id_modulo,
                                           nombre_operacion = EXCLUDED.nombre_operacion,
                                           fec_delete       = NULL,

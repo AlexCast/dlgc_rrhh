@@ -135,3 +135,6 @@ FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
 
 CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_dias_festivos_excepciones
 FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
+
+CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_vacaciones_ajustes
+FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();

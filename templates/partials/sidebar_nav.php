@@ -32,6 +32,7 @@ $iconUsuarios     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
 $iconSrc          = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
 $iconModulos      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>';
 $iconFestivos     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path></svg>';
+$iconVacaciones   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-1 .1-1.3.5l-.4.5c-.4.5-.2 1.2.3 1.5L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.5 1 .7 1.5.3l.5-.4c.4-.3.6-.8.5-1.3z"></path></svg>';
 $iconChevron      = '<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
 $grupos = [
@@ -86,6 +87,7 @@ foreach ($grupos as $key => $grupo) {
 $modulosAdminSueltos = [
     ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/dlgc_rrhh/src/comunicados/listar_comunicados.php', 'icono' => $iconSrc],
     ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/dlgc_rrhh/src/sst/listar_quejas.php',              'icono' => $iconSst],
+    ['id' => 29, 'slug' => 'vacaciones',        'titulo' => 'Gestión de Vacaciones',   'url' => '/dlgc_rrhh/templates/vacaciones.php',               'icono' => $iconVacaciones],
 ];
 
 function renderNavItem(string $url, string $titulo, string $icono, string $slug, string $activeItem): string {

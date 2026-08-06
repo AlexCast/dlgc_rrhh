@@ -24,6 +24,16 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         $rolPerfil = (string) $puestoContrato;
     }
 }
+
+$saldoVacaciones = null;
+if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
+    $sentenciaSaldo = $conexion->prepare('SELECT * FROM fun_calcular_saldo_vacaciones(:id_usuario)');
+    $sentenciaSaldo->execute([':id_usuario' => $idUsuarioSesion]);
+    $filaSaldo = $sentenciaSaldo->fetch(PDO::FETCH_ASSOC);
+    if ($filaSaldo !== false) {
+        $saldoVacaciones = $filaSaldo;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -104,7 +114,17 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                 <section class="metrics-grid" aria-label="Resumen de saldos y solicitudes">
                     <div class="metric-card">
                         <span class="metric-title">Vacaciones Disponibles</span>
-                        <span class="metric-value">12 <small>Días</small></span>
+                        <?php if ($saldoVacaciones === null || (int) $saldoVacaciones['anios_servicio'] < 1): ?>
+                        <span class="metric-value">0 <small>Días</small></span>
+                        <small class="metric-hint">Aún no cumples tu primer año de servicio.</small>
+                        <?php else: ?>
+                        <span class="metric-value"><?php echo (int) $saldoVacaciones['saldo_disponible']; ?> <small>Días</small></span>
+                        <?php if ($saldoVacaciones['alerta_vencimiento_proximo']): ?>
+                        <small class="metric-hint metric-hint--warning">⚠ Se pierden en <?php echo (int) $saldoVacaciones['dias_para_vencer']; ?> día(s) (<?php echo htmlspecialchars($saldoVacaciones['periodo_fin']); ?>)</small>
+                        <?php else: ?>
+                        <small class="metric-hint">Ciclo vigente hasta <?php echo htmlspecialchars($saldoVacaciones['periodo_fin']); ?></small>
+                        <?php endif; ?>
+                        <?php endif; ?>
                     </div>
                     <div class="metric-card">
                         <span class="metric-title">Incapacidades este año</span>

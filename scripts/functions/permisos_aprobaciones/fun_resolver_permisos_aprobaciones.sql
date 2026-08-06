@@ -5,6 +5,9 @@
 --     la solicitud (el jefe directo de ese momento).
 --   - Nivel RRHH: cualquier usuario puede resolverla (la verificación de que tenga permiso del
 --     módulo 27 la hace el endpoint PHP); wid_actor se guarda como el id_aprobador definitivo.
+-- Depende de fun_calcular_saldo_vacaciones y fun_dias_habiles_rango (scripts/functions/vacaciones/):
+-- al aprobar en RRHH con metodo_descuento = 'VACACIONES' se valida que el saldo disponible del
+-- empleado alcance para los días solicitados; no se permiten anticipos (saldo negativo).
 CREATE OR REPLACE FUNCTION fun_resolver_permisos_aprobaciones(
     wid_permiso t_permisos_aprobaciones.id_permiso%TYPE,
     wnivel_aprobacion t_permisos_aprobaciones.nivel_aprobacion%TYPE,
@@ -20,6 +23,9 @@ DECLARE
     vestado_jefe VARCHAR;
     vestado_rrhh VARCHAR;
     vestado_final VARCHAR;
+    vsolicitud t_solicitudes_permisos%ROWTYPE;
+    vdias_solicitados NUMERIC;
+    vsaldo NUMERIC;
 BEGIN
     vactor := COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER);
     wnivel_aprobacion := UPPER(TRIM(COALESCE(wnivel_aprobacion, '')));
@@ -63,6 +69,29 @@ BEGIN
         IF wmetodo_descuento NOT IN ('DINERO', 'VACACIONES', 'NO') THEN
             RETURN QUERY SELECT FALSE, 'RRHH debe indicar si el permiso es remunerado (Dinero, Vacaciones o No).'::VARCHAR, NULL::VARCHAR;
             RETURN;
+        END IF;
+
+        -- Vacaciones: no se permiten anticipos. El saldo disponible debe alcanzar
+        -- para cubrir los días (o su equivalente en horas) de esta solicitud.
+        IF wmetodo_descuento = 'VACACIONES' THEN
+            SELECT * INTO vsolicitud FROM t_solicitudes_permisos WHERE id_permiso = wid_permiso;
+
+            vdias_solicitados := CASE WHEN vsolicitud.es_por_horas
+                THEN EXTRACT(EPOCH FROM (vsolicitud.hora_fin - vsolicitud.hora_inicio)) / 3600 / 8
+                ELSE fun_dias_habiles_rango(vsolicitud.fecha_inicio, vsolicitud.fecha_fin)
+            END;
+
+            SELECT saldo_disponible INTO vsaldo FROM fun_calcular_saldo_vacaciones(vsolicitud.id_empleado);
+
+            IF vsaldo IS NULL THEN
+                RETURN QUERY SELECT FALSE, 'No se pudo calcular el saldo de vacaciones del empleado.'::VARCHAR, NULL::VARCHAR;
+                RETURN;
+            END IF;
+
+            IF vdias_solicitados > vsaldo THEN
+                RETURN QUERY SELECT FALSE, format('Saldo de vacaciones insuficiente: disponible %s día(s), solicitado %s.', vsaldo, vdias_solicitados)::VARCHAR, NULL::VARCHAR;
+                RETURN;
+            END IF;
         END IF;
 
         UPDATE t_solicitudes_permisos
