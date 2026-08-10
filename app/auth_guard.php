@@ -8,6 +8,9 @@ declare(strict_types=1);
  * require_once __DIR__ . '/auth_guard.php';
  */
 
+require_once __DIR__ . '/helpers/CookieHelper.php';
+require_once __DIR__ . '/helpers/RememberMeHelper.php';
+
 /**
  * Ends the current session safely and redirects to login.
  */
@@ -15,20 +18,7 @@ function terminate_session_and_redirect(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {
         $_SESSION = [];
-
-        if (ini_get('session.use_cookies')) {
-            $cookie_params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                '',
-                time() - 42000,
-                $cookie_params['path'] ?? '/',
-                $cookie_params['domain'] ?? '',
-                (bool) ($cookie_params['secure'] ?? false),
-                (bool) ($cookie_params['httponly'] ?? true)
-            );
-        }
-
+        CookieHelper::deleteSessionCookie();
         session_destroy();
     }
 
@@ -36,22 +26,17 @@ function terminate_session_and_redirect(): void
     exit;
 }
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    $is_https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+// Iniciar sesión con configuración segura centralizada.
+require_once __DIR__ . '/session_bootstrap.php';
 
-    ini_set('session.use_strict_mode', '1');
-    ini_set('session.use_only_cookies', '1');
-    ini_set('session.cookie_httponly', '1');
-    ini_set('session.cookie_secure', $is_https ? '1' : '0');
-    ini_set('session.cookie_samesite', 'Lax');
+// Conexión y utilidades para reautenticación vía "Recordarme".
+require_once __DIR__ . '/conexion.php';
+require_once __DIR__ . '/helpers/SessionUserLoader.php';
 
-    session_start();
-
-    // Deshabilitar la caché del navegador para prevenir el botón "Atrás"
-    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-    header("Cache-Control: post-check=0, pre-check=0", false);
-    header("Pragma: no-cache");
-}
+// Deshabilitar la caché del navegador para prevenir el botón "Atrás".
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
 // Make CSRF helpers available to every protected page.
 require_once __DIR__ . '/csrf_guard.php';
@@ -60,7 +45,28 @@ require_once __DIR__ . '/csrf_guard.php';
 
 // Base authentication check.
 if (empty($_SESSION['user_id'])) {
-    terminate_session_and_redirect();
+    // Intentar reautenticación mediante cookie "Recordarme".
+    $rememberedUserId = RememberMeHelper::validate($conexion);
+
+    if ($rememberedUserId !== null && load_user_session($conexion, $rememberedUserId)) {
+        // Regenerar ID de sesión para mitigar fijación de sesión al reautenticar.
+        session_regenerate_id(true);
+        csrf_regenerate_token();
+
+        // Propagar usuario a PostgreSQL para auditorías de esta misma petición.
+        $actorAuditoria = $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? '';
+        $actorAuditoria = trim((string) $actorAuditoria);
+        if ($actorAuditoria !== '') {
+            try {
+                $sentenciaAuditoria = $conexion->prepare("SELECT set_config('app.current_user', ?, false)");
+                $sentenciaAuditoria->execute([$actorAuditoria]);
+            } catch (PDOException $eAuditoria) {
+                error_log('Error al configurar app.current_user tras remember-me: ' . $eAuditoria->getMessage());
+            }
+        }
+    } else {
+        terminate_session_and_redirect();
+    }
 }
 
 // Session hijacking prevention using exact user-agent matching.

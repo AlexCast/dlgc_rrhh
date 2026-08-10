@@ -150,6 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipo = status === 'success' ? 'success' : 'error';
         mostrarFeedback(mensaje, tipo);
 
+        // Limpia el borrador del cliente tras un registro exitoso.
+        if (code === 'registro_pendiente_verificacion') {
+            limpiarBorradorRegistro(false);
+        }
+
         // Limpia la URL para no repetir mensajes al recargar.
         const urlLimpia = `${window.location.pathname}${window.location.hash}`;
         window.history.replaceState({}, document.title, urlLimpia);
@@ -289,6 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Volver al paso 1 del registro
     document.getElementById('register-back-step')?.addEventListener('click', () => {
+        limpiarBorradorRegistro(true);
         showRegisterStep(1);
         const codeInput = document.getElementById('reg-access-code');
         if (codeInput) {
@@ -477,4 +483,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializar campos una vez que normalizarCaso ya está definida
     actualizarDocumentoPorTipo();
+
+    // =========================================================
+    // Caché temporal del formulario de registro (paso 2)
+    // =========================================================
+    const REGISTER_FORM_CACHE_KEY = 'dlgc_register_form_cache';
+    const REGISTER_CACHE_FIELDS = [
+        'reg-username', 'reg-doc-type', 'reg-doc', 'reg-first-name',
+        'reg-second-name', 'reg-first-lastname', 'reg-second-lastname',
+        'reg-email'
+    ];
+
+    function guardarBorradorRegistro() {
+        const data = {};
+        REGISTER_CACHE_FIELDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) data[id] = el.value;
+        });
+        data['accept-terms'] = document.getElementById('accept-terms')?.checked ? '1' : '0';
+        data['accept-privacy'] = document.getElementById('accept-privacy')?.checked ? '1' : '0';
+        try {
+            sessionStorage.setItem(REGISTER_FORM_CACHE_KEY, JSON.stringify(data));
+        } catch (e) {
+            // sessionStorage puede no estar disponible (modo privado, etc.)
+        }
+    }
+
+    function limpiarBorradorRegistro(limpiarServidor = true) {
+        try {
+            sessionStorage.removeItem(REGISTER_FORM_CACHE_KEY);
+        } catch (e) {
+            // ignorar
+        }
+
+        if (limpiarServidor) {
+            const csrfInput = document.querySelector('#register-form input[name="csrf_token"]');
+            const csrfToken = csrfInput?.value || '';
+            if (csrfToken) {
+                const formData = new FormData();
+                formData.append('clear_register_form_cache', '1');
+                formData.append('csrf_token', csrfToken);
+                fetch('/dlgc_rrhh/app/register.php', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                }).catch(() => {});
+            }
+        }
+    }
+
+    function restaurarBorradorRegistro() {
+        const raw = sessionStorage.getItem(REGISTER_FORM_CACHE_KEY);
+        if (!raw) return;
+        try {
+            const data = JSON.parse(raw);
+            Object.entries(data).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.tagName.toLowerCase() === 'input' && el.type === 'checkbox') {
+                    if (!el.checked) {
+                        el.checked = value === '1';
+                    }
+                } else if (el.value === '') {
+                    el.value = value;
+                }
+            });
+            if (document.getElementById('reg-doc-type')?.value) {
+                actualizarDocumentoPorTipo();
+                permitirSoloCaracteresDocumento(documentoInput);
+            }
+            guardarBorradorRegistro();
+        } catch (e) {
+            console.error('Error restaurando borrador de registro:', e);
+        }
+    }
+
+    // Guardar automáticamente mientras se escribe en el paso 2
+    REGISTER_CACHE_FIELDS.forEach(id => {
+        document.getElementById(id)?.addEventListener('input', guardarBorradorRegistro);
+    });
+    document.getElementById('accept-terms')?.addEventListener('change', guardarBorradorRegistro);
+    document.getElementById('accept-privacy')?.addEventListener('change', guardarBorradorRegistro);
+
+    // Restaurar borrador si estamos en el paso 2 del registro
+    if (document.getElementById('register-step2')?.classList.contains('active')) {
+        restaurarBorradorRegistro();
+    }
 });

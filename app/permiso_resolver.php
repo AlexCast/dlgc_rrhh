@@ -7,8 +7,7 @@ declare(strict_types=1);
  * la función fun_resolver_permisos_aprobaciones); el nivel RRHH requiere permiso del módulo 27.
  */
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
 require_once __DIR__ . '/helpers/Mailer.php';

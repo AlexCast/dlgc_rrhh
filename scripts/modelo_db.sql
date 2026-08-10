@@ -641,6 +641,24 @@ CREATE TABLE IF NOT EXISTS t_intentos_correo (
 CREATE INDEX idx_intentos_usuario_tipo ON t_intentos_correo(id_usuario, tipo);
 CREATE INDEX idx_intentos_ultimo ON t_intentos_correo(ultimo_intento);
 
+-- Tabla de tokens persistentes para "Recordarme".
+-- Diseño seguro: selector plano + hash SHA-256 del validator. NUNCA se guarda el validator en claro.
+CREATE TABLE IF NOT EXISTS t_remember_tokens (
+    id SERIAL PRIMARY KEY,
+    selector VARCHAR(12) NOT NULL UNIQUE,
+    token_hash CHAR(64) NOT NULL,
+    id_usuario VARCHAR(20) NOT NULL REFERENCES t_usuarios(id_usuario),
+    fec_expiracion TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    usr_insert VARCHAR,
+    fec_insert TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usr_update VARCHAR,
+    fec_update TIMESTAMP WITHOUT TIME ZONE,
+    usr_delete VARCHAR,
+    fec_delete TIMESTAMP WITHOUT TIME ZONE
+);
+
+CREATE INDEX idx_remember_tokens_usuario ON t_remember_tokens(id_usuario) WHERE fec_delete IS NULL;
+
 -- Tabla de control de códigos de acceso al registro de cuentas
 CREATE TABLE IF NOT EXISTS t_codigos_registro (
     id_codigo          SERIAL PRIMARY KEY,

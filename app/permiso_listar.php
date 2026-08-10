@@ -10,8 +10,7 @@ declare(strict_types=1);
  * se vacía al resolver); con ?historial=1 se lista el historial completo ya resuelto por ese nivel.
  */
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
 

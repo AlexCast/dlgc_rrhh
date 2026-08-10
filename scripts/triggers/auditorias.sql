@@ -118,6 +118,9 @@ FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
 CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_intentos_correo
 FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
 
+CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_remember_tokens
+FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
+
 CREATE OR REPLACE TRIGGER tri_audit_usuarios BEFORE INSERT OR UPDATE ON t_registros_pendientes
 FOR EACH ROW EXECUTE PROCEDURE fun_audit_tablas();
 

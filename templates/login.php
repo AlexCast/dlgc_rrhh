@@ -1,12 +1,14 @@
 <?php
 // Iniciar sesión para que el token CSRF del formulario esté disponible.
-session_start();
+declare(strict_types=1);
+require_once __DIR__ . '/../app/session_bootstrap.php';
 require_once __DIR__ . '/../app/csrf_guard.php';
 
 $registerStep = 1;
 if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_registro_validado'])) {
     $registerStep = 2;
 }
+$registerData = $_SESSION['register_form_data'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -16,6 +18,7 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
     <title>Acceso | Portal DLGC</title>
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/login.css">
     <link rel="stylesheet" href="/dlgc_rrhh/assets/css/recover_password.css">
+    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/cookie-banner.css">
     <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -67,6 +70,7 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
             <div class="forms-container">
                 <form id="login-form" class="auth-form active" action="../app/login.php" method="POST" role="tabpanel" aria-labelledby="tab-login">
                     <?php echo csrf_input(); ?>
+                    <input type="hidden" id="cookie-consent" name="cookie_consent" value="necessary">
                     <div class="input-group">
                         <label for="login-user">Usuario o Correo Electrónico</label>
                         <input type="text" id="login-user" name="user" required placeholder="usuario o ejemplo@empresa.com" autocomplete="username" autocapitalize="off" pattern="^[a-z0-9._]+@[a-z0-9.-]+\.[a-z]{2,}$|^[a-z][a-z0-9_.-]{2,29}$" title="Ingresa un usuario (solo minúsculas, números, puntos, guiones bajos y guiones) o un correo electrónico válido.">
@@ -93,7 +97,7 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
 
                     <div class="form-actions">
                         <div class="checkbox-group">
-                            <input type="checkbox" id="remember-me">
+                            <input type="checkbox" id="remember-me" name="remember_me" value="1">
                             <label for="remember-me">Recordarme</label>
                         </div>
                         <button type="button" class="forgot-link" id="forgot-link">¿Olvidaste tu contraseña?</button>
@@ -124,48 +128,48 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
 
                         <div class="input-group">
                             <label for="reg-username">Usuario</label>
-                            <input type="text" id="reg-username" name="username" required minlength="3" maxlength="30" placeholder="Nombre de usuario" autocomplete="username" autocapitalize="off" pattern="^[a-z][a-z0-9_.-]{2,29}$" title="Debe comenzar con una letra minúscula. Solo se permiten letras minúsculas, números, puntos, guiones bajos y guiones. Sin espacios ni caracteres especiales.">
+                            <input type="text" id="reg-username" name="username" required minlength="3" maxlength="30" placeholder="Nombre de usuario" autocomplete="username" autocapitalize="off" pattern="^[a-z][a-z0-9_.-]{2,29}$" title="Debe comenzar con una letra minúscula. Solo se permiten letras minúsculas, números, puntos, guiones bajos y guiones. Sin espacios ni caracteres especiales." value="<?php echo htmlspecialchars($registerData['username'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
 
                         <div class="input-group">
                             <label for="reg-doc-type">Tipo de Documento</label>
                             <select id="reg-doc-type" name="tipo_documento" required>
-                                <option value="" selected disabled>Selecciona una opción</option>
-                                <option value="CC">CC</option>
-                                <option value="PPT">PPT</option>
-                                <option value="CE">CE</option>
+                                <option value="" <?php echo ($registerData['tipo_documento'] ?? '') === '' ? 'selected' : ''; ?> disabled>Selecciona una opción</option>
+                                <option value="CC" <?php echo ($registerData['tipo_documento'] ?? '') === 'CC' ? 'selected' : ''; ?>>CC</option>
+                                <option value="PPT" <?php echo ($registerData['tipo_documento'] ?? '') === 'PPT' ? 'selected' : ''; ?>>PPT</option>
+                                <option value="CE" <?php echo ($registerData['tipo_documento'] ?? '') === 'CE' ? 'selected' : ''; ?>>CE</option>
                             </select>
                         </div>
 
                         <div class="input-group">
                             <label for="reg-doc">Número de Documento</label>
-                            <input type="text" id="reg-doc" name="id_usuario" required minlength="5" maxlength="20" placeholder="Documento sin puntos" aria-describedby="doc-help" autocapitalize="characters" inputmode="text" autocomplete="off">
+                            <input type="text" id="reg-doc" name="id_usuario" required minlength="5" maxlength="20" placeholder="Documento sin puntos" aria-describedby="doc-help" autocapitalize="characters" inputmode="text" autocomplete="off" value="<?php echo htmlspecialchars($registerData['id_usuario'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                             <span id="doc-help" class="help-text">Selecciona primero el tipo de documento.</span>
                         </div>
 
                         <div class="input-group">
                             <label for="reg-first-name">Primer Nombre</label>
-                            <input type="text" id="reg-first-name" name="primer_nombre" required maxlength="30" placeholder="Primer nombre" autocomplete="given-name" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+">
+                            <input type="text" id="reg-first-name" name="primer_nombre" required maxlength="30" placeholder="Primer nombre" autocomplete="given-name" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" value="<?php echo htmlspecialchars($registerData['primer_nombre'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
 
                         <div class="input-group">
                             <label for="reg-second-name">Segundo Nombre (Opcional)</label>
-                            <input type="text" id="reg-second-name" name="segundo_nombre" maxlength="30" placeholder="Segundo nombre" autocomplete="additional-name" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*">
+                            <input type="text" id="reg-second-name" name="segundo_nombre" maxlength="30" placeholder="Segundo nombre" autocomplete="additional-name" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*" value="<?php echo htmlspecialchars($registerData['segundo_nombre'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
 
                         <div class="input-group">
                             <label for="reg-first-lastname">Primer Apellido</label>
-                            <input type="text" id="reg-first-lastname" name="primer_apellido" required maxlength="30" placeholder="Primer apellido" autocomplete="family-name" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+">
+                            <input type="text" id="reg-first-lastname" name="primer_apellido" required maxlength="30" placeholder="Primer apellido" autocomplete="family-name" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" value="<?php echo htmlspecialchars($registerData['primer_apellido'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
 
                         <div class="input-group">
                             <label for="reg-second-lastname">Segundo Apellido (Opcional)</label>
-                            <input type="text" id="reg-second-lastname" name="segundo_apellido" maxlength="30" placeholder="Segundo apellido" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*">
+                            <input type="text" id="reg-second-lastname" name="segundo_apellido" maxlength="30" placeholder="Segundo apellido" autocapitalize="characters" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*" value="<?php echo htmlspecialchars($registerData['segundo_apellido'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
 
                         <div class="input-group">
                             <label for="reg-email">Correo Electrónico</label>
-                            <input type="email" id="reg-email" name="correo" required maxlength="40" placeholder="ejemplo@empresa.com" autocomplete="email" autocapitalize="off" pattern="^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Ingresa un correo electrónico válido sin comas ni espacios.">
+                            <input type="email" id="reg-email" name="correo" required maxlength="40" placeholder="ejemplo@empresa.com" autocomplete="email" autocapitalize="off" pattern="^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Ingresa un correo electrónico válido sin comas ni espacios." value="<?php echo htmlspecialchars($registerData['correo'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
 
                         <div class="input-group">
@@ -187,6 +191,23 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
                                     <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                     <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.7a2 2 0 0 0 2.7 2.7"></path><path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c6.5 0 10 8 10 8a17.7 17.7 0 0 1-2 3.1"></path><path d="M6.6 6.6C3.5 8.7 2 12 2 12s3.5 8 10 8a9.8 9.8 0 0 0 4.1-.9"></path></svg>
                                 </button>
+                            </div>
+                        </div>
+
+                        <div class="legal-consent-group">
+                            <div class="checkbox-group checkbox-group--legal">
+                                <input type="checkbox" id="accept-terms" name="accept_terms" value="1" required <?php echo ($registerData['accept_terms'] ?? '') === '1' ? 'checked' : ''; ?>>
+                                <label for="accept-terms">
+                                    He leído y acepto los
+                                    <a href="/dlgc_rrhh/templates/legal/terminos.php?from=register" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a>.
+                                </label>
+                            </div>
+                            <div class="checkbox-group checkbox-group--legal">
+                                <input type="checkbox" id="accept-privacy" name="accept_privacy" value="1" required <?php echo ($registerData['accept_privacy'] ?? '') === '1' ? 'checked' : ''; ?>>
+                                <label for="accept-privacy">
+                                    He leído y acepto la
+                                    <a href="/dlgc_rrhh/templates/legal/privacidad.php?from=register" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>.
+                                </label>
                             </div>
                         </div>
 
@@ -213,6 +234,16 @@ if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_re
 
         </div>
     </main>
+
+    <footer class="auth-footer">
+        <div class="auth-footer__inner">
+            <?php require_once __DIR__ . '/partials/legal_footer_links.php'; ?>
+            <p class="auth-footer__copy">© <?php echo date('Y'); ?> Distribuciones La Gran Cacharrería.</p>
+            <p class="auth-footer__ia-note">Desarrollo asistido por herramientas de inteligencia artificial.</p>
+        </div>
+    </footer>
+
+    <?php require_once __DIR__ . '/partials/cookie_banner.php'; ?>
 
     <script src="/dlgc_rrhh/assets/js/theme.js"></script>
     <script src="/dlgc_rrhh/assets/js/login.js"></script>

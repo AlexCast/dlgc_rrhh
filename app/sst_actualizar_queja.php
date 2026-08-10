@@ -5,8 +5,7 @@ declare(strict_types=1);
  * Endpoint para actualizar una queja/sugerencia propia dentro de los 5 minutos.
  */
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
 

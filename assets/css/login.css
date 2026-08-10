@@ -77,6 +77,89 @@ body::-webkit-scrollbar-thumb:hover {
 *:focus-visible { outline: 3px solid var(--primary-color); outline-offset: 2px; }
 
 /* =========================================
+   Consentimientos legales en registro
+   ========================================= */
+.legal-consent-group {
+    margin: 16px 0;
+    padding: 16px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.checkbox-group--legal {
+    align-items: flex-start;
+}
+
+.checkbox-group--legal input[type="checkbox"] {
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+.checkbox-group--legal label {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--text-main);
+}
+
+.checkbox-group--legal a {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.checkbox-group--legal a:hover {
+    text-decoration: underline;
+}
+
+/* =========================================
+   Footer del login
+   ========================================= */
+.auth-footer {
+    width: 100%;
+    padding: 24px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-main);
+    margin-top: auto;
+}
+
+.auth-footer__inner {
+    max-width: 440px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.auth-footer .legal-footer-links a {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.auth-footer .legal-footer-links a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.auth-footer__copy {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.auth-footer__ia-note {
+    font-size: 0.7rem;
+    font-style: italic;
+    opacity: 0.65;
+}
+
+/* =========================================
    Cabecera Simplificada
    ========================================= */
 .auth-header {
@@ -89,9 +172,9 @@ body::-webkit-scrollbar-thumb:hover {
     padding: 0 24px;
     min-height: 76px;
     width: 100%;
-    max-width: 1200px;
     margin: 0 auto;
-    background-color: var(--bg-main);
+    background-color: #131b159c;
+    backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border-color);
 }
 

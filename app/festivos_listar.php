@@ -8,8 +8,7 @@ declare(strict_types=1);
  * Acceso: cualquier usuario autenticado con acceso al módulo de Solicitudes y Permisos.
  */
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
 

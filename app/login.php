@@ -5,11 +5,14 @@
  * regeneración de sesión y carga de permisos por módulo.
  */
 
-session_start();
+declare(strict_types=1);
 
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/csrf_guard.php';
 require_once __DIR__ . '/helpers/InputSanitizer.php';
+require_once __DIR__ . '/helpers/SessionUserLoader.php';
+require_once __DIR__ . '/helpers/RememberMeHelper.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 
@@ -84,139 +87,23 @@ try {
     // --- 4b. Regenerar token CSRF tras autenticación exitosa ---
     csrf_regenerate_token();
 
-    // --- 5. Consulta de permisos por módulo (rol -> operaciones -> módulos) ---
-    $sentenciaPermisos = $conexion->prepare(
-        "SELECT
-            m.id_modulo,
-            m.nombre_modulo,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('CREAR', 'INSERTAR', 'NUEVO', 'NUEVA')
-                OR UPPER(o.nombre_operacion) LIKE 'CREAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'INSERTAR%'
-            ) AS permiso_crear,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('ACTUALIZAR', 'EDITAR', 'MODIFICAR')
-                OR UPPER(o.nombre_operacion) LIKE 'ACTUALIZAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'EDITAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'MODIFICAR%'
-            ) AS permiso_actualizar,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('ELIMINAR', 'BORRAR')
-                OR UPPER(o.nombre_operacion) LIKE 'ELIMINAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'BORRAR%'
-            ) AS permiso_eliminar,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('RESTAURAR', 'RECUPERAR', 'REACTIVAR')
-                OR UPPER(o.nombre_operacion) LIKE 'RESTAURAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'RECUPERAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'REACTIVAR%'
-            ) AS permiso_restaurar
-         FROM t_usuarios u
-         INNER JOIN t_roles_operaciones ro ON ro.id_rol = u.id_rol AND ro.fec_delete IS NULL
-         INNER JOIN t_operaciones o ON o.id_operacion = ro.id_operacion AND o.fec_delete IS NULL
-         INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
-         WHERE u.id_usuario = :id_usuario
-           AND u.fec_delete IS NULL
-         GROUP BY m.id_modulo, m.nombre_modulo"
-    );
-    $sentenciaPermisos->execute([':id_usuario' => $usuario['id_usuario']]);
-    $modulosPermisosRol = $sentenciaPermisos->fetchAll();
-
-    // --- 5b. Consulta de permisos individuales del usuario ---
-    $sentenciaPermisosUsuario = $conexion->prepare(
-        "SELECT
-            m.id_modulo,
-            m.nombre_modulo,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('CREAR', 'INSERTAR', 'NUEVO', 'NUEVA')
-                OR UPPER(o.nombre_operacion) LIKE 'CREAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'INSERTAR%'
-            ) AS permiso_crear,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('ACTUALIZAR', 'EDITAR', 'MODIFICAR')
-                OR UPPER(o.nombre_operacion) LIKE 'ACTUALIZAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'EDITAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'MODIFICAR%'
-            ) AS permiso_actualizar,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('ELIMINAR', 'BORRAR')
-                OR UPPER(o.nombre_operacion) LIKE 'ELIMINAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'BORRAR%'
-            ) AS permiso_eliminar,
-            BOOL_OR(
-                UPPER(o.nombre_operacion) IN ('RESTAURAR', 'RECUPERAR', 'REACTIVAR')
-                OR UPPER(o.nombre_operacion) LIKE 'RESTAURAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'RECUPERAR%'
-                OR UPPER(o.nombre_operacion) LIKE 'REACTIVAR%'
-            ) AS permiso_restaurar
-         FROM t_usuarios_operaciones uo
-         INNER JOIN t_operaciones o ON o.id_operacion = uo.id_operacion AND o.fec_delete IS NULL
-         INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
-         WHERE uo.id_usuario = :id_usuario
-           AND uo.fec_delete IS NULL
-         GROUP BY m.id_modulo, m.nombre_modulo"
-    );
-    $sentenciaPermisosUsuario->execute([':id_usuario' => $usuario['id_usuario']]);
-    $modulosPermisosUsuario = $sentenciaPermisosUsuario->fetchAll();
-
-    // Fusionar permisos de rol y permisos individuales (suma/OR)
-    $modulosPermisos = [];
-    foreach ($modulosPermisosRol as $modulo) {
-        $modulosPermisos[$modulo['id_modulo']] = [
-            'nombre_modulo'       => $modulo['nombre_modulo'],
-            'permiso_crear'       => (bool) $modulo['permiso_crear'],
-            'permiso_actualizar'  => (bool) $modulo['permiso_actualizar'],
-            'permiso_eliminar'    => (bool) $modulo['permiso_eliminar'],
-            'permiso_restaurar'   => (bool) $modulo['permiso_restaurar'],
-        ];
-    }
-    foreach ($modulosPermisosUsuario as $modulo) {
-        $id = $modulo['id_modulo'];
-        if (!isset($modulosPermisos[$id])) {
-            $modulosPermisos[$id] = [
-                'nombre_modulo'       => $modulo['nombre_modulo'],
-                'permiso_crear'       => (bool) $modulo['permiso_crear'],
-                'permiso_actualizar'  => (bool) $modulo['permiso_actualizar'],
-                'permiso_eliminar'    => (bool) $modulo['permiso_eliminar'],
-                'permiso_restaurar'   => (bool) $modulo['permiso_restaurar'],
-            ];
-        } else {
-            $modulosPermisos[$id]['permiso_crear']      = $modulosPermisos[$id]['permiso_crear']      || (bool) $modulo['permiso_crear'];
-            $modulosPermisos[$id]['permiso_actualizar'] = $modulosPermisos[$id]['permiso_actualizar'] || (bool) $modulo['permiso_actualizar'];
-            $modulosPermisos[$id]['permiso_eliminar']   = $modulosPermisos[$id]['permiso_eliminar']   || (bool) $modulo['permiso_eliminar'];
-            $modulosPermisos[$id]['permiso_restaurar']  = $modulosPermisos[$id]['permiso_restaurar']  || (bool) $modulo['permiso_restaurar'];
-        }
+    // --- 5. Cargar datos del usuario y permisos en sesión ---
+    if (!load_user_session($conexion, (string) $usuario['id_usuario'])) {
+        error_log('No se pudo cargar la sesión del usuario: ' . $usuario['id_usuario']);
+        redirigirLogin([
+            'tab' => 'login',
+            'status' => 'error',
+            'code' => 'error_servidor',
+        ]);
     }
 
-    // --- 6. Almacenamiento de datos de sesión ---
-    $_SESSION['id_usuario']    = $usuario['id_usuario'];
-    $_SESSION['username']      = $usuario['username'];
-    $_SESSION['id_rol']        = isset($usuario['id_rol']) ? (int) $usuario['id_rol'] : null;
-    
-    // --- NUEVO: Construimos y guardamos el nombre completo para el dashboard ---
-    $nombre = $usuario['primer_nombre'] ?? '';
-    $apellido = $usuario['primer_apellido'] ?? '';
-    $nombreCompleto = trim($nombre . ' ' . $apellido);
-    
-    // Si la BD no trajo nombres, usamos el username como respaldo
-    $_SESSION['nombre_completo'] = $nombreCompleto !== '' ? $nombreCompleto : $usuario['username'];
+    // --- 6. Cookie "Recordarme" (solo si el usuario la solicitó Y aceptó cookies opcionales) ---
+    $cookieConsent = $_POST['cookie_consent'] ?? 'necessary';
+    $rememberMe    = filter_input(INPUT_POST, 'remember_me', FILTER_VALIDATE_BOOL) ?? false;
 
-    // Arreglo multidimensional indexado por id_modulo para validación rápida
-    $_SESSION['permisos'] = [];
-    foreach ($modulosPermisos as $id_modulo => $permisos) {
-        $_SESSION['permisos'][$id_modulo] = [
-            'nombre_modulo'       => $permisos['nombre_modulo'],
-            'permiso_crear'       => (bool) $permisos['permiso_crear'],
-            'permiso_actualizar'  => (bool) $permisos['permiso_actualizar'],
-            'permiso_eliminar'    => (bool) $permisos['permiso_eliminar'],
-            'permiso_restaurar'   => (bool) $permisos['permiso_restaurar'],
-        ];
+    if ($rememberMe && $cookieConsent === 'all') {
+        RememberMeHelper::create($conexion, (string) $usuario['id_usuario']);
     }
-
-    // Variables de seguridad requeridas por auth_guard.php
-    $_SESSION['user_id'] = $usuario['id_usuario'];
-    $_SESSION['login_user_agent'] = $_SERVER['HTTP_USER_AGENT'];
-    $_SESSION['last_activity_timestamp'] = time();
 
     // --- 7. Redirección al dashboard tras login exitoso ---
     // Administradores van al panel de RRHH; el resto al dashboard de empleado.

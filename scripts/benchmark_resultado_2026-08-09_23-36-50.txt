@@ -1,0 +1,20 @@
+﻿
+
+Escenario         : Login GET (pÃºblico)
+URL               : http://localhost/dlgc_rrhh/templates/login.php
+Peticiones        : 1000
+Concurrentes      : 50
+RPS               : 371.94
+TiempoPromedio_ms : 134.432
+FailedRequests    : 0
+Non2xxResponses   : 0
+RAM_Antes_MB      : 275.41
+RAM_Despues_MB    : 276.93
+Delta_RAM_MB      : 1.52
+
+
+
+
+
+Pico de RAM: 276.93 MB
+RecomendaciÃ³n: VPS mÃ­nimo: 1 GB RAM (con margen de crecimiento 2 GB) VPS recomendado: 2 GB RAM (con margen de crecimiento 4 GB) VPS recomendado: 4 GB RAM (con margen de crecimiento 8 GB)

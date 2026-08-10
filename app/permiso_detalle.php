@@ -6,8 +6,7 @@ declare(strict_types=1);
  * Acceso: el propio empleado, su jefe responsable, o cualquier usuario con acceso al módulo 27 (RRHH).
  */
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
 

@@ -6,11 +6,11 @@
 
 declare(strict_types=1);
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/csrf_guard.php';
 require_once __DIR__ . '/helpers/InputSanitizer.php';
+require_once __DIR__ . '/helpers/RememberMeHelper.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 
@@ -124,6 +124,9 @@ try {
         ':usr_update'       => $recuperacion['id_usuario'],
         ':id_recuperacion'  => $recuperacion['id_recuperacion'],
     ]);
+
+    // Al cambiar contraseña se invalidan todos los tokens "Recordarme" del usuario.
+    RememberMeHelper::invalidateAllForUser($conexion, (string) $recuperacion['id_usuario']);
 
     redirigirLogin([
         'tab' => 'login',

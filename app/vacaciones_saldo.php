@@ -8,8 +8,7 @@ declare(strict_types=1);
  * - ?accion=empleados (solo RRHH): lista de empleados activos para el selector de la UI.
  */
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
 

@@ -6,8 +6,7 @@
  * hashea la contraseña y realiza el INSERT mediante sentencia preparada.
  */
 
-session_start();
-
+require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/csrf_guard.php';
 require_once __DIR__ . '/helpers/Mailer.php';
@@ -24,6 +23,24 @@ function redirigirRegistro(array $parametros): void
     exit;
 }
 
+/**
+ * Guarda los campos del paso 2 de registro en sesión para rellenarlos
+ * si la validación falla. No almacena contraseñas.
+ */
+function guardarDatosRegistroEnSesion(array $datos): void
+{
+    $camposPermitidos = [
+        'username', 'tipo_documento', 'id_usuario', 'primer_nombre',
+        'segundo_nombre', 'primer_apellido', 'segundo_apellido', 'correo',
+        'accept_terms', 'accept_privacy',
+    ];
+
+    $_SESSION['register_form_data'] = [];
+    foreach ($camposPermitidos as $campo) {
+        $_SESSION['register_form_data'][$campo] = $datos[$campo] ?? '';
+    }
+}
+
 function generarCodigoRegistro(PDO $conexion): string
 {
     $stmtExiste = $conexion->prepare("SELECT COUNT(*) FROM t_codigos_registro WHERE codigo = :codigo");
@@ -33,6 +50,15 @@ function generarCodigoRegistro(PDO $conexion): string
         $existe = (int) $stmtExiste->fetchColumn() > 0;
     } while ($existe);
     return $codigo;
+}
+
+// Endpoint interno para limpiar el borrador del formulario de registro
+// cuando el usuario pulsa "Volver al código".
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear_register_form_cache'])) {
+    csrf_validate();
+    unset($_SESSION['register_form_data']);
+    http_response_code(204);
+    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -150,12 +176,38 @@ if (!$validacionContrasena['valid']) {
     }
 }
 
+// --- Validación de aceptación de Términos y Política de Privacidad ---
+$acceptTerms  = filter_input(INPUT_POST, 'accept_terms', FILTER_VALIDATE_BOOL) ?? false;
+$acceptPrivacy = filter_input(INPUT_POST, 'accept_privacy', FILTER_VALIDATE_BOOL) ?? false;
+
+if (!$acceptTerms) {
+    $errores[] = 'Debes aceptar los Términos y Condiciones para continuar.';
+}
+
+if (!$acceptPrivacy) {
+    $errores[] = 'Debes aceptar la Política de Privacidad para continuar.';
+}
+
 if (!empty($errores)) {
+    guardarDatosRegistroEnSesion([
+        'username'         => $username,
+        'tipo_documento'   => $tipoDocumento,
+        'id_usuario'       => $idUsuario,
+        'primer_nombre'    => $primerNombre,
+        'segundo_nombre'   => $segundoNombre,
+        'primer_apellido'  => $primerApellido,
+        'segundo_apellido' => $segundoApellido,
+        'correo'           => $correo,
+        'accept_terms'     => $acceptTerms ? '1' : '',
+        'accept_privacy'   => $acceptPrivacy ? '1' : '',
+    ]);
+
     redirigirRegistro([
-        'tab' => 'register',
+        'tab'    => 'register',
+        'step'   => '2',
         'status' => 'error',
-        'code' => 'validacion_registro',
-        'msg' => $errores[0],
+        'code'   => 'validacion_registro',
+        'msg'    => $errores[0],
     ]);
 }
 
@@ -435,7 +487,13 @@ try {
     $rateLimiter->registrar($idUsuario, 'verificacion');
 
     // --- 8. Redirección al login tras registro exitoso ---
-    unset($_SESSION['codigo_registro_validado'], $_SESSION['codigo_registro'], $_SESSION['codigo_registro_tipo'], $_SESSION['codigo_registro_id']);
+    unset(
+        $_SESSION['codigo_registro_validado'],
+        $_SESSION['codigo_registro'],
+        $_SESSION['codigo_registro_tipo'],
+        $_SESSION['codigo_registro_id'],
+        $_SESSION['register_form_data']
+    );
     redirigirRegistro([
         'tab' => 'login',
         'status' => 'success',
@@ -454,10 +512,24 @@ try {
         }
     }
 
+    guardarDatosRegistroEnSesion([
+        'username'         => $username ?? '',
+        'tipo_documento'   => $tipoDocumento ?? '',
+        'id_usuario'       => $idUsuario ?? '',
+        'primer_nombre'    => $primerNombre ?? '',
+        'segundo_nombre'   => $segundoNombre ?? '',
+        'primer_apellido'  => $primerApellido ?? '',
+        'segundo_apellido' => $segundoApellido ?? '',
+        'correo'           => $correo ?? '',
+        'accept_terms'     => ($acceptTerms ?? false) ? '1' : '',
+        'accept_privacy'   => ($acceptPrivacy ?? false) ? '1' : '',
+    ]);
+
     error_log('Error en el proceso de registro: ' . $e->getMessage());
     redirigirRegistro([
-        'tab' => 'register',
+        'tab'    => 'register',
+        'step'   => '2',
         'status' => 'error',
-        'code' => 'error_servidor',
+        'code'   => 'error_servidor',
     ]);
 }

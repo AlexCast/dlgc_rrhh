@@ -33,6 +33,60 @@ body.dark-theme {
     --card-bg: #0D130F;
 }
 
+/* =========================================
+   Footer de la landing
+   ========================================= */
+.landing-footer {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-top: 1px solid var(--border-color);
+    padding: 32px 24px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    backdrop-filter: blur(4px);
+}
+
+body.dark-theme .landing-footer {
+    background-color: rgba(19, 27, 21, 0.7);
+}
+
+.landing-footer__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.landing-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+}
+
+.landing-footer__links a {
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.landing-footer__links a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.landing-footer__copy {
+    font-weight: 600;
+}
+
+.landing-footer__ia-note {
+    font-size: 0.75rem;
+    font-style: italic;
+    opacity: 0.7;
+}
+
 * {
     margin: 0;
     padding: 0;
