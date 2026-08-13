@@ -33,6 +33,7 @@ $iconSrc          = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
 $iconModulos      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>';
 $iconFestivos     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path></svg>';
 $iconVacaciones   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-1 .1-1.3.5l-.4.5c-.4.5-.2 1.2.3 1.5L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.5 1 .7 1.5.3l.5-.4c.4-.3.6-.8.5-1.3z"></path></svg>';
+$iconBandeja      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>';
 $iconChevron      = '<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
 $grupos = [
@@ -80,6 +81,21 @@ foreach ($grupos as $key => $grupo) {
             break;
         }
     }
+}
+
+// La Bandeja de Aprobaciones no tiene un id_modulo propio: agrupa la aprobación de JEFE
+// (operación 33 del módulo 3, solo si el usuario tiene al menos un subordinado directo) y la
+// bandeja de RRHH (módulo 27). Se muestra si el usuario califica para al menos una de las dos.
+$mostrarBandejaPermisos = false;
+if (isset($conexion) && has_module_permission(3, 'actualizar')) {
+    $stmtSubNav = $conexion->prepare(
+        'SELECT COUNT(*) AS total FROM t_empleados WHERE id_jefe = :id_jefe AND fec_delete IS NULL'
+    );
+    $stmtSubNav->execute([':id_jefe' => $_SESSION['id_usuario'] ?? null]);
+    $mostrarBandejaPermisos = ((int) $stmtSubNav->fetchColumn()) > 0;
+}
+if (has_module_access(27)) {
+    $mostrarBandejaPermisos = true;
 }
 
 // Módulos SRC/administrativos sueltos (no agrupados) que el usuario tenga asignados.
@@ -137,6 +153,9 @@ function renderGrupo(string $key, array $grupo, string $activeItem, string $icon
         <?php echo renderNavItem('/dlgc_rrhh/templates/comunicados.php',   'Comunicados',           $iconComunicados, 'comunicados', $activeItem); ?>
         <?php echo renderNavItem('/dlgc_rrhh/templates/empleados.php',     'Empleados',             $iconEmpleados,   'empleados',   $activeItem); ?>
         <?php echo renderNavItem('/dlgc_rrhh/templates/solicitud_permiso.php', 'Solicitudes y Permisos', $iconSolicitudes, 'solicitudes', $activeItem); ?>
+        <?php if ($mostrarBandejaPermisos): ?>
+            <?php echo renderNavItem('/dlgc_rrhh/templates/bandeja_permisos.php', 'Bandeja de Aprobaciones', $iconBandeja, 'bandeja_permisos', $activeItem); ?>
+        <?php endif; ?>
         <?php echo renderNavItem('/dlgc_rrhh/templates/sst.php',           'SST',                   $iconSst,         'sst',         $activeItem); ?>
 
         <?php foreach ($gruposVisibles as $key => $grupo): ?>

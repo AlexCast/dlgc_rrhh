@@ -37,7 +37,7 @@ function load_user_session(PDO $conexion, string $idUsuario): bool
             return false;
         }
 
-        $permisos = array_merge(
+        $permisos = merge_module_permissions(
             fetch_module_permissions_by_role($conexion, $idUsuario),
             fetch_module_permissions_by_user($conexion, $idUsuario)
         );
@@ -150,6 +150,37 @@ function fetch_module_permissions_by_user(PDO $conexion, string $idUsuario): arr
     );
     $stmt->execute([':id_usuario' => $idUsuario]);
     return normalize_permissions($stmt->fetchAll());
+}
+
+/**
+ * Combina permisos por rol y por usuario preservando id_modulo como clave.
+ *
+ * IMPORTANTE: NO usar array_merge() aquí. Las claves de estos arreglos son
+ * id_modulo (enteros), y array_merge() reindexa/renumera las claves numéricas
+ * en vez de fusionarlas, lo que rompe has_module_access()/has_module_permission()
+ * para cualquier módulo cuya posición secuencial no coincida con su id real.
+ *
+ * @param array<int, array<string, mixed>> $porRol
+ * @param array<int, array<string, mixed>> $porUsuario
+ * @return array<int, array<string, mixed>>
+ */
+function merge_module_permissions(array $porRol, array $porUsuario): array
+{
+    $resultado = $porRol;
+    foreach ($porUsuario as $idModulo => $permisosModulo) {
+        if (!array_key_exists($idModulo, $resultado)) {
+            $resultado[$idModulo] = $permisosModulo;
+            continue;
+        }
+
+        $resultado[$idModulo]['nombre_modulo']      = $resultado[$idModulo]['nombre_modulo'] ?? $permisosModulo['nombre_modulo'];
+        $resultado[$idModulo]['permiso_crear']      = $resultado[$idModulo]['permiso_crear']      || $permisosModulo['permiso_crear'];
+        $resultado[$idModulo]['permiso_actualizar'] = $resultado[$idModulo]['permiso_actualizar'] || $permisosModulo['permiso_actualizar'];
+        $resultado[$idModulo]['permiso_eliminar']   = $resultado[$idModulo]['permiso_eliminar']   || $permisosModulo['permiso_eliminar'];
+        $resultado[$idModulo]['permiso_restaurar']  = $resultado[$idModulo]['permiso_restaurar']  || $permisosModulo['permiso_restaurar'];
+    }
+
+    return $resultado;
 }
 
 /**

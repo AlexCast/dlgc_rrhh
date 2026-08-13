@@ -6,20 +6,6 @@ require_once '../app/conexion.php';
 require_module_access(3);
 
 $puedeCrear = has_module_permission(3, 'crear');
-$esJefe     = has_module_permission(3, 'actualizar');
-$esRrhh     = has_module_access(27);
-
-$tieneSubordinados = false;
-if ($conexion && $esJefe) {
-    $sentenciaSubordinados = $conexion->prepare(
-        'SELECT COUNT(*) AS total
-         FROM t_empleados
-         WHERE id_jefe = :id_jefe
-           AND fec_delete IS NULL'
-    );
-    $sentenciaSubordinados->execute([':id_jefe' => $_SESSION['id_usuario'] ?? null]);
-    $tieneSubordinados = ((int) ($sentenciaSubordinados->fetch(PDO::FETCH_ASSOC)['total'] ?? 0)) > 0;
-}
 
 $tiposPermiso = [];
 if ($conexion) {
@@ -50,8 +36,6 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 </head>
 <body
     data-puede-crear="<?php echo $puedeCrear ? '1' : '0'; ?>"
-    data-es-jefe="<?php echo ($esJefe && $tieneSubordinados) ? '1' : '0'; ?>"
-    data-es-rrhh="<?php echo $esRrhh ? '1' : '0'; ?>"
     data-csrf="<?php echo $csrfToken; ?>"
 >
 
@@ -114,12 +98,6 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                 <div class="sst-tabs" role="tablist">
                     <button class="sst-tab active" data-tab="nueva" role="tab" aria-selected="true">Nueva Solicitud</button>
                     <button class="sst-tab" data-tab="mias" role="tab" aria-selected="false">Mis Solicitudes</button>
-                    <?php if ($esJefe && $tieneSubordinados): ?>
-                    <button class="sst-tab" data-tab="jefe" role="tab" aria-selected="false">Bandeja de Jefe</button>
-                    <?php endif; ?>
-                    <?php if ($esRrhh): ?>
-                    <button class="sst-tab" data-tab="rrhh" role="tab" aria-selected="false">Bandeja de RRHH</button>
-                    <?php endif; ?>
                 </div>
 
                 <!-- Pestaña: Nueva Solicitud -->
@@ -295,93 +273,6 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                     </div>
                     <div id="lista-mias" class="permiso-lista"></div>
                 </section>
-
-                <?php if ($esJefe && $tieneSubordinados): ?>
-                <!-- Pestaña: Bandeja de Jefe -->
-                <section id="tab-jefe" class="sst-tab-panel" hidden>
-                    <div class="sst-section-header">
-                        <h2>Bandeja de Jefe Directo</h2>
-                        <p class="sst-section-desc">Solicitudes de tus subordinados directos pendientes de tu aprobación.</p>
-                        <div class="form-actions">
-                            <button type="button" class="btn-accion-secundaria btn-toggle-historial" data-vista="jefe">Ver historial completo</button>
-                        </div>
-                    </div>
-                    <div id="lista-jefe" class="permiso-lista"></div>
-                </section>
-                <?php endif; ?>
-
-                <?php if ($esRrhh): ?>
-                <!-- Pestaña: Bandeja de RRHH -->
-                <section id="tab-rrhh" class="sst-tab-panel" hidden>
-                    <div class="sst-section-header">
-                        <h2>Bandeja de RRHH</h2>
-                        <p class="sst-section-desc">Todas las solicitudes del sistema, sin excepción.</p>
-                        <div class="form-actions">
-                            <button type="button" id="btn-exportar-informe" class="btn-accion-secundaria">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                Exportar Informe
-                            </button>
-                            <button type="button" class="btn-accion-secundaria btn-toggle-historial" data-vista="rrhh">Ver historial completo</button>
-                        </div>
-                    </div>
-                    <div id="lista-rrhh" class="permiso-lista"></div>
-                </section>
-                <?php endif; ?>
-
-                <?php if ($esRrhh): ?>
-                <!-- Modal: Exportar Informe (Nómina / RRHH) -->
-                <div class="modal-overlay" id="modal-exportar-informe" hidden>
-                    <div class="modal-box">
-                        <div class="modal-box-header">
-                            <h3>Exportar Informe</h3>
-                            <button type="button" id="cerrar-modal-exportar" class="icon-btn" aria-label="Cerrar">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-
-                        <div class="modal-box-body">
-                            <div class="reporte-filtros">
-                                <div class="perm-field">
-                                    <label for="reporte-mes">Mes</label>
-                                    <select id="reporte-mes">
-                                        <?php
-                                        $nombresMes = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-                                        foreach ($nombresMes as $indice => $nombreMes):
-                                            $numeroMes = $indice + 1;
-                                        ?>
-                                        <option value="<?php echo $numeroMes; ?>" <?php echo $numeroMes === (int) date('n') ? 'selected' : ''; ?>><?php echo $nombreMes; ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="perm-field">
-                                    <label for="reporte-anio">Año</label>
-                                    <select id="reporte-anio">
-                                        <?php for ($a = (int) date('Y') - 1; $a <= (int) date('Y') + 1; $a++): ?>
-                                        <option value="<?php echo $a; ?>" <?php echo $a === (int) date('Y') ? 'selected' : ''; ?>><?php echo $a; ?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="reporte-grupo">
-                                <p class="perm-field-hint"><strong>Para Nómina</strong> — solo permisos y festivos que generan un descuento real.</p>
-                                <div class="perm-actions">
-                                    <a class="btn btn-outline reporte-link" data-vista="nomina" data-formato="excel" href="#">Descargar Nómina (Excel)</a>
-                                    <a class="btn btn-outline reporte-link" data-vista="nomina" data-formato="pdf" href="#">Descargar Nómina (PDF)</a>
-                                </div>
-                            </div>
-
-                            <div class="reporte-grupo">
-                                <p class="perm-field-hint"><strong>Para RRHH</strong> — informe completo de todos los permisos aprobados, se descuenten o no.</p>
-                                <div class="perm-actions">
-                                    <a class="btn btn-outline reporte-link" data-vista="rrhh" data-formato="excel" href="#">Descargar Informe RRHH (Excel)</a>
-                                    <a class="btn btn-outline reporte-link" data-vista="rrhh" data-formato="pdf" href="#">Descargar Informe RRHH (PDF)</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endif; ?>
 
             </div>
         </main>

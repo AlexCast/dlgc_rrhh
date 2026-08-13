@@ -1,60 +1,19 @@
 // =============================================
 // Script para Solicitud de Permiso y Vacaciones
-// (Nueva solicitud + Mis solicitudes + Bandeja de Jefe + Bandeja de RRHH)
+// (Nueva solicitud + Mis solicitudes; la Bandeja de Jefe/RRHH vive en su propio
+// módulo, ver assets/js/bandeja_permisos.js)
 // =============================================
 
 document.addEventListener('DOMContentLoaded', function () {
     initializeSidebar();
     initializeTabs();
     initializeForm();
-    initializeReportesRrhh();
 });
-
-// -------------------------------------------------
-// Filtros de reporte (Nómina / RRHH) en la bandeja de RRHH
-// -------------------------------------------------
-function initializeReportesRrhh() {
-    const enlaces = document.querySelectorAll('.reporte-link');
-    if (enlaces.length === 0) return;
-
-    const mesSelect = document.getElementById('reporte-mes');
-    const anioSelect = document.getElementById('reporte-anio');
-    const modal = document.getElementById('modal-exportar-informe');
-    const btnAbrir = document.getElementById('btn-exportar-informe');
-    const btnCerrar = document.getElementById('cerrar-modal-exportar');
-
-    if (btnAbrir && modal) {
-        btnAbrir.addEventListener('click', () => modal.removeAttribute('hidden'));
-    }
-    if (btnCerrar && modal) {
-        btnCerrar.addEventListener('click', () => modal.setAttribute('hidden', ''));
-    }
-    if (modal) {
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) modal.setAttribute('hidden', '');
-        });
-    }
-
-    enlaces.forEach(enlace => {
-        enlace.addEventListener('click', (event) => {
-            event.preventDefault();
-            const params = new URLSearchParams({
-                vista: enlace.dataset.vista,
-                formato: enlace.dataset.formato,
-                mes: mesSelect ? mesSelect.value : '',
-                anio: anioSelect ? anioSelect.value : ''
-            });
-            window.location.href = '/dlgc_rrhh/app/permiso_reporte.php?' + params.toString();
-        });
-    });
-}
 
 function getBodyFlags() {
     const body = document.body;
     return {
         puedeCrear: body.dataset.puedeCrear === '1',
-        esJefe: body.dataset.esJefe === '1',
-        esRrhh: body.dataset.esRrhh === '1',
         csrf: body.dataset.csrf || ''
     };
 }
@@ -433,20 +392,10 @@ function initializeTabs() {
                 panel.removeAttribute('hidden');
             }
 
-            if (!cargadas.has(target) && ['mias', 'jefe', 'rrhh'].includes(target)) {
+            if (!cargadas.has(target) && target === 'mias') {
                 cargadas.add(target);
                 cargarBandeja(target);
             }
-        });
-    });
-
-    document.querySelectorAll('.btn-toggle-historial').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const vista = btn.dataset.vista;
-            const enHistorial = btn.dataset.historial === '1';
-            btn.dataset.historial = enHistorial ? '0' : '1';
-            btn.textContent = enHistorial ? 'Ver historial completo' : 'Ver pendientes';
-            cargarBandeja(vista, !enHistorial);
         });
     });
 }
