@@ -115,14 +115,70 @@ function notificarResolucionSolicitud(PDO $conexion, int $idPermiso, string $niv
         $subject = $nuevoEstado === 'APROBADO'
             ? "Tu solicitud de permiso #{$idPermiso} fue aprobada"
             : "Tu solicitud de permiso #{$idPermiso} fue rechazada";
+
+        $nombreEmpleadoHtml = htmlspecialchars((string) $empleado['primer_nombre'], ENT_QUOTES, 'UTF-8');
+        $estadoTexto = $nuevoEstado === 'APROBADO' ? 'aprobada' : 'rechazada';
+        $responsableTexto = $nivel === 'JEFE' ? 'tu jefe directo' : 'RRHH';
+        $badgeColor = $nuevoEstado === 'APROBADO' ? '#3ba86a' : '#e05d5d';
+        $badgeBg = $nuevoEstado === 'APROBADO' ? '#eafaf1' : '#fdeceb';
+
         $body = sprintf(
-            '<p>Hola %s,</p><p>Tu solicitud de permiso #%d fue <strong>%s</strong> por %s.</p>',
-            htmlspecialchars((string) $empleado['primer_nombre']),
+            '<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Resolución de solicitud de permiso</title>
+                <style>
+                    body { margin: 0; padding: 0; background-color: #ececec; font-family: Inter, system-ui, -apple-system, sans-serif; color: #0D130F; }
+                    .wrapper { width: 100%%; padding: 40px 16px; }
+                    .card { max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; border: 2px solid #3ba86a; box-shadow: 0 12px 30px rgba(59, 168, 106, 0.12); overflow: hidden; }
+                    .header { background-color: #3ba86a; padding: 24px; text-align: center; }
+                    .header h1 { color: #ffffff; margin: 0; font-size: 1.25rem; font-weight: 700; }
+                    .content { padding: 32px; }
+                    .content p { margin: 0 0 16px; line-height: 1.6; font-size: 0.95rem; color: #0D130F; }
+                    .content p strong { color: #0D130F; }
+                    .badge { display: inline-block; background-color: %s; color: %s; border-radius: 8px; padding: 4px 12px; font-weight: 600; font-size: 0.85rem; }
+                    .notice { font-size: 0.85rem; color: #6b7280; }
+                    .notice strong { color: #6b7280; }
+                    .footer { text-align: center; padding: 16px 32px; font-size: 0.8rem; color: #6b7280; border-top: 1px solid #e5e7eb; }
+                </style>
+            </head>
+            <body>
+                <div class="wrapper">
+                    <div class="card">
+                        <div class="header">
+                            <h1>Portal DLGC RRHH</h1>
+                        </div>
+                        <div class="content">
+                            <p>Hola <strong>%s</strong>,</p>
+                            <p><span class="badge">Solicitud #%d</span></p>
+                            <p>Tu solicitud de permiso fue <strong>%s</strong> por %s.</p>
+                            <p class="notice">Si quieres saber más detalles sobre la resolución, ingresa al portal DLGC RRHH.</p>
+                            <p>Saludos,<br><strong>Portal DLGC RRHH</strong></p>
+                        </div>
+                        <div class="footer">
+                            &copy; Distribuciones La Gran Cacharrería. Todos los derechos reservados.
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>',
+            $badgeBg,
+            $badgeColor,
+            $nombreEmpleadoHtml,
             $idPermiso,
-            $nuevoEstado === 'APROBADO' ? 'aprobada' : 'rechazada',
-            $nivel === 'JEFE' ? 'tu jefe directo' : 'RRHH'
+            $estadoTexto,
+            $responsableTexto
         );
-        $mailer->send($empleado['correo'], (string) $empleado['primer_nombre'], $subject, $body, strip_tags($body));
+
+        $altBody = "Portal DLGC RRHH\n\n"
+                 . "Hola {$empleado['primer_nombre']},\n\n"
+                 . "Tu solicitud de permiso #{$idPermiso} fue {$estadoTexto} por {$responsableTexto}.\n\n"
+                 . "Ingresa al portal DLGC RRHH para más detalles.\n\n"
+                 . "Distribuciones La Gran Cacharrería";
+
+        $mailer->send($empleado['correo'], (string) $empleado['primer_nombre'], $subject, $body, $altBody);
     } catch (Throwable $e) {
         error_log('notificarResolucionSolicitud: no se pudo enviar la notificación: ' . $e->getMessage());
     }

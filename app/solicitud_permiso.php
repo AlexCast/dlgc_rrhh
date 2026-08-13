@@ -235,12 +235,58 @@ function notificarSolicitudCreada(PDO $conexion, int $idPermiso, array $filaJefe
         $nombreEmpleado = trim(($filaJefe['nombre_empleado'] ?? '') . ' ' . ($filaJefe['apellido_empleado'] ?? ''));
         $mailer = new Mailer();
         $subject = "Nueva solicitud de permiso #{$idPermiso} para tu revisión";
+
+        $nombreEmpleadoHtml = htmlspecialchars($nombreEmpleado, ENT_QUOTES, 'UTF-8');
+
         $body = sprintf(
-            '<p>Hola,</p><p><strong>%s</strong> ha radicado la solicitud de permiso #%d y está pendiente de tu aprobación.</p><p>Ingresa al portal DLGC RRHH para revisarla.</p>',
-            htmlspecialchars($nombreEmpleado),
-            $idPermiso
+            '<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Nueva solicitud de permiso</title>
+                <style>
+                    body { margin: 0; padding: 0; background-color: #ececec; font-family: Inter, system-ui, -apple-system, sans-serif; color: #0D130F; }
+                    .wrapper { width: 100%%; padding: 40px 16px; }
+                    .card { max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; border: 2px solid #3ba86a; box-shadow: 0 12px 30px rgba(59, 168, 106, 0.12); overflow: hidden; }
+                    .header { background-color: #3ba86a; padding: 24px; text-align: center; }
+                    .header h1 { color: #ffffff; margin: 0; font-size: 1.25rem; font-weight: 700; }
+                    .content { padding: 32px; }
+                    .content p { margin: 0 0 16px; line-height: 1.6; font-size: 0.95rem; color: #0D130F; }
+                    .content p strong { color: #0D130F; }
+                    .badge { display: inline-block; background-color: #eafaf1; color: #298350; border-radius: 8px; padding: 4px 12px; font-weight: 600; font-size: 0.85rem; }
+                    .notice { font-size: 0.85rem; color: #6b7280; }
+                    .notice strong { color: #6b7280; }
+                    .footer { text-align: center; padding: 16px 32px; font-size: 0.8rem; color: #6b7280; border-top: 1px solid #e5e7eb; }
+                </style>
+            </head>
+            <body>
+                <div class="wrapper">
+                    <div class="card">
+                        <div class="header">
+                            <h1>Portal DLGC RRHH</h1>
+                        </div>
+                        <div class="content">
+                            <p>Hola,</p>
+                            <p><span class="badge">Solicitud #%d</span></p>
+                            <p><strong>%s</strong> ha radicado una solicitud de permiso y está pendiente de tu aprobación.</p>
+                            <p class="notice">Ingresa al portal DLGC RRHH para revisarla y dar respuesta a la brevedad.</p>
+                            <p>Saludos,<br><strong>Portal DLGC RRHH</strong></p>
+                        </div>
+                        <div class="footer">
+                            &copy; Distribuciones La Gran Cacharrería. Todos los derechos reservados.
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>',
+            $idPermiso,
+            $nombreEmpleadoHtml
         );
-        $altBody = "{$nombreEmpleado} ha radicado la solicitud de permiso #{$idPermiso}, pendiente de tu aprobación.";
+        $altBody = "Portal DLGC RRHH\n\n"
+                 . "{$nombreEmpleado} ha radicado la solicitud de permiso #{$idPermiso}, pendiente de tu aprobación.\n\n"
+                 . "Ingresa al portal DLGC RRHH para revisarla.\n\n"
+                 . "Distribuciones La Gran Cacharrería";
 
         if (!empty($filaJefe['correo_jefe'])) {
             $mailer->send($filaJefe['correo_jefe'], (string) ($filaJefe['nombre_jefe'] ?? 'Jefe directo'), $subject, $body, $altBody);
