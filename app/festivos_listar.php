@@ -4,8 +4,10 @@ declare(strict_types=1);
 /**
  * Devuelve las fechas de días festivos (nacionales + empresa) dentro de un rango,
  * para que el front-end excluya domingos y festivos al contar "días hábiles"
- * en el selector de fechas de solicitud de permisos.
- * Acceso: cualquier usuario autenticado con acceso al módulo de Solicitudes y Permisos.
+ * en el selector de fechas de solicitud de permisos y en el calendario de
+ * disponibilidad del Directorio de Empleados.
+ * Acceso: cualquier usuario autenticado con acceso al módulo de Solicitudes y
+ * Permisos (3) o al Directorio de Empleados (22).
  */
 
 require_once __DIR__ . '/session_bootstrap.php';
@@ -26,8 +28,8 @@ if (!is_string($idUsuario) || trim($idUsuario) === '') {
     responderJson(false, 'Sesión inválida.', 401);
 }
 
-if (!has_module_access(3)) {
-    responderJson(false, 'No tienes acceso al módulo de Solicitudes y Permisos.', 403);
+if (!has_module_access(3) && !has_module_access(22)) {
+    responderJson(false, 'No tienes acceso a los días festivos.', 403);
 }
 
 $anio = (int) ($_GET['anio'] ?? date('Y'));

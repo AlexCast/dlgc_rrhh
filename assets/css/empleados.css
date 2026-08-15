@@ -62,6 +62,25 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
+    align-items: start;
+}
+
+.employee-grid-empty {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 24px 0;
+}
+
+.employee-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 1199px) {
+    .employee-cell.expanded {
+        grid-column: 1 / -1;
+    }
 }
 
 .employee-card {
@@ -87,6 +106,19 @@
 .employee-card.active {
     border-color: var(--primary-color);
     background: rgba(59, 168, 106, 0.05);
+}
+
+@media (max-width: 1199px) {
+    .employee-cell.expanded .employee-card {
+        border-color: var(--primary-color);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: none;
+        padding-bottom: 17px;
+        /* El :hover táctil deja el transform/sombra "pegados" separando la tarjeta del panel */
+        transform: none;
+        box-shadow: none;
+    }
 }
 
 .emp-avatar {
@@ -125,6 +157,42 @@
     min-height: 480px;
     position: sticky;
     top: 96px;
+}
+
+/* En móvil/tablet el panel se inserta justo debajo de la tarjeta seleccionada */
+@media (max-width: 1199px) {
+    .availability-panel {
+        position: static;
+        min-height: 0;
+    }
+
+    .availability-panel.mobile-inline {
+        margin: 0;
+        border-color: var(--primary-color);
+        border-top: none;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        animation: panel-inline-in 0.25s ease;
+    }
+
+    .availability-panel.mobile-inline .empty-state {
+        display: none;
+    }
+
+    /* El nombre/cargo ya se muestran en la tarjeta, no repetirlos en el panel */
+    .availability-panel.mobile-inline .selected-employee-info {
+        display: none;
+    }
+
+    .availability-panel.mobile-inline .calendar-header {
+        gap: 0;
+        margin-bottom: 16px;
+    }
+}
+
+@keyframes panel-inline-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .empty-state {
@@ -244,6 +312,18 @@
     color: var(--status-pending-text);
 }
 
+.calendar-day.festivo {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.calendar-day.festivo-empresa {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    font-weight: 700;
+}
+
 .calendar-day.off {
     background: #f3f4f6;
     color: #9ca3af;
@@ -264,6 +344,138 @@ body.dark-theme .calendar-day.off {
     border-top: 1px solid var(--border-color);
 }
 
+.employee-info-btn {
+    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-main);
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.employee-info-btn:hover {
+    background: var(--bg-card);
+}
+
+/* Modal de datos de contacto */
+.employee-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.employee-modal[hidden] {
+    display: none;
+}
+
+.employee-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(9px);
+}
+
+.employee-modal-panel {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+.employee-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.employee-modal-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.employee-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.employee-modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px;
+}
+
+.employee-modal-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main);
+    margin-bottom: 16px;
+}
+
+.employee-modal-name {
+    margin: 0 0 4px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.employee-modal-role {
+    margin: 0 0 20px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.employee-modal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.employee-modal-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.employee-modal-list li:last-child {
+    border-bottom: none;
+}
+
+.employee-modal-list svg {
+    flex-shrink: 0;
+    color: var(--primary-color);
+}
+
 .legend-item {
     display: flex;
     align-items: center;
@@ -278,4 +490,5 @@ body.dark-theme .calendar-day.off {
 
 .dot.available { background: var(--status-approved-text); }
 .dot.occupied { background: var(--status-pending-text); }
+.dot.festivo { background: #ef4444; }
 .dot.off { background: #9ca3af; }
