@@ -146,6 +146,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                             </div>
                             <div class="calendar-legend">
                                 <div class="legend-item"><span class="dot available"></span> Día laboral</div>
+                                <div class="legend-item"><span class="dot occupied"></span> Permiso/vacaciones</div>
                                 <div class="legend-item"><span class="dot festivo"></span> Festivo</div>
                                 <div class="legend-item"><span class="dot off"></span> Domingo</div>
                             </div>

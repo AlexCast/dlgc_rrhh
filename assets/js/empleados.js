@@ -52,6 +52,39 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    // -------------------------------------------------
+    // Ocupación real por empleado (permisos/vacaciones APROBADOS)
+    // -------------------------------------------------
+    const ocupacionCache = new Map(); // 'idEmpleado-anio-mes' -> Set de fechas 'YYYY-MM-DD' ocupadas
+
+    function cargarOcupacion(idEmpleado, anio, mes) {
+        const clave = `${idEmpleado}-${anio}-${mes}`;
+        if (ocupacionCache.has(clave)) return Promise.resolve(ocupacionCache.get(clave));
+
+        const parametros = new URLSearchParams({ id_empleado: idEmpleado, anio: String(anio), mes: String(mes + 1) });
+
+        return fetch('/dlgc_rrhh/app/empleado_ocupacion.php?' + parametros.toString(), {
+            credentials: 'same-origin'
+        })
+            .then(response => response.json())
+            .then(data => {
+                const ocupados = new Set();
+                if (data.success && Array.isArray(data.rangos)) {
+                    data.rangos.forEach(rango => {
+                        let cursor = new Date(rango.fecha_inicio + 'T00:00:00');
+                        const fin = new Date(rango.fecha_fin + 'T00:00:00');
+                        while (cursor <= fin) {
+                            ocupados.add(formatearFechaISO(cursor));
+                            cursor.setDate(cursor.getDate() + 1);
+                        }
+                    });
+                }
+                ocupacionCache.set(clave, ocupados);
+                return ocupados;
+            })
+            .catch(() => new Set());
+    }
+
     // Posición original del panel para restaurarlo en escritorio
     const panelOriginalParent = availabilityPanel.parentElement;
     const panelOriginalNext = availabilityPanel.nextElementSibling;
@@ -232,20 +265,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Calendario real: mismos festivos nacionales/de empresa y domingos que
-    // usa Solicitudes y Permisos (fuente: app/festivos_listar.php).
+    // usa Solicitudes y Permisos (fuente: app/festivos_listar.php), más los
+    // permisos/vacaciones APROBADOS del empleado (fuente: app/empleado_ocupacion.php).
     function generateCalendar() {
         if (!empleadoSeleccionado) return;
 
         currentMonthLabel.textContent = `${NOMBRES_MES[vistaMes]} ${vistaAnio}`;
 
-        cargarFestivos(vistaAnio).then(() => {
-            // Evita pintar un mes viejo si el usuario ya navegó a otro antes de que responda el fetch.
-            if (!empleadoSeleccionado) return;
-            renderCalendarGrid();
+        const idEmpleado = empleadoSeleccionado.id;
+        const anioVista = vistaAnio;
+        const mesVista = vistaMes;
+
+        Promise.all([
+            cargarFestivos(vistaAnio),
+            cargarOcupacion(idEmpleado, anioVista, mesVista)
+        ]).then(([, ocupados]) => {
+            // Evita pintar un mes/empleado viejo si el usuario ya cambió de selección antes de que responda el fetch.
+            if (!empleadoSeleccionado || empleadoSeleccionado.id !== idEmpleado || vistaAnio !== anioVista || vistaMes !== mesVista) return;
+            renderCalendarGrid(ocupados);
         });
     }
 
-    function renderCalendarGrid() {
+    function renderCalendarGrid(ocupados) {
         calendarDays.innerHTML = '';
 
         const primerDia = new Date(vistaAnio, vistaMes, 1);
@@ -264,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const esDomingo = fecha.getDay() === 0;
             const esFestivo = festivosCargados.has(iso);
             const esFestivoEmpresa = esFestivo && festivosTipos.get(iso) === 'EMPRESA';
+            const esOcupado = ocupados.has(iso);
 
             const dayEl = document.createElement('div');
             dayEl.className = 'calendar-day';
@@ -278,6 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (esDomingo) {
                 dayEl.classList.add('off');
                 dayEl.title = 'Domingo';
+            } else if (esOcupado) {
+                dayEl.classList.add('occupied');
+                dayEl.title = 'Permiso o vacaciones aprobados';
             } else {
                 dayEl.classList.add('available');
             }
