@@ -181,6 +181,12 @@
 }
 .vac-field input:focus { border-color: var(--primary-color); }
 .vac-field input:disabled { opacity: 0.6; cursor: not-allowed; }
+.vac-field input[type="number"]::-webkit-outer-spin-button,
+.vac-field input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.vac-field input[type="number"] { -moz-appearance: textfield; }
 .vac-field-hint { font-size: 0.75rem; color: var(--text-muted); }
 
 .vac-feedback { font-size: 0.85rem; font-weight: 600; min-height: 1.2em; }

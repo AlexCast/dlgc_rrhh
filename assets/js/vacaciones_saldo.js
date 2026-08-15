@@ -134,10 +134,6 @@
                     <span class="vac-stat-label">Días disfrutados</span>
                     <span class="vac-stat-value">${saldo.dias_disfrutados}</span>
                 </div>
-                <div class="vac-stat">
-                    <span class="vac-stat-label">Ajuste manual</span>
-                    <span class="vac-stat-value">${saldo.ajuste_manual}</span>
-                </div>
                 <div class="vac-stat vac-stat--highlight">
                     <span class="vac-stat-label">Saldo disponible</span>
                     <span class="vac-stat-value">${saldo.saldo_disponible}</span>
@@ -257,9 +253,12 @@
             return;
         }
 
+        const diasARestar = Number(document.getElementById('vacaciones-dias-ajuste').value);
+
         const formData = new FormData();
         formData.append('id_empleado', idEmpleado);
-        formData.append('dias_ajuste', document.getElementById('vacaciones-dias-ajuste').value);
+        // El usuario ingresa cuántos días restar (positivo); el backend guarda el ajuste en negativo.
+        formData.append('dias_ajuste', String(-Math.abs(diasARestar)));
         formData.append('fecha_ajuste', document.getElementById('vacaciones-fecha-ajuste').value);
         formData.append('motivo', document.getElementById('vacaciones-motivo').value);
         formData.append('csrf_token', document.body.dataset.csrf);

@@ -5,10 +5,14 @@
 --     años, hasta el día antes del próximo aniversario). Antes de cumplir el primer año no
 --     hay ciclo activo y dias_causados = 0.
 --   - dias_disfrutados = días hábiles (o equivalente en horas / 8) de solicitudes APROBADAS
---     con metodo_descuento = 'VACACIONES' que se solapen con el ciclo vigente; si una solicitud
---     cruza el límite del ciclo, solo se cuenta la porción de días dentro del ciclo actual.
---   - ajuste_manual = suma de t_vacaciones_ajustes activos cuya fecha_ajuste cae dentro del
---     ciclo vigente (ajustes de ciclos anteriores ya no cuentan, se perdieron con el reinicio).
+--     con metodo_descuento = 'VACACIONES' que se solapen con el ciclo vigente (si una solicitud
+--     cruza el límite del ciclo, solo se cuenta la porción de días dentro del ciclo actual), MÁS
+--     el valor absoluto de los ajustes negativos de t_vacaciones_ajustes (representan días ya
+--     disfrutados históricamente que no quedaron como solicitud en el sistema).
+--   - ajuste_manual = suma de los ajustes POSITIVOS de t_vacaciones_ajustes activos cuya
+--     fecha_ajuste cae dentro del ciclo vigente (crédito adicional otorgado; ajustes de ciclos
+--     anteriores ya no cuentan, se perdieron con el reinicio). Los ajustes negativos ya están
+--     reflejados en dias_disfrutados, no se restan aquí de nuevo.
 --   - saldo_disponible = dias_causados - dias_disfrutados + ajuste_manual. No se permiten
 --     anticipos (lo valida fun_resolver_permisos_aprobaciones).
 --   - dias_para_vencer / alerta_vencimiento_proximo: aviso para que RRHH empuje al empleado
@@ -39,6 +43,7 @@ DECLARE
     vdias_causados NUMERIC;
     vdias_disfrutados NUMERIC;
     vajuste_manual NUMERIC;
+    vdias_disfrutados_ajuste NUMERIC;
 BEGIN
     SELECT e.fecha_ingreso, e.fecha_egreso
       INTO vfecha_ingreso, vfecha_egreso
@@ -80,12 +85,17 @@ BEGIN
        AND sp.fecha_inicio <= vperiodo_fin
        AND sp.fecha_fin >= vperiodo_inicio;
 
-    SELECT COALESCE(SUM(va.dias_ajuste), 0) INTO vajuste_manual
+    SELECT COALESCE(SUM(CASE WHEN va.dias_ajuste > 0 THEN va.dias_ajuste ELSE 0 END), 0),
+           COALESCE(SUM(CASE WHEN va.dias_ajuste < 0 THEN -va.dias_ajuste ELSE 0 END), 0)
+      INTO vajuste_manual, vdias_disfrutados_ajuste
       FROM t_vacaciones_ajustes va
      WHERE va.id_empleado = wid_empleado
        AND va.fec_delete IS NULL
        AND va.fecha_ajuste >= vperiodo_inicio
        AND va.fecha_ajuste <= vperiodo_fin;
+
+    -- Los ajustes negativos suman al contador de días disfrutados, no solo al saldo.
+    vdias_disfrutados := vdias_disfrutados + vdias_disfrutados_ajuste;
 
     RETURN QUERY SELECT
         wid_empleado,

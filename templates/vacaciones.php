@@ -124,8 +124,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                             <?php echo csrf_input(); ?>
                             <div class="vac-form-row">
                                 <div class="vac-field">
-                                    <label for="vacaciones-dias-ajuste">Días de ajuste (+/-)</label>
-                                    <input type="number" id="vacaciones-dias-ajuste" name="dias_ajuste" step="0.5" required>
+                                    <label for="vacaciones-dias-ajuste">Días a restar</label>
+                                    <input type="number" id="vacaciones-dias-ajuste" name="dias_ajuste" step="0.5" min="0.5" required>
+                                    <small class="vac-field-hint">Indica cuántos días ya disfrutados quieres restar del saldo (por ley el ciclo causa exactamente 15 días).</small>
                                 </div>
                                 <div class="vac-field">
                                     <label for="vacaciones-fecha-ajuste">Fecha del ajuste</label>

@@ -2,9 +2,11 @@
 declare(strict_types=1);
 
 /**
- * Registra un ajuste manual de saldo de vacaciones (saldo inicial de migración, corrección
- * puntual). Requiere permiso 'crear' del módulo 29 (Gestión de Vacaciones). Ledger append-only:
- * para corregir un ajuste mal cargado se anula con vacaciones_ajuste_anular.php y se crea uno nuevo.
+ * Registra un ajuste manual de saldo de vacaciones (reconoce días ya disfrutados históricamente,
+ * p. ej. saldo inicial de migración). Por ley el ciclo causa exactamente 15 días: el ajuste solo
+ * puede restar, nunca sumar. Requiere permiso 'crear' del módulo 29 (Gestión de Vacaciones).
+ * Ledger append-only: para corregir un ajuste mal cargado se anula con vacaciones_ajuste_anular.php
+ * y se crea uno nuevo.
  */
 
 require_once __DIR__ . '/session_bootstrap.php';
@@ -40,8 +42,8 @@ $fechaAjuste = trim($_POST['fecha_ajuste'] ?? '') ?: date('Y-m-d');
 if ($idEmpleado === '') {
     responderJson(false, 'Debes indicar el empleado.', 400);
 }
-if (!is_numeric($diasAjuste) || (float) $diasAjuste === 0.0) {
-    responderJson(false, 'Los días de ajuste deben ser un número distinto de cero.', 400);
+if (!is_numeric($diasAjuste) || (float) $diasAjuste >= 0.0) {
+    responderJson(false, 'Los días de ajuste deben ser un número negativo (solo se permite restar días ya disfrutados).', 400);
 }
 if (strlen($motivo) < 5) {
     responderJson(false, 'El motivo debe tener al menos 5 caracteres.', 400);

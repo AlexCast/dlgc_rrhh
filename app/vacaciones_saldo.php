@@ -71,7 +71,14 @@ try {
         $sentenciaAjustes = $conexion->prepare('SELECT * FROM fun_listar_vacaciones_ajustes(:id_empleado)');
         $sentenciaAjustes->execute([':id_empleado' => $idEmpleado]);
         $ajustes = $sentenciaAjustes->fetchAll(PDO::FETCH_ASSOC);
+        // PDO pgsql devuelve los boolean como 't'/'f'; sin castear, "f" es truthy en JS.
+        foreach ($ajustes as &$ajuste) {
+            $ajuste['activo'] = filter_var($ajuste['activo'], FILTER_VALIDATE_BOOLEAN);
+        }
+        unset($ajuste);
     }
+
+    $saldo['alerta_vencimiento_proximo'] = filter_var($saldo['alerta_vencimiento_proximo'], FILTER_VALIDATE_BOOLEAN);
 
     responderJson(true, 'Saldo consultado correctamente.', 200, ['saldo' => $saldo, 'ajustes' => $ajustes]);
 } catch (Throwable $e) {
