@@ -14,7 +14,7 @@
  */
 
 // --- Parámetros de conexión ---
-$host   = 'localhost';        // Host del servidor PostgreSQL
+$host   = '127.0.0.1';        // Host del servidor PostgreSQL
 $port   = '5432';             // Puerto por defecto de PostgreSQL
 $dbname = 'db_dlgc_rrhh'; // Nombre de la base de datos
 $user   = 'postgres';       // Usuario de la base de datos
