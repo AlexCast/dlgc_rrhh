@@ -54,17 +54,6 @@ function csrf_validate(bool $exitOnFailure = true): bool
     $sessionToken = $_SESSION[CSRF_TOKEN_KEY] ?? '';
     $postToken    = $_POST[CSRF_TOKEN_KEY] ?? '';
 
-    // DEBUG: log tokens only when they differ (remove after diagnosis)
-    if (!hash_equals($sessionToken, $postToken)) {
-        error_log(sprintf(
-            'CSRF mismatch: session=%s post=%s ip=%s uri=%s',
-            is_string($sessionToken) ? substr($sessionToken, 0, 8) : gettype($sessionToken),
-            is_string($postToken) ? substr($postToken, 0, 8) : gettype($postToken),
-            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            $_SERVER['REQUEST_URI'] ?? 'unknown'
-        ));
-    }
-
     if (!is_string($sessionToken) || $sessionToken === '' ||
         !is_string($postToken)    || $postToken === '') {
         if ($exitOnFailure) {

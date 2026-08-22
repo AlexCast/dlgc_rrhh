@@ -12,6 +12,7 @@ require_once __DIR__ . '/csrf_guard.php';
 require_once __DIR__ . '/helpers/Mailer.php';
 require_once __DIR__ . '/helpers/RateLimiter.php';
 require_once __DIR__ . '/helpers/InputSanitizer.php';
+require_once __DIR__ . '/helpers/TurnstileHelper.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 $usrInsert = 'sistema_registro';
@@ -77,6 +78,15 @@ $codigoIngresado = strtoupper(trim($_POST['codigo_registro'] ?? ''));
 $esValidacionCodigo = $codigoIngresado !== '' && empty(trim($_POST['username'] ?? ''));
 
 if ($esValidacionCodigo) {
+    // Verificación anti-bot (Cloudflare Turnstile), ubicada bajo el campo de código.
+    if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null)) {
+        redirigirRegistro([
+            'tab' => 'register',
+            'status' => 'error',
+            'code' => 'turnstile_invalido',
+        ]);
+    }
+
     $stmtCodigo = $conexion->prepare(
         "SELECT id_codigo, tipo, fecha_expiracion
          FROM t_codigos_registro

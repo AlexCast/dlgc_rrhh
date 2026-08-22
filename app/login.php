@@ -13,6 +13,8 @@ require_once __DIR__ . '/csrf_guard.php';
 require_once __DIR__ . '/helpers/InputSanitizer.php';
 require_once __DIR__ . '/helpers/SessionUserLoader.php';
 require_once __DIR__ . '/helpers/RememberMeHelper.php';
+require_once __DIR__ . '/helpers/RateLimiter.php';
+require_once __DIR__ . '/helpers/TurnstileHelper.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 
@@ -33,6 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Validate CSRF token for login.
 csrf_validate();
+
+// Verificación anti-bot (Cloudflare Turnstile).
+if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null)) {
+    redirigirLogin([
+        'tab' => 'login',
+        'status' => 'error',
+        'code' => 'turnstile_invalido',
+    ]);
+}
 
 // --- 1. Recepción y normalización de credenciales enviadas por POST ---
 $userInput  = InputSanitizer::loginIdentifier($_POST['user'] ?? '');
@@ -61,8 +72,38 @@ try {
     $sentencia->execute([':userInput' => $userInput]);
     $usuario = $sentencia->fetch();
 
+    // --- 2b. Rate limiting de intentos fallidos (solo si la cuenta existe). ---
+    if ($usuario) {
+        $rateLimiter = new RateLimiter($conexion);
+        $rateCheck = $rateLimiter->verificar((string) $usuario['id_usuario'], 'login');
+
+        if (!$rateCheck['permitido']) {
+            error_log(sprintf(
+                'Login bloqueado por rate limit: usuario=%s ip=%s',
+                $userInput,
+                $_SERVER['REMOTE_ADDR'] ?? 'desconocida'
+            ));
+            redirigirLogin([
+                'tab' => 'login',
+                'status' => 'error',
+                'code' => 'demasiados_intentos',
+                'msg' => 'Demasiados intentos fallidos. Inténtalo de nuevo en ' . $rateCheck['minutos'] . ' minuto(s).',
+                'user' => $userInput,
+            ]);
+        }
+    }
+
     // --- 3. Verificación del hash de la contraseña ---
     if (!$usuario || !password_verify($contrasena, $usuario['contrasena'])) {
+        if ($usuario) {
+            $rateLimiter->registrar((string) $usuario['id_usuario'], 'login');
+        }
+        error_log(sprintf(
+            'Intento de login fallido: usuario=%s ip=%s cuenta_existe=%s',
+            $userInput,
+            $_SERVER['REMOTE_ADDR'] ?? 'desconocida',
+            $usuario ? 'si' : 'no'
+        ));
         redirigirLogin([
             'tab' => 'login',
             'status' => 'error',

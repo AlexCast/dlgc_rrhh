@@ -3,7 +3,9 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../app/session_bootstrap.php';
 require_once __DIR__ . '/../app/csrf_guard.php';
+require_once __DIR__ . '/../app/helpers/TurnstileHelper.php';
 
+$turnstileSiteKey = TurnstileHelper::siteKey();
 $registerStep = 1;
 if (isset($_GET['step']) && $_GET['step'] === '2' && !empty($_SESSION['codigo_registro_validado'])) {
     $registerStep = 2;
@@ -23,6 +25,7 @@ $registerData = $_SESSION['register_form_data'] ?? [];
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -103,6 +106,8 @@ $registerData = $_SESSION['register_form_data'] ?? [];
                         <button type="button" class="forgot-link" id="forgot-link">¿Olvidaste tu contraseña?</button>
                     </div>
 
+                    <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
+
                     <button type="submit" class="btn btn-primary full-width">Iniciar Sesión</button>
                 </form>
 
@@ -115,6 +120,9 @@ $registerData = $_SESSION['register_form_data'] ?? [];
                             <input type="text" id="reg-access-code" name="codigo_registro" required minlength="4" maxlength="4" placeholder="0000" autocomplete="off" inputmode="numeric" pattern="[0-9]{4}" autocapitalize="off" value="<?php echo htmlspecialchars($_SESSION['codigo_registro'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                             <span id="access-code-help" class="help-text">Solicita este código de 4 dígitos al área de RRHH.</span>
                         </div>
+
+                        <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
+
                         <button type="submit" class="btn btn-dark full-width" formnovalidate>Continuar</button>
                     </div>
 

@@ -1,0 +1,12 @@
+<?php
+/**
+ * Configuración de Cloudflare Turnstile (anti-bot).
+ * Copia este archivo como turnstile_config.php y completa tus llaves reales,
+ * obtenidas desde https://dash.cloudflare.com/?to=/:account/turnstile
+ * turnstile_config.php está ignorado por Git para proteger la información sensible.
+ */
+
+return [
+    'site_key'   => 'TU_SITE_KEY',
+    'secret_key' => 'TU_SECRET_KEY',
+];

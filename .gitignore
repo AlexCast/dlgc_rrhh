@@ -1,6 +1,7 @@
 /vendor/
 /config/mail_config.php
 /config/storage_config.php
+/config/turnstile_config.php
 /composer.lock
 
 # Archivos de entorno y configuración sensible
