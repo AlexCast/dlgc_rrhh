@@ -29,22 +29,24 @@ $registerData = $_SESSION['register_form_data'] ?? [];
 </head>
 <body>
 
-    <header class="auth-header container">
-        <a href="/dlgc_rrhh/templates/index.html" class="logo" aria-label="Volver al inicio">
-            <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
-        </a>
-        <div class="header-actions">
-            <a href="/dlgc_rrhh/templates/index.html" class="back-btn" aria-label="Regresar al inicio">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M15 18l-6-6 6-6"></path>
-                </svg>
-                <span>Volver</span>
+    <header class="auth-header">
+        <div class="auth-header-inner container">
+            <a href="/dlgc_rrhh/templates/index.html" class="logo" aria-label="Volver al inicio">
+                <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
             </a>
-            <button id="theme-toggle" class="icon-btn" aria-label="Cambiar modo oscuro/claro">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
+            <div class="header-actions">
+                <a href="/dlgc_rrhh/templates/index.html" class="back-btn" aria-label="Regresar al inicio">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M15 18l-6-6 6-6"></path>
+                    </svg>
+                    <span>Volver</span>
+                </a>
+                <button id="theme-toggle" class="icon-btn" aria-label="Cambiar modo oscuro/claro">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
 

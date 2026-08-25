@@ -185,17 +185,9 @@ function require_module_access($module_id): void
 }
 
 /**
- * Devuelve la URL del dashboard que le corresponde al usuario según su rol.
- * - ADMINISTRADOR (id_rol = 1) -> secondpage.php
- * - Cualquier otro rol        -> firstpage.php
+ * Devuelve la URL del dashboard único de la aplicación.
  */
 function get_dashboard_url(): string
 {
-    $idRol = $_SESSION['id_rol'] ?? null;
-
-    if (is_int($idRol) && $idRol === 1) {
-        return '/dlgc_rrhh/templates/secondpage.php';
-    }
-
     return '/dlgc_rrhh/templates/firstpage.php';
 }

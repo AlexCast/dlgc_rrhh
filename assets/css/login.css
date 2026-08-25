@@ -163,19 +163,23 @@ body::-webkit-scrollbar-thumb:hover {
    Cabecera Simplificada
    ========================================= */
 .auth-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     position: sticky;
     top: 0;
     z-index: 1000;
-    padding: 0 24px;
-    min-height: 76px;
     width: 100%;
-    margin: 0 auto;
     background-color: #131b159c;
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border-color);
+}
+
+.auth-header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    min-height: 76px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .header-actions {
@@ -474,7 +478,7 @@ body.dark-theme .auth-feedback.success {
 }
 
 @media (max-width: 640px) {
-    .auth-header {
+    .auth-header-inner {
         gap: 12px;
         align-items: center;
     }

@@ -147,10 +147,8 @@ try {
     }
 
     // --- 7. Redirección al dashboard tras login exitoso ---
-    // Administradores van al panel de RRHH; el resto al dashboard de empleado.
-    $dashboardUrl = ($_SESSION['id_rol'] === 1)
-        ? '/dlgc_rrhh/templates/secondpage.php'
-        : '/dlgc_rrhh/templates/firstpage.php';
+    // Dashboard único: las métricas visibles dependen de los módulos del usuario.
+    $dashboardUrl = '/dlgc_rrhh/templates/firstpage.php';
 
     header('Location: ' . $dashboardUrl);
     exit;

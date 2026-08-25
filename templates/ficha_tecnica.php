@@ -164,7 +164,15 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                 </button>
             </div>
 
-            <?php $activeItem = 'empleados'; include __DIR__ . '/partials/sidebar_nav.php'; ?>
+            <?php
+            // Mismo criterio que firstpage.php: el sidebar se mantiene según el rol.
+            $activeItem = 'empleados';
+            if (($_SESSION['id_rol'] ?? null) === 1) {
+                include __DIR__ . '/partials/sidebar_admin.php';
+            } else {
+                include __DIR__ . '/partials/sidebar_nav.php';
+            }
+            ?>
 
             <a href="/dlgc_rrhh/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">

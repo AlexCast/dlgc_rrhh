@@ -39,6 +39,33 @@ $totalIncapacidadesAnio = 0;
 $solicitudesEnProceso = 0;
 $ultimosTramites = [];
 
+// Métricas y tabla de gestión: visibles solo según el acceso a módulos del usuario.
+$verMetricaEmpleados = has_module_access(4);
+$verMetricaAfiliaciones = has_module_access(7);
+
+// La métrica de novedades usa el mismo criterio de acceso que la bandeja de aprobaciones.
+$esJefeConSubordinados = false;
+if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '' && has_module_permission(3, 'actualizar')) {
+    $sentenciaSubordinados = $conexion->prepare(
+        'SELECT COUNT(*) AS total
+         FROM t_empleados
+         WHERE id_jefe = :id_jefe
+           AND fec_delete IS NULL'
+    );
+    $sentenciaSubordinados->execute([':id_jefe' => $idUsuarioSesion]);
+    $esJefeConSubordinados = ((int) ($sentenciaSubordinados->fetch(PDO::FETCH_ASSOC)['total'] ?? 0)) > 0;
+}
+$verMetricaNovedades = $esJefeConSubordinados || has_module_access(27);
+$mostrarPanelGestion = $verMetricaEmpleados || $verMetricaAfiliaciones || $verMetricaNovedades;
+
+// Tarjeta de trámites de empresa: solo bandeja de jefe, RRHH (módulo 27) o afiliaciones (módulo 7).
+$verTramitesEmpresa = $esJefeConSubordinados || has_module_access(27) || $verMetricaAfiliaciones;
+
+$totalEmpleadosActivos = 0;
+$afiliacionesPendientes = 0;
+$novedadesSemana = 0;
+$ultimosTramitesAdmin = [];
+
 function formatearFechaCorta(string $fecha): string {
     $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
     $ts = strtotime($fecha);
@@ -124,6 +151,61 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
     $stmtUlt->execute([':id_usuario' => $idUsuarioSesion]);
     $ultimosTramites = $stmtUlt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+if ($verMetricaEmpleados) {
+    $stmt = $conexion->query("SELECT COUNT(*) FROM t_empleados WHERE fecha_egreso IS NULL OR fecha_egreso > CURRENT_DATE");
+    $totalEmpleadosActivos = (int) $stmt->fetchColumn();
+}
+
+if ($verMetricaAfiliaciones) {
+    $stmt = $conexion->query("SELECT COUNT(*)
+        FROM t_empleados e
+        WHERE (e.fecha_egreso IS NULL OR e.fecha_egreso > CURRENT_DATE)
+          AND NOT EXISTS (
+              SELECT 1 FROM t_afiliaciones_empleados a
+              WHERE a.id_usuario = e.id_usuario AND a.fec_delete IS NULL
+          )");
+    $afiliacionesPendientes = (int) $stmt->fetchColumn();
+}
+
+if ($verMetricaNovedades) {
+    $stmt = $conexion->query("SELECT COUNT(*) FROM t_solicitudes_permisos WHERE fec_insert >= CURRENT_DATE - INTERVAL '7 days' AND fec_delete IS NULL");
+    $novedadesSemana = (int) $stmt->fetchColumn();
+}
+
+if ($verTramitesEmpresa) {
+    $stmtUltAdmin = $conexion->query("WITH ultimos AS (
+        SELECT
+            'Permiso' AS tipo_tramite,
+            STRING_AGG(DISTINCT tp.nombre_tipo, ', ' ORDER BY tp.nombre_tipo) AS detalle,
+            sp.fec_insert::date AS fecha_registro,
+            sp.estado
+        FROM t_solicitudes_permisos sp
+        JOIN t_usuarios u ON sp.id_empleado = u.id_usuario
+        LEFT JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
+        LEFT JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
+        WHERE sp.fec_delete IS NULL
+        GROUP BY sp.id_permiso, sp.fec_insert, sp.estado
+
+        UNION ALL
+
+        SELECT
+            'Afiliación' AS tipo_tramite,
+            ('EPS: ' || e.nombre_eps || ' | ARL: ' || a.nombre_arl) AS detalle,
+            ae.fec_insert::date AS fecha_registro,
+            'Activo' AS estado
+        FROM t_afiliaciones_empleados ae
+        JOIN t_usuarios u ON ae.id_usuario = u.id_usuario
+        JOIN t_eps e ON ae.id_eps = e.id_eps
+        JOIN t_arl a ON ae.id_arl = a.id_arl
+        WHERE ae.fec_delete IS NULL
+    )
+    SELECT tipo_tramite, detalle, fecha_registro, estado
+    FROM ultimos
+    ORDER BY fecha_registro DESC
+    LIMIT 5");
+    $ultimosTramitesAdmin = $stmtUltAdmin ? $stmtUltAdmin->fetchAll(PDO::FETCH_ASSOC) : [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -131,7 +213,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Empleado | DLGC</title>
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/firstpage.css">
+    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -143,7 +225,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         
         <aside class="sidebar" id="sidebar" aria-label="Menú principal">
             <div class="sidebar-top">
-                <a href="#" class="logo" aria-label="Inicio">
+                <a href="/dlgc_rrhh/templates/index.html" class="logo" aria-label="Inicio">
                     <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
                 <button id="close-sidebar" class="icon-btn mobile-only" aria-label="Cerrar menú">
@@ -151,7 +233,15 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                 </button>
             </div>
 
-            <?php $activeItem = 'inicio'; include __DIR__ . '/partials/sidebar_nav.php'; ?>
+            <?php
+            // El sidebar sigue diferenciado por rol; ambos ya conviven en este único dashboard.
+            $activeItem = 'inicio';
+            if (($_SESSION['id_rol'] ?? null) === 1) {
+                include __DIR__ . '/partials/sidebar_admin.php';
+            } else {
+                include __DIR__ . '/partials/sidebar_nav.php';
+            }
+            ?>
             <a href="/dlgc_rrhh/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
     <?php if (!empty($_SESSION['foto_perfil'])): ?>
@@ -224,59 +314,134 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                         <span class="metric-title">Solicitudes en Proceso</span>
                         <span class="metric-value"><?php echo (int) $solicitudesEnProceso; ?> <small>Activa<?php echo $solicitudesEnProceso === 1 ? '' : 's'; ?></small></span>
                     </div>
+                    <?php if ($verMetricaEmpleados): ?>
+                    <div class="metric-card">
+                        <span class="metric-title">Empleados Activos</span>
+                        <span class="metric-value"><?php echo (int) $totalEmpleadosActivos; ?> <small>Registrados</small></span>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($verMetricaAfiliaciones): ?>
+                    <div class="metric-card">
+                        <span class="metric-title">Afiliaciones Pendientes</span>
+                        <span class="metric-value"><?php echo (int) $afiliacionesPendientes; ?> <small>Por procesar</small></span>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($verMetricaNovedades): ?>
+                    <div class="metric-card">
+                        <span class="metric-title">Novedades Reportadas</span>
+                        <span class="metric-value"><?php echo (int) $novedadesSemana; ?> <small>Esta semana</small></span>
+                    </div>
+                    <?php endif; ?>
                 </section>
 
-                <div class="content-split-grid">
-                    
-                    <section class="data-card" aria-labelledby="table-title">
-                        <h3 id="table-title" class="card-title">Últimos Trámites e Incapacidades</h3>
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Tipo de Solicitud</th>
-                                        <th>Fecha de Inicio</th>
-                                        <th>Duración</th>
-                                        <th>Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (empty($ultimosTramites)): ?>
-                                    <tr>
-                                        <td colspan="4" class="text-center">No hay trámites recientes</td>
-                                    </tr>
-                                    <?php else: ?>
-                                    <?php foreach ($ultimosTramites as $tramite): ?>
-                                    <tr>
-                                        <td><?php
-                                            $tipoTramite = trim($tramite['tipos'] ?? '');
-                                            echo htmlspecialchars($tipoTramite !== '' ? $tipoTramite : 'Solicitud de permiso');
-                                        ?></td>
-                                        <td><?php echo formatearFechaCorta($tramite['fecha_inicio']); ?></td>
-                                        <td><?php echo formatearDuracionTramite($tramite); ?></td>
-                                        <td><span class="badge <?php echo claseBadgeEstado($tramite['estado']); ?>"><?php echo textoBadgeEstado($tramite['estado']); ?></span></td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
+                <div class="content-split-grid content-split-grid--stacked">
 
-                    <section class="data-card actions-sidebar" aria-labelledby="actions-title">
-                        <h3 id="actions-title" class="card-title">Acciones Rápidas</h3>
-                        <div class="actions-vertical-group">
-                            <button class="btn btn-primary full-width-btn">
+                    <section class="data-card actions-card-compact" aria-labelledby="actions-title">
+                        <div class="actions-compact-row">
+                            <h3 id="actions-title" class="card-title">Acciones Rápidas</h3>
+                            <button class="btn btn-primary">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                                 Reportar Incapacidad Médica
                             </button>
-                            <a href="/dlgc_rrhh/templates/solicitud_permiso.php" class="btn btn-outline full-width-btn">
-                                Solicitación de Vacaciones o Permiso
-                            </a>
                         </div>
                         <div class="info-alert-box" role="note">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                             <p>Recuerda que tienes hasta 48 horas hábiles después de emitida tu incapacidad para radicar el certificado médico en el sistema.</p>
+                        </div>
+                    </section>
+
+                    <section class="data-card carousel-card" aria-labelledby="carousel-title">
+                        <div class="carousel-header">
+                            <h3 id="carousel-title" class="card-title">Últimos Trámites e Incapacidades (TÚ)</h3>
+                            <?php if ($verTramitesEmpresa): ?>
+                            <div class="carousel-controls">
+                                <button type="button" class="carousel-nav-btn" data-carousel-prev aria-label="Tarjeta anterior">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                </button>
+                                <div class="carousel-dots" role="tablist" aria-label="Seleccionar tarjeta">
+                                    <button type="button" class="carousel-dot active" data-carousel-dot="0" role="tab" aria-selected="true" aria-label="Mis trámites"></button>
+                                    <button type="button" class="carousel-dot" data-carousel-dot="1" role="tab" aria-selected="false" aria-label="Trámites de la empresa"></button>
+                                </div>
+                                <button type="button" class="carousel-nav-btn" data-carousel-next aria-label="Tarjeta siguiente">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </button>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="carousel-viewport">
+                            <div class="carousel-track" id="tramites-carousel-track">
+                                <div class="carousel-slide" data-slide-title="Últimos Trámites e Incapacidades (TÚ)">
+                                    <div class="table-responsive">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo de Solicitud</th>
+                                                    <th>Fecha de Inicio</th>
+                                                    <th>Duración</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (empty($ultimosTramites)): ?>
+                                                <tr>
+                                                    <td colspan="4" class="text-center">No hay trámites recientes</td>
+                                                </tr>
+                                                <?php else: ?>
+                                                <?php foreach ($ultimosTramites as $tramite): ?>
+                                                <tr>
+                                                    <td><?php
+                                                        $tipoTramite = trim($tramite['tipos'] ?? '');
+                                                        echo htmlspecialchars($tipoTramite !== '' ? $tipoTramite : 'Solicitud de permiso');
+                                                    ?></td>
+                                                    <td><?php echo formatearFechaCorta($tramite['fecha_inicio']); ?></td>
+                                                    <td><?php echo formatearDuracionTramite($tramite); ?></td>
+                                                    <td><span class="badge <?php echo claseBadgeEstado($tramite['estado']); ?>"><?php echo textoBadgeEstado($tramite['estado']); ?></span></td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <?php if ($verTramitesEmpresa): ?>
+                                <div class="carousel-slide" data-slide-title="Últimos Trámites y Afiliaciones de la Empresa">
+                                    <div class="table-responsive">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo de Trámite</th>
+                                                    <th>Entidad / Detalle</th>
+                                                    <th>Fecha Registro</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (empty($ultimosTramitesAdmin)): ?>
+                                                <tr>
+                                                    <td colspan="4" class="text-center">No hay trámites recientes</td>
+                                                </tr>
+                                                <?php else: ?>
+                                                <?php foreach ($ultimosTramitesAdmin as $tramite): ?>
+                                                <tr>
+                                                    <td>
+                                                        <?php if ($tramite['tipo_tramite'] === 'Afiliación'): ?>
+                                                        Afiliación de Empleado
+                                                        <?php else: ?>
+                                                        Solicitud de Permiso
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td><?php echo htmlspecialchars($tramite['detalle'] ?? ''); ?></td>
+                                                    <td><?php echo formatearFechaCorta($tramite['fecha_registro']); ?></td>
+                                                    <td><span class="badge <?php echo claseBadgeEstado($tramite['estado']); ?>"><?php echo textoBadgeEstado($tramite['estado']); ?></span></td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </section>
 
@@ -286,7 +451,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         </main>
     </div>
 
-    <script src="/dlgc_rrhh/assets/js/theme.js"></script>
-    <script src="/dlgc_rrhh/assets/js/firstpage.js"></script>
+    <script src="/dlgc_rrhh/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/dlgc_rrhh/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
 </body>
 </html>

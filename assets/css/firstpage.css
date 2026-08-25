@@ -367,6 +367,7 @@ body.dark-theme .top-bar {
 
 @media (min-width: 1200px) {
     .content-split-grid { grid-template-columns: 2fr 1fr; }
+    .content-split-grid--stacked { grid-template-columns: 1fr; }
 }
 
 .data-card {
@@ -377,6 +378,34 @@ body.dark-theme .top-bar {
 }
 
 .card-title { font-size: 1.25rem; margin-bottom: 24px; font-weight: 700; }
+
+/* Acciones Rápidas compacta */
+.actions-card-compact { display: flex; flex-direction: column; gap: 20px; }
+.actions-compact-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.actions-compact-row .card-title { margin-bottom: 0; }
+.actions-compact-row .btn { width: auto; }
+
+/* Carrusel de trámites */
+.carousel-card { display: flex; flex-direction: column; }
+.carousel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.carousel-header .card-title { margin-bottom: 0; }
+.carousel-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.carousel-nav-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border-color); background-color: transparent;
+    color: var(--text-main); cursor: pointer; transition: var(--transition);
+}
+.carousel-nav-btn:hover { background-color: var(--bg-main); border-color: var(--primary-color); }
+.carousel-dots { display: flex; align-items: center; gap: 6px; }
+.carousel-dot {
+    width: 8px; height: 8px; border-radius: 50%; border: none;
+    background-color: var(--border-color); cursor: pointer; padding: 0; transition: var(--transition);
+}
+.carousel-dot.active { background-color: var(--primary-color); width: 20px; border-radius: 4px; }
+.carousel-viewport { overflow: hidden; }
+.carousel-track { display: flex; transition: transform 0.35s ease; }
+.carousel-slide { flex: 0 0 100%; min-width: 0; }
 
 /* Tablas */
 .table-responsive { overflow-x: auto; }
@@ -490,7 +519,7 @@ body.dark-theme .alert-danger {
     }
 
     .metrics-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
 
@@ -511,10 +540,15 @@ body.dark-theme .alert-danger {
     }
 
     .data-card,
-    .actions-sidebar {
+    .actions-card-compact {
         width: 100%;
         max-width: 100%;
         min-width: 0;
+    }
+
+    .actions-compact-row {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .card-title {
@@ -587,5 +621,22 @@ body.dark-theme .alert-danger {
 
     .dashboard-body {
         padding: 16px 12px 20px;
+    }
+
+    .metrics-grid {
+        gap: 10px;
+    }
+
+    .metric-card {
+        padding: 12px;
+        gap: 4px;
+    }
+
+    .metric-title {
+        font-size: 0.78rem;
+    }
+
+    .metric-value {
+        font-size: 1.3rem;
     }
 }
