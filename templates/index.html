@@ -11,31 +11,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Cursor Personalizado -->
+<div class="custom-cursor-dot" aria-hidden="true"></div>
+<div class="custom-cursor-outline" aria-hidden="true"></div>
 
-    <header class="navbar">
-        <div class="container nav-container">
-            <!-- Logotipo Corporativo -->
-            <a href="#" class="logo" aria-label="Inicio">
-                <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
-            </a>
-            
-            <nav class="nav-links" aria-label="Navegación principal">
-                <a href="#inicio">Inicio</a>
-                <a href="#identidad">Identidad Corporativa</a>
-                <a href="#organigrama">Organigrama</a>
-            </nav>
+<canvas id="interactive-grid" aria-hidden="true"></canvas>
+    <header class="navbar-wrapper">
+    <nav class="navbar" aria-label="Navegación principal">
+        <!-- Logotipo Corporativo -->
+        <a href="#" class="logo" aria-label="Inicio">
+            <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
+        </a>
+        
+        <div class="nav-links">
+    <!-- Pastilla flotante que se desliza -->
+    <div class="nav-indicator"></div>
 
-            <div class="nav-actions">
-                <button id="theme-toggle" class="icon-btn" aria-label="Cambiar modo oscuro/claro">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-                <a href="/dlgc_rrhh/templates/login.php" class="btn btn-primary">Acceso Empleados &rarr;</a>
-            </div>
+    <a href="#inicio" class="nav-link active">Inicio</a>
+    <a href="#identidad" class="nav-link">Identidad</a>
+    <a href="#organigrama" class="nav-link">Organigrama</a>
+</div>
+
+        <!-- Acciones -->
+        <div class="nav-actions">
+            <button id="theme-toggle" class="icon-btn" aria-label="Cambiar modo oscuro/claro">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+            <a href="/dlgc_rrhh/templates/login.php" class="btn btn-primary">Acceso Empleados &rarr;</a>
         </div>
+    </nav>
     </header>
-
     <main>
         <!-- SECCIÓN HERO -->
         <section id="inicio" class="hero container">
@@ -225,5 +232,6 @@
 
     <script src="/dlgc_rrhh/assets/js/theme.js"></script>
     <script src="/dlgc_rrhh/assets/js/script.js"></script>
+    <script src="/dlgc_rrhh/assets/js/proof.js"></script>
 </body>
 </html>

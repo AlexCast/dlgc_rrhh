@@ -14,11 +14,11 @@
  */
 
 // --- Parámetros de conexión ---
-$host   = '127.0.0.1';        // Host del servidor PostgreSQL
-$port   = '5432';             // Puerto por defecto de PostgreSQL
-$dbname = 'db_dlgc_rrhh'; // Nombre de la base de datos
-$user   = 'postgres';       // Usuario de la base de datos
-$pass   = '0149';    // Contraseña del usuario
+$host   = getenv('DB_HOST') ?: '127.0.0.1';        // Host del servidor PostgreSQL
+$port   = getenv('DB_PORT') ?: '5432';             // Puerto por defecto de PostgreSQL
+$dbname = getenv('DB_NAME') ?: 'db_dlgc_rrhh'; // Nombre de la base de datos
+$user   = getenv('DB_USER') ?: 'postgres';       // Usuario de la base de datos
+$pass   = getenv('DB_PASS') ?: '0149';    // Contraseña del usuario
 
 // --- Cadena DSN (Data Source Name) para PostgreSQL ---
 $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";

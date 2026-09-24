@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../app/src_guard.php';
 require_once __DIR__ . '/../../app/conexion.php';
 
 $sentencia = $conexion->query("
-    SELECT id_usuario, id_rol, username, tipo_documento, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo, contrasena, fec_delete
+    SELECT id_usuario, id_rol, username, tipo_documento, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo, fec_delete
     FROM t_usuarios
     ORDER BY id_usuario
 ");
@@ -49,10 +49,10 @@ $eliminados = array_filter($registros, function ($row) {
                                 <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <thead>
-                                            <tr>
-                                                <th>ID Usuario</th><th>Rol</th><th>Username</th><th>Tipo Documento</th><th>Primer Nombre</th><th>Segundo Nombre</th><th>Primer Apellido</th><th>Segundo Apellido</th><th>Correo</th><th>Contraseña</th>
-                                                <th>Acciones</th>
-                                            </tr>
+                                             <tr>
+                                                 <th>ID Usuario</th><th>Rol</th><th>Username</th><th>Tipo Documento</th><th>Primer Nombre</th><th>Segundo Nombre</th><th>Primer Apellido</th><th>Segundo Apellido</th><th>Correo</th>
+                                                 <th>Acciones</th>
+                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php foreach ($eliminados as $row): ?>
@@ -65,8 +65,7 @@ $eliminados = array_filter($registros, function ($row) {
                                         <td><?php echo htmlspecialchars((string) ($row->segundo_nombre ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($row->primer_apellido ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($row->segundo_apellido ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->correo ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->contrasena ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->correo ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                         
                                                     <td>
                                                         <?php if (has_module_permission(20, 'actualizar')): ?>
@@ -95,28 +94,27 @@ $eliminados = array_filter($registros, function ($row) {
                     <table class="table table-hover">
                         <thead class="table-primary">
                             <tr>
-                                <th>ID Usuario</th><th>Rol</th><th>Username</th><th>Tipo Documento</th><th>Primer Nombre</th><th>Segundo Nombre</th><th>Primer Apellido</th><th>Segundo Apellido</th><th>Correo</th><th>Contraseña</th>
-                                <th>Acciones</th>
+                                 <th>ID Usuario</th><th>Rol</th><th>Username</th><th>Tipo Documento</th><th>Primer Nombre</th><th>Segundo Nombre</th><th>Primer Apellido</th><th>Segundo Apellido</th><th>Correo</th>
+                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (count($activos) === 0): ?>
-                                <tr><td colspan="11" class="text-center">No hay registros</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($activos as $row): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars((string) ($row->id_usuario ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->id_rol ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->username ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->tipo_documento ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->primer_nombre ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->segundo_nombre ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->primer_apellido ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->segundo_apellido ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->correo ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($row->contrasena ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        
-                                        <td class="actions-cell">
+                             <?php if (count($activos) === 0): ?>
+                                 <tr><td colspan="10" class="text-center">No hay registros</td></tr>
+                             <?php else: ?>
+                                 <?php foreach ($activos as $row): ?>
+                                     <tr>
+                                         <td><?php echo htmlspecialchars((string) ($row->id_usuario ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->id_rol ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->username ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->tipo_documento ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->primer_nombre ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->segundo_nombre ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->primer_apellido ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->segundo_apellido ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         <td><?php echo htmlspecialchars((string) ($row->correo ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                         
+                                         <td class="actions-cell">
                                             <?php if (has_module_permission(20, 'actualizar')): ?>
                                             <a class="btn btn-warning btn-sm" href="editar_usuarios.php?id_usuario=<?php echo urlencode((string) $row->id_usuario); ?>">Editar</a>
                                             <?php endif; ?>

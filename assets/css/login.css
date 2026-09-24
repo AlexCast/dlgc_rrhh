@@ -41,7 +41,6 @@ body {
 
 body.dark-theme {
     background-color: var(--bg-main);
-    background-image: linear-gradient(to top, rgba(59, 168, 106, 0.212) 0%, rgba(59, 168, 106, 0) 42%);
 }
 
 html::-webkit-scrollbar,
@@ -74,7 +73,38 @@ body::-webkit-scrollbar-thumb:hover {
     background-color: #2f8f57;
 }
 
-*:focus-visible { outline: 3px solid var(--primary-color); outline-offset: 2px; }
+/* Manejo estricto de focos para evitar recuadros molestos en contenedores */
+*:focus,
+*:focus-visible {
+    outline: none !important;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+}
+
+/* Evitar selección accidental en la estructura */
+.navbar-wrapper,
+.navbar,
+.auth-wrapper,
+.auth-footer {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Permitir selección de texto en inputs e información */
+.auth-card input,
+.auth-card p,
+.auth-card h1,
+.auth-card label {
+    user-select: text;
+    -webkit-user-select: text;
+}
 
 /* =========================================
    Consentimientos legales en registro
@@ -123,10 +153,12 @@ body::-webkit-scrollbar-thumb:hover {
     text-align: center;
     font-size: 0.8rem;
     color: var(--text-muted);
-    border-top: 1px solid var(--border-color);
-    background-color: var(--bg-main);
+    background-color: transparent;
     margin-top: auto;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(8px);
 }
+
 
 .auth-footer__inner {
     max-width: 440px;
@@ -160,80 +192,171 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* =========================================
-   Cabecera Simplificada
+   Navegación Flotante Redondeada (Island Header)
    ========================================= */
-.auth-header {
-    position: sticky;
-    top: 0;
+
+.navbar-wrapper {
+    position: fixed;
+    top: 16px;
+    left: 0;
+    right: 0;
     z-index: 1000;
     width: 100%;
-    background-color: #131b159c;
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.auth-header-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 0 24px;
-    min-height: 76px;
-    max-width: 1200px;
-    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
 }
 
-.header-actions {
+.navbar {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 1200px;
+    background: transparent;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-color: #34d39966;
+    border-radius: 20px;
+    padding: 10px 24px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+}
+
+html.dark-theme .navbar,
+body.dark-theme .navbar {
+    background: rgba(13, 19, 15, 0.75);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .logo {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
-    line-height: 0;
 }
 
 .logo img {
+    height: 48px;
     width: auto;
-    height: 44px;
-    max-width: 100%;
     display: block;
     object-fit: contain;
 }
 
-.icon-btn {
-    background: transparent; border: 1px solid var(--border-color); color: var(--text-main);
-    width: 40px; height: 40px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: var(--transition);
+.nav-links {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 4px;
+    border-radius: 100px;
+    border: 1px solid var(--border-color);
 }
-.icon-btn:hover { border-color: var(--text-muted); }
+
+html.dark-theme .nav-links,
+body.dark-theme .nav-links {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 8px 18px;
+    border-radius: 100px;
+    transition: var(--transition);
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--text-main);
+    background: var(--bg-main);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+main {
+    padding-top: 100px;
+}
+
+@media (min-width: 992px) {
+    .nav-links {
+        display: flex;
+    }
+}
+
+/* Botón de cambio de tema */
+.icon-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.icon-btn:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* =========================================
+   Ajuste del Botón "Volver" (Link tipo Botón)
+   ========================================= */
+
+a.back-btn,
+a.back-btn:visited,
+a.back-btn:active,
+a.back-btn:link {
+    color: var(--text-main) !important;
+    text-decoration: none !important;
+}
 
 .back-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-radius: 999px;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 18px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 100px;
     border: 1px solid var(--border-color);
-    background-color: var(--bg-secondary);
-    color: var(--text-main);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
+    background-color: transparent;
     transition: var(--transition);
+    cursor: pointer;
 }
 
 .back-btn:hover {
+    background-color: var(--bg-secondary);
     border-color: var(--primary-color);
-    color: var(--primary-color);
-    transform: translateY(-1px);
+    color: var(--primary-color) !important;
+}
+
+.back-btn svg {
+    transition: transform 0.2s ease;
+}
+
+.back-btn:hover svg {
+    transform: translateX(-3px);
 }
 
 /* =========================================
-   Contenedor Principal y Tarjeta
+   Contenedor Principal y Tarjeta Cristal (Glassmorphism)
    ========================================= */
 .auth-wrapper {
     flex: 1;
@@ -241,16 +364,27 @@ body::-webkit-scrollbar-thumb:hover {
     align-items: center;
     justify-content: center;
     padding: 24px;
+    position: relative;
+    z-index: 1;
 }
 
 .auth-card {
-    background-color: var(--bg-main);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     width: 100%;
     max-width: 440px;
     border-radius: 24px;
     padding: 40px 32px;
-    box-shadow: 0 12px 30px rgba(59, 168, 106, 0.12);
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+}
+
+body.dark-theme .auth-card {
+    background: rgba(13, 19, 15, 0.65);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
 .auth-header-text { text-align: center; margin-bottom: 32px; }
@@ -573,4 +707,49 @@ body.dark-theme .step-banner {
 
 .register-actions .btn {
     margin-top: 0;
+}
+
+/* =========================================
+   Canvas del Fondo Interactivo
+   ========================================= */
+#interactive-grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* =========================================
+   Puntero SVG Verde Corporativo con Borde
+   ========================================= */
+
+/* Cursor de Flecha Verde para el cuerpo general */
+body, html {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%233ba86a' stroke='%230D130F' stroke-width='1.5'><path d='M3 3l7 18 3-7 7-3L3 3z'/></svg>") 3 3, auto !important;
+}
+
+/* Cursor de Mano (Pointer) Verde al pasar sobre botones y enlaces */
+a, button, input[type="submit"], input[type="button"], .btn, .nav-link, .tab-btn, .card, label {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%233ba86a' stroke='%230D130F' stroke-width='1.5'><path d='M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 4V2a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 6.5V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8.5M10 15.5l-2.5-2.5a2.12 2.12 0 0 0-3 3l5.5 5.5A10 10 0 0 0 17 22h1a5 5 0 0 0 5-5v-4a3 3 0 0 0-3-3h-4'/></svg>") 3 3, pointer !important;
+}
+
+/* Adaptación para Modo Oscuro (Borde Oscuro) */
+html.dark-theme,
+body.dark-theme {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%233ba86a' stroke='%23ffffff' stroke-width='1.0'><path d='M3 3l7 18 3-7 7-3L3 3z'/></svg>") 3 3, auto !important;
+}
+
+html.dark-theme a,
+html.dark-theme button,
+html.dark-theme input[type="submit"],
+html.dark-theme .btn,
+html.dark-theme .nav-link,
+body.dark-theme a,
+body.dark-theme button,
+body.dark-theme .btn,
+body.dark-theme .nav-link {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%233ba86a' stroke='%23ffffff' stroke-width='1.0'><path d='M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 4V2a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 6.5V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8.5M10 15.5l-2.5-2.5a2.12 2.12 0 0 0-3 3l5.5 5.5A10 10 0 0 0 17 22h1a5 5 0 0 0 5-5v-4a3 3 0 0 0-3-3h-4'/></svg>") 3 3, pointer !important;
 }

@@ -3,7 +3,8 @@
 /config/storage_config.php
 /config/turnstile_config.php
 /composer.lock
-
+/CLAUDE.md
+/.github
 # Archivos de entorno y configuración sensible
 .env
 .env.*
