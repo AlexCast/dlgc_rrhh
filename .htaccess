@@ -1,6 +1,23 @@
 Options -Indexes
 
-# 1. Bloquear acceso web a archivos sensibles (.env, .git, .htaccess, etc.)
+# ==============================================================================
+# REESCRIBIR RUTAS PARA SERVIR TEMPLATES E INDEX
+# ==============================================================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Si entran a la raíz (ejemplo: ip_vps/), sirve templates/index.html
+    RewriteRule ^$ templates/index.html [L]
+
+    # Si solicitan un archivo que no existe directamente en la raíz, busca dentro de templates/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([^/]+)$ templates/$1 [L]
+</IfModule>
+
+# ==============================================================================
+# 1. BLOQUEAR ACCESO WEB A ARCHIVOS SENSIBLES (.env, .git, .htaccess, etc.)
+# ==============================================================================
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
@@ -12,7 +29,9 @@ Options -Indexes
 ErrorDocument 403 /dlgc_rrhh/templates/access_denied.php
 ErrorDocument 404 /dlgc_rrhh/templates/not_found.php
 
-# Security headers (browser-level hardening; cookie flags are set in app/session_bootstrap.php).
+# ==============================================================================
+# SECURITY HEADERS
+# ==============================================================================
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "DENY"
