@@ -1,5 +1,10 @@
 Options -Indexes
 
+# 1. Bloquear acceso web a archivos sensibles (.env, .git, .htaccess, etc.)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
 <FilesMatch "\.php$">
     AcceptPathInfo Off
 </FilesMatch>
