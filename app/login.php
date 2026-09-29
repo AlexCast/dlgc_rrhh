@@ -14,7 +14,6 @@ require_once __DIR__ . '/helpers/InputSanitizer.php';
 require_once __DIR__ . '/helpers/SessionUserLoader.php';
 require_once __DIR__ . '/helpers/RememberMeHelper.php';
 require_once __DIR__ . '/helpers/RateLimiter.php';
-require_once __DIR__ . '/helpers/TurnstileHelper.php';
 
 $urlLogin = '/dlgc_rrhh/templates/login.php';
 
@@ -35,15 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Validate CSRF token for login.
 csrf_validate();
-
-// Verificación anti-bot (Cloudflare Turnstile).
-if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null)) {
-    redirigirLogin([
-        'tab' => 'login',
-        'status' => 'error',
-        'code' => 'turnstile_invalido',
-    ]);
-}
 
 // --- 1. Recepción y normalización de credenciales enviadas por POST ---
 $userInput  = InputSanitizer::loginIdentifier($_POST['user'] ?? '');

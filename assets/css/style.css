@@ -433,7 +433,9 @@ main {
    ========================================= */
 .corporate-identity {
     padding: 80px 24px;
-    background-color: var(--bg-secondary);
+    background-color: transparent;
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
     border-radius: 40px;
     margin-top: 40px;
 }

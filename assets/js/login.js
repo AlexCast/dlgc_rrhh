@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
         demasiados_intentos: 'Has enviado demasiadas solicitudes. Espera unos minutos e inténtalo de nuevo.',
         contrasena_actualizada: 'Contraseña actualizada correctamente. Inicia sesión.',
         error_servidor: 'Ocurrió un error del servidor. Inténtalo más tarde.',
-        turnstile_invalido: 'Verificación anti-bot fallida. Marca la casilla de verificación e inténtalo de nuevo.'
     };
 
     const mostrarFeedback = (mensaje, tipo) => {
