@@ -1,0 +1,27 @@
+name: Despliegue Automático al VPS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo desde GitHub
+        uses: actions/checkout@v3
+
+      - name: Conectarse al VPS y actualizar archivos
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/html/dlgc_rrhh
+            git reset --hard HEAD
+            git pull origin master
+            sudo chown -R www-data:www-data /var/www/html/dlgc_rrhh
+            sudo chmod -R 775 /var/www/html/dlgc_rrhh
