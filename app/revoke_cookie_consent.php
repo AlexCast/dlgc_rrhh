@@ -25,5 +25,5 @@ CookieHelper::delete(CONSENT_COOKIE_NAME, ['path' => '/']);
 RememberMeHelper::invalidateCurrent($conexion);
 
 // Redirigir al login (la sesión PHP se mantiene, pero "Recordarme" ya no reaparecerá).
-header('Location: /dlgc_rrhh/templates/login.php');
+header('Location: /templates/login.php');
 exit;

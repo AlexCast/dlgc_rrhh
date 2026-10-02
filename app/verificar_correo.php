@@ -9,7 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/session_bootstrap.php';
 require_once __DIR__ . '/conexion.php';
 
-$urlLogin = '/dlgc_rrhh/templates/login.php';
+$urlLogin = '/templates/login.php';
 
 function redirigirLogin(array $parametros): void
 {

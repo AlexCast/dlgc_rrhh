@@ -18,10 +18,10 @@ $registerData = $_SESSION['register_form_data'] ?? [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso | Portal DLGC</title>
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/login.css">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/recover_password.css">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/cookie-banner.css">
-    <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
+    <link rel="stylesheet" href="/assets/css/login.css">
+    <link rel="stylesheet" href="/assets/css/recover_password.css">
+    <link rel="stylesheet" href="/assets/css/cookie-banner.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,13 +35,13 @@ $registerData = $_SESSION['register_form_data'] ?? [];
     <header class="navbar-wrapper">
     <nav class="navbar auth-navbar" aria-label="Navegación de autenticación">
         <!-- Logotipo Corporativo -->
-        <a href="/dlgc_rrhh/templates/index.html" class="logo" aria-label="Volver al inicio">
-            <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
+        <a href="/templates/index.html" class="logo" aria-label="Volver al inicio">
+            <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
         </a>
         
         <!-- Acciones del Header -->
         <div class="nav-actions">
-            <a href="/dlgc_rrhh/templates/index.html" class="btn btn-outline back-btn" aria-label="Regresar al inicio">
+            <a href="/templates/index.html" class="btn btn-outline back-btn" aria-label="Regresar al inicio">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M15 18l-6-6 6-6"></path>
     </svg>
@@ -214,14 +214,14 @@ $registerData = $_SESSION['register_form_data'] ?? [];
                                 <input type="checkbox" id="accept-terms" name="accept_terms" value="1" required <?php echo ($registerData['accept_terms'] ?? '') === '1' ? 'checked' : ''; ?>>
                                 <label for="accept-terms">
                                     He leído y acepto los
-                                    <a href="/dlgc_rrhh/templates/legal/terminos.php?from=register" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a>.
+                                    <a href="/templates/legal/terminos.php?from=register" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a>.
                                 </label>
                             </div>
                             <div class="checkbox-group checkbox-group--legal">
                                 <input type="checkbox" id="accept-privacy" name="accept_privacy" value="1" required <?php echo ($registerData['accept_privacy'] ?? '') === '1' ? 'checked' : ''; ?>>
                                 <label for="accept-privacy">
                                     He leído y acepto la
-                                    <a href="/dlgc_rrhh/templates/legal/privacidad.php?from=register" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>.
+                                    <a href="/templates/legal/privacidad.php?from=register" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>.
                                 </label>
                             </div>
                         </div>
@@ -260,8 +260,8 @@ $registerData = $_SESSION['register_form_data'] ?? [];
 
     <?php require_once __DIR__ . '/partials/cookie_banner.php'; ?>
 
-    <script src="/dlgc_rrhh/assets/js/theme.js"></script>
-    <script src="/dlgc_rrhh/assets/js/login.js"></script>
-    <script src="/dlgc_rrhh/assets/js/script.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/login.js"></script>
+    <script src="/assets/js/script.js"></script>
 </body>
 </html>

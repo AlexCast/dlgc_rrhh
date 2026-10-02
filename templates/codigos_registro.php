@@ -60,9 +60,9 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Códigos de Registro | DLGC</title>
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/codigos_registro.css">
-    <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
+    <link rel="stylesheet" href="/assets/css/firstpage.css">
+    <link rel="stylesheet" href="/assets/css/codigos_registro.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
@@ -70,8 +70,8 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar" aria-label="Menú principal">
             <div class="sidebar-top">
-                <a href="/dlgc_rrhh/templates/index.html" class="logo" aria-label="Inicio">
-                    <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
+                <a href="/templates/index.html" class="logo" aria-label="Inicio">
+                    <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
                 <button id="close-sidebar" class="icon-btn mobile-only" aria-label="Cerrar menú">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -79,10 +79,10 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
             </div>
 
             <?php $activeItem = 'codigos_registro'; include __DIR__ . '/partials/sidebar_admin.php'; ?>
-            <a href="/dlgc_rrhh/templates/perfil_rrhh.php" class="sidebar-profile" aria-label="Ver mi perfil">
+            <a href="/templates/perfil_rrhh.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
                     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-                        <img src="/dlgc_rrhh/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
+                        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
                              alt="Foto de perfil" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                     <?php else: ?>
@@ -240,8 +240,8 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
 
     <div id="codes-toast" class="codes-toast" role="status" aria-live="polite">Código copiado</div>
 
-    <script src="/dlgc_rrhh/assets/js/theme.js"></script>
-    <script src="/dlgc_rrhh/assets/js/firstpage.js"></script>
-    <script src="/dlgc_rrhh/assets/js/codigos_registro.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/firstpage.js"></script>
+    <script src="/assets/js/codigos_registro.js"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error 403 - Acceso Denegado</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
     <style>
         :root {
             --bg-main: #ffffff;
@@ -246,8 +246,8 @@
     </button>
 
     <main class="error-card" role="main" aria-labelledby="page-title">
-        <a href="/dlgc_rrhh/templates/index.html" class="logo" aria-label="Volver al inicio">
-            <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
+        <a href="/templates/index.html" class="logo" aria-label="Volver al inicio">
+            <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
         </a>
 
         <div class="error-illustration" aria-hidden="true">
@@ -265,7 +265,7 @@
         </p>
 
         <div class="actions">
-            <a class="btn btn-primary" href="/dlgc_rrhh/templates/firstpage.php">
+            <a class="btn btn-primary" href="/templates/firstpage.php">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
