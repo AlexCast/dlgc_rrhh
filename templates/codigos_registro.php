@@ -63,8 +63,6 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
     <link rel="stylesheet" href="/assets/css/firstpage.css">
     <link rel="stylesheet" href="/assets/css/codigos_registro.css">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
     <div class="dashboard-container">
