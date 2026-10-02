@@ -179,7 +179,7 @@ function has_module_permission($module_id, $action_type): bool
 function require_module_access($module_id): void
 {
     if (!has_module_access($module_id)) {
-        header('Location: /dlgc_rrhh/templates/access_denied.php', true, 302);
+        header('Location: /templates/access_denied.php', true, 302);
         exit;
     }
 }
@@ -189,5 +189,5 @@ function require_module_access($module_id): void
  */
 function get_dashboard_url(): string
 {
-    return '/dlgc_rrhh/templates/firstpage.php';
+    return '/templates/firstpage.php';
 }

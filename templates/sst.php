@@ -42,9 +42,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seguridad y Salud en el Trabajo | DLGC</title>
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/sst.css">
-    <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
+    <link rel="stylesheet" href="/assets/css/firstpage.css">
+    <link rel="stylesheet" href="/assets/css/sst.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,8 +53,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar" aria-label="Menú principal">
             <div class="sidebar-top">
-                <a href="/dlgc_rrhh/templates/index.html" class="logo" aria-label="Inicio">
-                    <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
+                <a href="/templates/index.html" class="logo" aria-label="Inicio">
+                    <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
                 <button id="close-sidebar" class="icon-btn mobile-only" aria-label="Cerrar menú">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -62,10 +62,10 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
             </div>
 
             <?php $activeItem = 'sst'; include __DIR__ . '/partials/sidebar_nav.php'; ?>
-            <a href="/dlgc_rrhh/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
+            <a href="/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
                     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-                        <img src="/dlgc_rrhh/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                     <?php else: ?>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -247,7 +247,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
         </main>
     </div>
 
-    <script src="/dlgc_rrhh/assets/js/theme.js"></script>
-    <script src="/dlgc_rrhh/assets/js/sst.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/sst.js"></script>
 </body>
 </html>

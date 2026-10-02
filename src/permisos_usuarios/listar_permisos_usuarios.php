@@ -64,7 +64,7 @@ $relacionesEliminadas = array_filter($relaciones, function ($rel) {
 $totalPermisosActivos = count($relaciones) - count($relacionesEliminadas);
 ?>
 
-<link rel="stylesheet" href="/dlgc_rrhh/src/permisos_usuarios/permisos_usuarios.css">
+<link rel="stylesheet" href="/assets/css/permisos_usuarios.css">
 
 <?php include_once 'encab_permisos_usuarios.php'; ?>
 <?php require_once __DIR__ . '/../../app/alert_helper.php'; ?>

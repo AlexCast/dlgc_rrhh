@@ -5,7 +5,7 @@ require_once __DIR__ . '/src_guard.php';
 require_once __DIR__ . '/conexion.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /dlgc_rrhh/templates/codigos_registro.php');
+    header('Location: /templates/codigos_registro.php');
     exit;
 }
 
@@ -140,5 +140,5 @@ try {
     setFlash('Ocurrió un error al procesar la acción.', 'error');
 }
 
-header('Location: /dlgc_rrhh/templates/codigos_registro.php');
+header('Location: /templates/codigos_registro.php');
 exit;

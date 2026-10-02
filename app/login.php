@@ -15,7 +15,7 @@ require_once __DIR__ . '/helpers/SessionUserLoader.php';
 require_once __DIR__ . '/helpers/RememberMeHelper.php';
 require_once __DIR__ . '/helpers/RateLimiter.php';
 
-$urlLogin = '/dlgc_rrhh/templates/login.php';
+$urlLogin = '/templates/login.php';
 
 function redirigirLogin(array $parametros): void
 {
@@ -138,7 +138,7 @@ try {
 
     // --- 7. Redirección al dashboard tras login exitoso ---
     // Dashboard único: las métricas visibles dependen de los módulos del usuario.
-    $dashboardUrl = '/dlgc_rrhh/templates/firstpage.php';
+    $dashboardUrl = '/templates/firstpage.php';
 
     header('Location: ' . $dashboardUrl);
     exit;

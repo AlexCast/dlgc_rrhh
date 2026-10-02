@@ -23,7 +23,7 @@ require_module_access($moduleId);
 
 if (!empty($requiredAction) && is_string($requiredAction)) {
     if (!has_module_permission($moduleId, $requiredAction)) {
-        header('Location: /dlgc_rrhh/templates/access_denied.php', true, 302);
+        header('Location: /templates/access_denied.php', true, 302);
         exit;
     }
 }

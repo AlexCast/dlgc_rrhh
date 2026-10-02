@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DLGC | Comunicados</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="/dlgc_rrhh/assets/img/favicon.ico">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/src.css">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/comunicados.css">
-    <link rel="stylesheet" href="/dlgc_rrhh/assets/css/forma_comunicados.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
+    <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/src.css">
+    <link rel="stylesheet" href="/assets/css/comunicados.css">
+    <link rel="stylesheet" href="/assets/css/forma_comunicados.css">
     <style>
         /* Puente de variables para reutilizar comunicados.css dentro del SRC.
            Se define en body (no en :root) para que respete el tema oscuro. */
@@ -29,16 +29,16 @@
             --primary-color: var(--mnt-primary);
         }
     </style>
-    <script src="/dlgc_rrhh/assets/js/src.js" defer></script>
-    <script src="/dlgc_rrhh/assets/js/theme.js"></script>
-    <script src="/dlgc_rrhh/assets/js/alert-banner.js" defer></script>
+    <script src="/assets/js/src.js" defer></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/alert-banner.js" defer></script>
 </head>
 <body>
     <header class="header-container">
         <div class="header-content">
             <div class="brand-section">
                 <a href="<?php echo get_dashboard_url(); ?>" class="brand-logo" aria-label="Inicio">
-                    <img src="/dlgc_rrhh/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
+                    <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
             </div>
 
