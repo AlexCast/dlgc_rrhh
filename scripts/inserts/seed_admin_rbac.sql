@@ -31,7 +31,7 @@ INSERT INTO t_usuarios
      correo, correo_verificado, contrasena)
 VALUES
     ('1234567890', 1, 'admin', 'CC', 'Admin', 'General',
-     'admin@dlgc.com', TRUE, '$2y$12$WoqoCCawdgisfY/gZ9KKe.AT1L/oPo6ot7lZafl2wkn2HHlfjuonu')
+     'admin@dlgc.com', TRUE, '$2y$12$kvSsZ1T9b2dZ7dDEyARtz.3SP33/htl9b/exIGr3I1/ZJh4V1jHt.')
 ON DUPLICATE KEY UPDATE
     id_rol            = VALUES(id_rol),
     username          = VALUES(username),
