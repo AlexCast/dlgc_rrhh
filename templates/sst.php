@@ -19,8 +19,10 @@ $nombreCompleto = trim(
 // Cargar miembros de comités
 $miembros = [];
 if ($conexion) {
-    $sentencia = $conexion->query("SELECT * FROM fun_listar_sst_comite_miembros(NULL);");
+    $sentencia = $conexion->prepare('CALL proc_listar_sst_comite_miembros(?)');
+    $sentencia->execute([null]);
     $miembros = $sentencia->fetchAll(PDO::FETCH_OBJ);
+    $sentencia->closeCursor();
 }
 
 $comiteCopasst = array_filter($miembros, fn($m) => $m->tipo_comite === 'COPASST');
@@ -29,9 +31,10 @@ $comiteConvivencia = array_filter($miembros, fn($m) => $m->tipo_comite === 'COMI
 // Cargar quejas del usuario
 $quejas = [];
 if ($conexion && is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
-    $sentenciaQuejas = $conexion->prepare("SELECT * FROM fun_listar_sst_quejas_usuario(:id_usuario);");
-    $sentenciaQuejas->execute([':id_usuario' => $idUsuarioSesion]);
+    $sentenciaQuejas = $conexion->prepare('CALL proc_listar_sst_quejas_usuario(?)');
+    $sentenciaQuejas->execute([$idUsuarioSesion]);
     $quejas = $sentenciaQuejas->fetchAll(PDO::FETCH_OBJ);
+    $sentenciaQuejas->closeCursor();
 }
 
 $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');

@@ -1,13 +1,18 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_cambiar_estado_sst_queja(
-    wid_queja t_sst_buzon_quejas.id_queja%TYPE,
-    wid_encargado t_sst_buzon_quejas.id_encargado%TYPE,
-    westado t_sst_buzon_quejas.estado%TYPE,
-    wrespuesta t_sst_buzon_quejas.respuesta%TYPE DEFAULT NULL
-) RETURNS VARCHAR AS
-$$
-DECLARE
-    v_estado_actual VARCHAR;
+    wid_queja INT,
+    wid_encargado VARCHAR(20),
+    westado VARCHAR(20),
+    wrespuesta TEXT
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE v_estado_actual VARCHAR(20);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'El estado indicado no es válido o ocurrió un error.';
+
     IF wid_queja IS NULL OR wid_queja <= 0 THEN
         RETURN 'El ID de la queja no es válido.';
     END IF;
@@ -21,12 +26,13 @@ BEGIN
     END IF;
 
     SELECT estado
-      INTO v_estado_actual
-      FROM t_sst_buzon_quejas
-     WHERE id_queja = wid_queja
-       AND fec_delete IS NULL;
+    INTO v_estado_actual
+    FROM t_sst_buzon_quejas
+    WHERE id_queja = wid_queja
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF v_estado_actual IS NULL THEN
+    IF v_not_found THEN
         RETURN 'No se encontró la queja.';
     END IF;
 
@@ -38,19 +44,12 @@ BEGIN
     SET estado = UPPER(TRIM(westado)),
         id_encargado = wid_encargado,
         respuesta = CASE WHEN wrespuesta IS NULL OR TRIM(wrespuesta) = '' THEN respuesta ELSE TRIM(wrespuesta) END,
-        fec_respuesta = CASE WHEN westado IN ('RESUELTO') THEN CURRENT_TIMESTAMP ELSE fec_respuesta END,
+        fec_respuesta = CASE WHEN UPPER(TRIM(westado)) IN ('RESUELTO') THEN CURRENT_TIMESTAMP ELSE fec_respuesta END,
         cancelado_por = CASE WHEN UPPER(TRIM(westado)) = 'CANCELADO_ENCARGADO' THEN wid_encargado ELSE cancelado_por END,
         fec_cancelacion = CASE WHEN UPPER(TRIM(westado)) = 'CANCELADO_ENCARGADO' THEN CURRENT_TIMESTAMP ELSE fec_cancelacion END
     WHERE id_queja = wid_queja;
 
     RETURN 'Estado de la queja / sugerencia actualizado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'El estado indicado no es válido.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al cambiar el estado de la queja / sugerencia.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

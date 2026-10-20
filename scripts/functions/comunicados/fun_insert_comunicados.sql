@@ -1,10 +1,14 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_comunicados(
-    wtitulo t_comunicados.titulo%TYPE,
-    wcontenido t_comunicados.contenido%TYPE,
-    wcategoria t_comunicados.categoria%TYPE
-) RETURNS VARCHAR AS
-$$
+    wtitulo VARCHAR(100),
+    wcontenido TEXT,
+    wcategoria VARCHAR(30)
+) RETURNS VARCHAR(255)
 BEGIN
+    -- En MariaDB los errores de CHECK (como la categoría no permitida) lanzan una excepción general
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'La categoría indicada no es válida o ocurrió un error al insertar.';
+
     IF wtitulo IS NULL OR LENGTH(TRIM(wtitulo)) < 5 THEN
         RETURN 'El título del comunicado debe tener al menos 5 caracteres.';
     END IF;
@@ -28,18 +32,11 @@ BEGIN
         TRIM(wtitulo),
         TRIM(wcontenido),
         UPPER(TRIM(wcategoria)),
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Comunicado insertado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'La categoría indicada no es válida.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar el comunicado.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

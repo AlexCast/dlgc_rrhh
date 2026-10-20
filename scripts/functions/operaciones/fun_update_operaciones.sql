@@ -1,10 +1,14 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_update_operaciones(
-    wid_operacion t_operaciones.id_operacion%TYPE,
-    wid_modulo t_operaciones.id_modulo%TYPE,
-    wnombre_operacion t_operaciones.nombre_operacion%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_operacion INT,
+    wid_modulo INT,
+    wnombre_operacion VARCHAR(50)
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'El módulo indicado no existe o la operación ya existe.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al actualizar la operación.';
+
     IF wid_operacion IS NULL OR wid_operacion <= 0 THEN
         RETURN 'El ID de la operación no es válido.';
     END IF;
@@ -20,23 +24,16 @@ BEGIN
     UPDATE t_operaciones
     SET id_modulo = wid_modulo,
         nombre_operacion = TRIM(wnombre_operacion),
-        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_operacion = wid_operacion
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
+    IF ROW_COUNT() > 0 THEN
         RETURN 'Operación actualizada correctamente.';
     END IF;
 
     RETURN 'No se encontró la operación activa para actualizar.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'El módulo indicado no existe.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al actualizar la operación.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

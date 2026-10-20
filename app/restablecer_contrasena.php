@@ -38,10 +38,10 @@ try {
     $sentencia = $conexion->prepare(
         "SELECT id_recuperacion, id_usuario, fecha_expiracion, fecha_uso, fec_delete
          FROM t_recuperacion_contrasena
-         WHERE token_hash = :token_hash
+         WHERE token_hash = ?
          LIMIT 1"
     );
-    $sentencia->execute([':token_hash' => $tokenHash]);
+    $sentencia->execute([$tokenHash]);
     $recuperacion = $sentencia->fetch();
 
     if (!$recuperacion) {
@@ -101,28 +101,28 @@ try {
 
     $actualizar = $conexion->prepare(
         "UPDATE t_usuarios
-         SET contrasena = :contrasena,
-             usr_update = :usr_update,
+         SET contrasena = ?,
+             usr_update = ?,
              fec_update = CURRENT_TIMESTAMP
-         WHERE id_usuario = :id_usuario"
+         WHERE id_usuario = ?"
     );
     $actualizar->execute([
-        ':contrasena' => $hash,
-        ':usr_update' => $recuperacion['id_usuario'],
-        ':id_usuario' => $recuperacion['id_usuario'],
+        $hash,
+        $recuperacion['id_usuario'],
+        $recuperacion['id_usuario'],
     ]);
 
     // Marcar token como usado.
     $usarToken = $conexion->prepare(
         "UPDATE t_recuperacion_contrasena
          SET fecha_uso = CURRENT_TIMESTAMP,
-             usr_update = :usr_update,
+             usr_update = ?,
              fec_update = CURRENT_TIMESTAMP
-         WHERE id_recuperacion = :id_recuperacion"
+         WHERE id_recuperacion = ?"
     );
     $usarToken->execute([
-        ':usr_update'       => $recuperacion['id_usuario'],
-        ':id_recuperacion'  => $recuperacion['id_recuperacion'],
+        $recuperacion['id_usuario'],
+        $recuperacion['id_recuperacion'],
     ]);
 
     // Al cambiar contraseña se invalidan todos los tokens "Recordarme" del usuario.

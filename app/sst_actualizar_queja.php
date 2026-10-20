@@ -57,14 +57,8 @@ if ($descripcion === '' || mb_strlen($descripcion) < 10) {
 }
 
 try {
-    $sentencia = $conexion->prepare('SELECT fun_update_sst_queja(:id_queja, :id_usuario, :tipo_peticion, :asunto, :descripcion);');
-    $sentencia->execute([
-        ':id_queja'       => $idQueja,
-        ':id_usuario'     => $idUsuario,
-        ':tipo_peticion'  => $tipoPeticion,
-        ':asunto'         => $asunto,
-        ':descripcion'    => $descripcion,
-    ]);
+    $sentencia = $conexion->prepare('SELECT fun_update_sst_queja(?, ?, ?, ?, ?);');
+    $sentencia->execute([$idQueja, $idUsuario, $tipoPeticion, $asunto, $descripcion]);
 
     $resultado = (string) $sentencia->fetchColumn();
 

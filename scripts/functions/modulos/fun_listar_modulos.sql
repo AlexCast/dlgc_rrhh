@@ -1,33 +1,39 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_modulos(
-    wid_modulo t_modulos.id_modulo%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_modulo t_modulos%ROWTYPE;
+    wid_modulo INT
+) RETURNS BOOLEAN
 BEGIN
+    -- Declaración estricta de variables individuales en lugar de %ROWTYPE
+    DECLARE v_id_modulo INT;
+    DECLARE v_nombre_modulo VARCHAR(30);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+    
+    -- El reemplazo directo del IF NOT FOUND de PostgreSQL
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_modulo IS NULL OR wid_modulo <= 0 THEN
-        RAISE NOTICE 'El ID del módulo no es válido.';
         RETURN FALSE;
     END IF;
 
-    SELECT *
-    INTO wreg_modulo
+    -- Eliminamos el SELECT *; apuntamos a columnas específicas
+    SELECT id_modulo, nombre_modulo
+    INTO v_id_modulo, v_nombre_modulo
     FROM t_modulos
     WHERE id_modulo = wid_modulo
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No existe módulo activo con ID %.', wid_modulo;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Módulo: %', wreg_modulo.id_modulo, wreg_modulo.nombre_modulo;
+    -- En PostgreSQL usabas RAISE NOTICE para imprimir los datos.
+    -- En MariaDB retornamos TRUE indicando que la función fue exitosa,
+    -- la lectura de los datos se haría mediante un procedimiento almacenado
+    -- si se requiere devolver el set de resultados al backend.
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

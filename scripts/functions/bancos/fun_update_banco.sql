@@ -1,9 +1,13 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_update_banco(
-    wid_banco t_bancos.id_banco%TYPE,
-    wnombre_banco t_bancos.nombre_banco%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_banco INT,
+    wnombre_banco VARCHAR(50)
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'Ya existe un banco con ese nombre.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al actualizar el banco.';
+
     IF wid_banco IS NULL OR wid_banco <= 0 THEN
         RETURN 'El ID del banco no es válido.';
     END IF;
@@ -14,23 +18,16 @@ BEGIN
 
     UPDATE t_bancos
     SET nombre_banco = TRIM(wnombre_banco),
-        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_banco = wid_banco
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
+    IF ROW_COUNT() > 0 THEN
         RETURN 'Banco actualizado correctamente.';
     END IF;
 
     RETURN 'No se encontró el banco activo para actualizar.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'Ya existe un banco con ese nombre.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al actualizar el banco.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

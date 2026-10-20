@@ -1,10 +1,13 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_update_permisos_dias_aprobados(
-    wid_dia_permiso t_permisos_dias_aprobados.id_dia_permiso%TYPE,
-    wfecha t_permisos_dias_aprobados.fecha%TYPE,
-    whoras_aprobadas t_permisos_dias_aprobados.horas_aprobadas%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_dia_permiso INT,
+    wfecha DATE,
+    whoras_aprobadas DECIMAL(4,2)
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al actualizar el día de permiso aprobado o las horas no cumplen la regla.';
+
     IF wid_dia_permiso IS NULL OR wid_dia_permiso <= 0 THEN
         RETURN 'El ID del día de permiso no es válido.';
     END IF;
@@ -20,23 +23,16 @@ BEGIN
     UPDATE t_permisos_dias_aprobados
     SET fecha = wfecha,
         horas_aprobadas = whoras_aprobadas,
-        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_dia_permiso = wid_dia_permiso
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
+    IF ROW_COUNT() > 0 THEN
         RETURN 'Día de permiso aprobado actualizado correctamente.';
     END IF;
 
     RETURN 'No se encontró el día de permiso activo para actualizar.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'Las horas aprobadas no cumplen las reglas de la tabla.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al actualizar el día de permiso aprobado.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

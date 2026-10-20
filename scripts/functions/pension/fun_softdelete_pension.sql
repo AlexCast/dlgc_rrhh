@@ -1,22 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_pension(
-    wid_pension t_pension.id_pension%TYPE
-)
-RETURNS BOOLEAN AS
-$$
+    wid_pension INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_pension
-    SET 
-        fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
-        WHERE id_pension = wid_pension
+    SET fec_delete = CURRENT_TIMESTAMP,
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
+    WHERE id_pension = wid_pension
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Entidad de Pensión % eliminada lógicamente.', wid_pension;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     ELSE
-        RAISE NOTICE 'No se encontró la entidad de Pensión o ya está eliminada.';
         RETURN FALSE;
     END IF;
-END;
-$$ LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

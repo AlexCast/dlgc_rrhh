@@ -1,19 +1,24 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_empleados(
-    wid_usuario t_empleados.id_usuario%TYPE,
-    wfecha_ingreso t_empleados.fecha_ingreso%TYPE,
-    wgenero t_empleados.genero%TYPE,
-    wfecha_nacimiento t_empleados.fecha_nacimiento%TYPE,
-    wtipo_sangre t_empleados.tipo_sangre%TYPE,
-    westado_civil t_empleados.estado_civil%TYPE,
-    wdireccion_casa t_empleados.direccion_casa%TYPE,
-    wnumero_celular t_empleados.numero_celular%TYPE,
-    wid_jefe t_empleados.id_jefe%TYPE,
-	wid_municipio t_empleados.id_municipio%TYPE,
-    wfecha_egreso t_empleados.fecha_egreso%TYPE DEFAULT NULL,
-    wfoto_perfil t_empleados.foto_perfil%TYPE DEFAULT NULL
-) RETURNS VARCHAR AS
-$$
+    wid_usuario VARCHAR(20),
+    wfecha_ingreso DATE,
+    wgenero VARCHAR(10),
+    wfecha_nacimiento DATE,
+    wtipo_sangre VARCHAR(5),
+    westado_civil VARCHAR(20),
+    wdireccion_casa VARCHAR(100),
+    wnumero_celular VARCHAR(10),
+    wid_jefe VARCHAR(20),
+    wid_municipio INT,
+    wfecha_egreso DATE,
+    wfoto_perfil VARCHAR(255)
+) RETURNS VARCHAR(255)
 BEGIN
+    -- En MariaDB, SQLSTATE '23000' agrupa violaciones de duplicados (23505) y llaves foráneas (23503)
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'El empleado ya existe o no existe el usuario, jefe o municipio relacionado.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Esta vaina se totió.. Y no fue de la risa.. Déjeme trabajar';
+
     IF wid_usuario IS NULL OR wid_usuario = '' THEN
         RETURN 'El id_usuario no puede ser nulo o vacío.';
     END IF;
@@ -26,13 +31,14 @@ BEGIN
     IF wdireccion_casa IS NULL OR wdireccion_casa = '' THEN
         RETURN 'La dirección de casa no puede ser nula o vacía.';
     END IF;
-    IF wnumero_celular IS NULL OR wnumero_celular !~ '^[0-9]{10}$' THEN
+    -- Reemplazo de la negación de expresión regular de PGSQL (!~) a MariaDB (NOT REGEXP)
+    IF wnumero_celular IS NULL OR wnumero_celular NOT REGEXP '^[0-9]{10}$' THEN
         RETURN 'El número celular debe tener exactamente 10 dígitos.';
     END IF;
     IF wid_jefe IS NOT NULL AND wid_jefe = wid_usuario THEN
         RETURN 'El id_jefe no puede ser igual al id_usuario.';
     END IF;
-	IF wid_municipio IS NULL OR wid_municipio <= 0 THEN
+    IF wid_municipio IS NULL OR wid_municipio <= 0 THEN
         RETURN 'El ID del municipio no es válido.';
     END IF;
     IF wfecha_egreso IS NOT NULL AND wfecha_egreso < wfecha_ingreso THEN
@@ -42,7 +48,7 @@ BEGIN
     INSERT INTO t_empleados (
         id_usuario,
         id_jefe,
-		id_municipio,
+        id_municipio,
         fecha_ingreso,
         fecha_egreso,
         genero,
@@ -58,7 +64,7 @@ BEGIN
     VALUES (
         wid_usuario,
         NULLIF(wid_jefe, ''),
-		wid_municipio,
+        wid_municipio,
         wfecha_ingreso,
         wfecha_egreso,
         wgenero,
@@ -68,23 +74,11 @@ BEGIN
         wdireccion_casa,
         wnumero_celular,
         wfoto_perfil,
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
-    RAISE NOTICE 'Empleado % insertado correctamente.', wid_usuario;
     RETURN 'Esta vaina funcionó.. Somos duros en ADSO';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'El empleado ya existe.';
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'No existe el usuario, jefe o municipio relacionado.';
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'Alguno de los datos no cumple las reglas de validación.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Esta vaina se totió.. Y no fue de la risa.. Déjeme trabajar';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

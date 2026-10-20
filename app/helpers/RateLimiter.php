@@ -39,14 +39,11 @@ class RateLimiter
         $sentencia = $this->conexion->prepare(
             "SELECT contador, ultimo_intento
              FROM t_intentos_correo
-             WHERE id_usuario = :id_usuario
-               AND tipo = :tipo
+             WHERE id_usuario = ?
+               AND tipo = ?
              LIMIT 1"
         );
-        $sentencia->execute([
-            ':id_usuario' => $idUsuario,
-            ':tipo'       => $tipo,
-        ]);
+        $sentencia->execute([$idUsuario, $tipo]);
         $intento = $sentencia->fetch();
 
         if (!$intento) {
@@ -79,22 +76,17 @@ class RateLimiter
     {
         $sentencia = $this->conexion->prepare(
             "INSERT INTO t_intentos_correo (id_usuario, tipo, contador, ultimo_intento, usr_insert, fec_insert)
-             VALUES (:id_usuario, :tipo, 1, CURRENT_TIMESTAMP, :usr_insert, CURRENT_TIMESTAMP)
-             ON CONFLICT (id_usuario, tipo)
-             DO UPDATE SET
-                 contador = CASE
-                     WHEN EXCLUDED.ultimo_intento < (CURRENT_TIMESTAMP - INTERVAL '{$this->ventanaMinutos} minutes')
-                     THEN 1
-                     ELSE t_intentos_correo.contador + 1
-                 END,
+             VALUES (?, ?, 1, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)
+             ON DUPLICATE KEY UPDATE
+                 contador = IF(
+                     VALUES(ultimo_intento) < (CURRENT_TIMESTAMP - INTERVAL {$this->ventanaMinutos} MINUTE),
+                     1,
+                     t_intentos_correo.contador + 1
+                 ),
                  ultimo_intento = CURRENT_TIMESTAMP,
-                 usr_update = EXCLUDED.usr_insert,
+                 usr_update = VALUES(usr_insert),
                  fec_update = CURRENT_TIMESTAMP"
         );
-        $sentencia->execute([
-            ':id_usuario' => $idUsuario,
-            ':tipo'       => $tipo,
-            ':usr_insert' => 'sistema_rate_limit',
-        ]);
+        $sentencia->execute([$idUsuario, $tipo, 'sistema_rate_limit']);
     }
 }

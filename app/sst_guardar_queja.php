@@ -53,13 +53,8 @@ if ($descripcion === '' || mb_strlen($descripcion) < 10) {
 }
 
 try {
-    $sentencia = $conexion->prepare('SELECT fun_insert_sst_queja(:id_usuario, :tipo_peticion, :asunto, :descripcion);');
-    $sentencia->execute([
-        ':id_usuario'    => $idUsuario,
-        ':tipo_peticion' => $tipoPeticion,
-        ':asunto'        => $asunto,
-        ':descripcion'   => $descripcion,
-    ]);
+    $sentencia = $conexion->prepare('SELECT fun_insert_sst_queja(?, ?, ?, ?);');
+    $sentencia->execute([$idUsuario, $tipoPeticion, $asunto, $descripcion]);
 
     $resultado = (string) $sentencia->fetchColumn();
 
@@ -82,10 +77,10 @@ function notificarEncargadosSst(PDO $conexion, string $idUsuario, string $tipoPe
         $sentenciaUsuario = $conexion->prepare(
             "SELECT primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
              FROM t_usuarios
-             WHERE id_usuario = :id_usuario
+             WHERE id_usuario = ?
                AND fec_delete IS NULL"
         );
-        $sentenciaUsuario->execute([':id_usuario' => $idUsuario]);
+        $sentenciaUsuario->execute([$idUsuario]);
         $usuario = $sentenciaUsuario->fetch(PDO::FETCH_OBJ);
 
         $nombreUsuario = $usuario

@@ -76,7 +76,7 @@
 
                 if (lector.foto_perfil) {
                     var img = document.createElement('img');
-                    img.src = '/dlgc_rrhh/uploads/perfiles/' + encodeURIComponent(lector.foto_perfil);
+                    img.src = '/uploads/perfiles/' + encodeURIComponent(lector.foto_perfil);
                     img.alt = lector.nombre_completo;
                     avatar.appendChild(img);
                 } else {
@@ -135,7 +135,7 @@
             formData.append('csrf_token', csrfToken);
             formData.append('id_comunicado', idComunicado);
 
-            fetch('/dlgc_rrhh/src/comunicados/visto_por.php', {
+            fetch('/src/comunicados/visto_por.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

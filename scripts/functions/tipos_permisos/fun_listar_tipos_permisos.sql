@@ -1,36 +1,33 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_tipos_permisos(
-    wid_tipo_permiso t_tipos_permisos.id_tipo_permiso%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_tipo t_tipos_permisos%ROWTYPE;
+    wid_tipo_permiso INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_tipo_permiso INT;
+    DECLARE v_nombre_tipo VARCHAR(50);
+    DECLARE v_descuenta_tiempo BOOLEAN;
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_tipo_permiso IS NULL OR wid_tipo_permiso <= 0 THEN
-        RAISE NOTICE 'El ID del tipo de permiso no es válido.';
         RETURN FALSE;
     END IF;
 
-    SELECT *
-    INTO wreg_tipo
+    SELECT id_tipo_permiso, nombre_tipo, descuenta_tiempo
+    INTO v_id_tipo_permiso, v_nombre_tipo, v_descuenta_tiempo
     FROM t_tipos_permisos
     WHERE id_tipo_permiso = wid_tipo_permiso
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No existe tipo de permiso activo con ID %.', wid_tipo_permiso;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Tipo: %, Descuenta tiempo: %',
-        wreg_tipo.id_tipo_permiso,
-        wreg_tipo.nombre_tipo,
-        wreg_tipo.descuenta_tiempo;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

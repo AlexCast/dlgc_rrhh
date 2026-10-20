@@ -30,6 +30,9 @@ class TurnstileHelper
 
     /**
      * Verifica el token enviado por el widget de Turnstile contra la API de Cloudflare.
+     *
+     * Usa el wrapper de streams de PHP en lugar de cURL para no depender de la
+     * extensión php_curl (no siempre cargada en Apache/Windows).
      */
     public static function verify(?string $token): bool
     {
@@ -39,23 +42,26 @@ class TurnstileHelper
             return false;
         }
 
-        $ch = curl_init(self::VERIFY_URL);
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => http_build_query([
-                'secret'   => $secretKey,
-                'response' => $token,
-                'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
-            ]),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+        $contexto = stream_context_create([
+            'http' => [
+                'method'         => 'POST',
+                'header'         => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'content'        => http_build_query([
+                    'secret'   => $secretKey,
+                    'response' => $token,
+                    'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
+                ]),
+                'timeout'        => 10,
+                'ignore_errors'  => true,
+            ],
         ]);
-        $respuesta = curl_exec($ch);
-        $error = curl_error($ch);
-        curl_close($ch);
 
-        if ($respuesta === false || $error !== '') {
-            error_log('Error verificando Turnstile: ' . $error);
+        $respuesta = @file_get_contents(self::VERIFY_URL, false, $contexto);
+
+        if ($respuesta === false) {
+            $detalle = error_get_last();
+            $mensaje = is_array($detalle) ? ($detalle['message'] ?? 'sin respuesta') : 'sin respuesta';
+            error_log('Error verificando Turnstile: ' . $mensaje);
             return false;
         }
 

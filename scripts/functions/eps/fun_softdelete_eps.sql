@@ -1,22 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_eps(
-    wid_eps t_eps.id_eps%TYPE
-)
-RETURNS BOOLEAN AS
-$$
+    wid_eps INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_eps
-    SET 
-        fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
-        WHERE id_eps = wid_eps
+    SET fec_delete = CURRENT_TIMESTAMP,
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
+    WHERE id_eps = wid_eps
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'EPS % eliminada lógicamente.', wid_eps;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     ELSE
-        RAISE NOTICE 'No se encontró la EPS o ya está eliminada.';
         RETURN FALSE;
     END IF;
-END;
-$$ LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

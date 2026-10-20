@@ -1,10 +1,14 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_dias_festivos(
-    wfecha t_dias_festivos.fecha%TYPE,
-    wdescripcion t_dias_festivos.descripcion%TYPE,
-    wdescuenta_salario t_dias_festivos.descuenta_salario%TYPE DEFAULT TRUE
-) RETURNS VARCHAR AS
-$$
+    wfecha DATE,
+    wdescripcion VARCHAR(100),
+    wdescuenta_salario BOOLEAN
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'Ya existe un festivo para esa fecha.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al insertar el día festivo.';
+
     IF wfecha IS NULL THEN
         RETURN 'La fecha del festivo es obligatoria.';
     END IF;
@@ -27,18 +31,11 @@ BEGIN
         TRIM(wdescripcion),
         'EMPRESA',
         COALESCE(wdescuenta_salario, TRUE),
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Día festivo insertado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'Ya existe un festivo para esa fecha.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar el día festivo.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

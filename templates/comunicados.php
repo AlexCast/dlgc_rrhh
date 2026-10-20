@@ -15,13 +15,13 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
     $sentenciaRol = $conexion->prepare(
         "SELECT c.puesto
          FROM t_contratos_empleados c
-         WHERE c.id_usuario = :id_usuario
+         WHERE c.id_usuario = ?
            AND c.fec_delete IS NULL
-         ORDER BY c.fecha_inicio_puesto DESC NULLS LAST, c.id_contrato DESC
+         ORDER BY c.fecha_inicio_puesto DESC, c.id_contrato DESC
          LIMIT 1"
     );
 
-    $sentenciaRol->execute([':id_usuario' => $idUsuarioSesion]);
+    $sentenciaRol->execute([$idUsuarioSesion]);
     $puestoContrato = $sentenciaRol->fetchColumn();
 
     if ($puestoContrato !== false && trim((string) $puestoContrato) !== '') {
@@ -30,9 +30,10 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
 }
 
 // Cargar comunicados activos enriquecidos con estado de lectura del usuario actual
-$sentenciaComunicados = $conexion->prepare('SELECT * FROM fun_listar_comunicados_activos(?);');
+$sentenciaComunicados = $conexion->prepare('CALL proc_listar_comunicados_activos(?)');
 $sentenciaComunicados->execute([$idUsuarioSesion]);
 $comunicados = $sentenciaComunicados->fetchAll(PDO::FETCH_OBJ);
+$sentenciaComunicados->closeCursor();
 
 function tiempoRelativo(?string $fecha): string
 {

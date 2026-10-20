@@ -40,18 +40,18 @@ switch ($vista) {
         if (!has_module_permission(3, 'crear') && !has_module_access(3)) {
             responderJson(false, 'No tienes acceso al módulo de Solicitudes y Permisos.', 403);
         }
-        $filtroSql = 'sp.id_empleado = :id_usuario';
-        $parametros[':id_usuario'] = $idUsuario;
+        $filtroSql = 'sp.id_empleado = ?';
+        $parametros[] = $idUsuario;
         break;
 
     case 'jefe':
         if (!has_module_permission(3, 'actualizar')) {
             responderJson(false, 'No tienes permiso para revisar solicitudes de subordinados.', 403);
         }
-        $filtroSql = 'sp.id_jefe_responsable = :id_usuario AND aj.estado ' . ($historial ? "<> 'PENDIENTE'" : "= 'PENDIENTE'");
-        $parametros[':id_usuario'] = $idUsuario;
+        $filtroSql = 'sp.id_jefe_responsable = ? AND aj.estado ' . ($historial ? "<> 'PENDIENTE'" : "= 'PENDIENTE'");
+        $parametros[] = $idUsuario;
         if ($historial) {
-            $ordenSql = 'aj.fec_resolucion DESC NULLS LAST';
+            $ordenSql = 'aj.fec_resolucion DESC';
         }
         break;
 
@@ -61,7 +61,7 @@ switch ($vista) {
         }
         $filtroSql = "ar.estado " . ($historial ? "<> 'PENDIENTE'" : "= 'PENDIENTE'");
         if ($historial) {
-            $ordenSql = 'ar.fec_resolucion DESC NULLS LAST';
+            $ordenSql = 'ar.fec_resolucion DESC';
         }
         break;
 
@@ -80,7 +80,7 @@ try {
             aj.estado AS estado_jefe, aj.observacion AS observacion_jefe, aj.fec_resolucion AS fec_resolucion_jefe,
             ar.estado AS estado_rrhh, ar.observacion AS observacion_rrhh, ar.fec_resolucion AS fec_resolucion_rrhh,
             (SELECT COUNT(*) FROM t_permisos_evidencias e WHERE e.id_permiso = sp.id_permiso AND e.fec_delete IS NULL) AS total_evidencias,
-            (SELECT STRING_AGG(tp.nombre_tipo, ', ' ORDER BY tp.nombre_tipo)
+            (SELECT GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ')
                FROM t_solicitudes_permisos_motivos spm
                INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
               WHERE spm.id_permiso = sp.id_permiso AND spm.fec_delete IS NULL) AS motivos

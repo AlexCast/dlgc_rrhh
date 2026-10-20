@@ -37,10 +37,10 @@ try {
                 rp.primer_apellido, rp.segundo_apellido, rp.correo, rp.contrasena
          FROM t_verificacion_correo vc
          INNER JOIN t_registros_pendientes rp ON rp.id_registro_pendiente = vc.id_registro_pendiente
-         WHERE vc.token_hash = :token_hash
+         WHERE vc.token_hash = ?
          LIMIT 1"
     );
-    $sentencia->execute([':token_hash' => $tokenHash]);
+    $sentencia->execute([$tokenHash]);
     $verificacion = $sentencia->fetch();
 
     if (!$verificacion) {
@@ -69,22 +69,22 @@ try {
     // Crear usuario real a partir del registro pendiente.
     $sentenciaInsert = $conexion->prepare(
         'SELECT fun_insert_usuarios(
-            :id_usuario, :id_rol, :username, :tipo_documento, :primer_nombre,
-            :primer_apellido, :correo, :contrasena,
-            :segundo_nombre, :segundo_apellido
+            ?, ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?
          ) AS resultado'
     );
     $sentenciaInsert->execute([
-        ':id_usuario'       => $verificacion['id_usuario'],
-        ':id_rol'           => $verificacion['id_rol'],
-        ':username'         => $verificacion['username'],
-        ':tipo_documento'   => $verificacion['tipo_documento'],
-        ':primer_nombre'    => $verificacion['primer_nombre'],
-        ':primer_apellido'  => $verificacion['primer_apellido'],
-        ':correo'           => $verificacion['correo'],
-        ':contrasena'       => $verificacion['contrasena'],
-        ':segundo_nombre'   => $verificacion['segundo_nombre'],
-        ':segundo_apellido' => $verificacion['segundo_apellido'],
+        $verificacion['id_usuario'],
+        $verificacion['id_rol'],
+        $verificacion['username'],
+        $verificacion['tipo_documento'],
+        $verificacion['primer_nombre'],
+        $verificacion['primer_apellido'],
+        $verificacion['correo'],
+        $verificacion['contrasena'],
+        $verificacion['segundo_nombre'],
+        $verificacion['segundo_apellido'],
     ]);
     $resultado = $sentenciaInsert->fetchColumn();
 
@@ -97,13 +97,13 @@ try {
         $sentenciaExiste = $conexion->prepare(
             "SELECT id_usuario
              FROM t_usuarios
-             WHERE id_usuario = :id_usuario
-               AND correo = :correo
+             WHERE id_usuario = ?
+               AND correo = ?
              LIMIT 1"
         );
         $sentenciaExiste->execute([
-            ':id_usuario' => $verificacion['id_usuario'],
-            ':correo'     => $verificacion['correo'],
+            $verificacion['id_usuario'],
+            $verificacion['correo'],
         ]);
         $usuarioExistente = $sentenciaExiste->fetch();
 
@@ -121,13 +121,13 @@ try {
     $actualizar = $conexion->prepare(
         "UPDATE t_usuarios
          SET correo_verificado = TRUE,
-             usr_update = :usr_update,
+             usr_update = ?,
              fec_update = CURRENT_TIMESTAMP
-         WHERE id_usuario = :id_usuario"
+         WHERE id_usuario = ?"
     );
     $actualizar->execute([
-        ':usr_update' => $verificacion['id_usuario'],
-        ':id_usuario' => $verificacion['id_usuario'],
+        $verificacion['id_usuario'],
+        $verificacion['id_usuario'],
     ]);
 
     // Marcar token como usado (los triggers borrarán token y registro pendiente).
@@ -138,13 +138,13 @@ try {
         $usarToken = $conexion->prepare(
             "UPDATE t_verificacion_correo
              SET fecha_uso = CURRENT_TIMESTAMP,
-                 usr_update = :usr_update,
+                 usr_update = ?,
                  fec_update = CURRENT_TIMESTAMP
-             WHERE id_verificacion = :id_verificacion"
+             WHERE id_verificacion = ?"
         );
         $usarToken->execute([
-            ':usr_update'      => $verificacion['id_usuario'],
-            ':id_verificacion' => $verificacion['id_verificacion'],
+            $verificacion['id_usuario'],
+            $verificacion['id_verificacion'],
         ]);
 
         $conexion->commit();

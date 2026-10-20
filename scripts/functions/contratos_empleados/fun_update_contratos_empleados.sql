@@ -1,19 +1,23 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_update_contratos_empleados(
-    wid_usuario t_contratos_empleados.id_usuario%TYPE,
-    wid_contrato t_contratos_empleados.id_contrato%TYPE,
-    wid_area t_contratos_empleados.id_area%TYPE,
-    wpuesto t_contratos_empleados.puesto%TYPE,
-    wfecha_inicio_puesto t_contratos_empleados.fecha_inicio_puesto%TYPE,
-    wtipo_contrato t_contratos_empleados.tipo_contrato%TYPE,
-    wdireccion_oficina t_contratos_empleados.direccion_oficina%TYPE,
-    wfecha_fin_puesto t_contratos_empleados.fecha_fin_puesto%TYPE DEFAULT NULL
-) RETURNS VARCHAR AS
-$$
+    wid_usuario VARCHAR(20),
+    wid_contrato INT,
+    wid_area INT,
+    wpuesto VARCHAR(50),
+    wfecha_inicio_puesto DATE,
+    wtipo_contrato VARCHAR(20),
+    wdireccion_oficina VARCHAR(100),
+    wfecha_fin_puesto DATE
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'No existe el área indicada.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al actualizar el contrato o el tipo no es válido.';
+
     IF wid_contrato IS NULL OR wid_contrato <= 0 THEN
         RETURN 'El ID del contrato no es válido.';
     END IF;
-    IF wid_usuario IS NULL OR wid_usuario <= 0 THEN
+    IF wid_usuario IS NULL OR wid_usuario = '' THEN
         RETURN 'El ID del usuario no es válido.';
     END IF;
     IF wid_area IS NULL OR wid_area <= 0 THEN
@@ -43,25 +47,16 @@ BEGIN
         fecha_fin_puesto = wfecha_fin_puesto,
         tipo_contrato = UPPER(TRIM(wtipo_contrato)),
         direccion_oficina = TRIM(wdireccion_oficina),
-        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_contrato = wid_contrato
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
+    IF ROW_COUNT() > 0 THEN
         RETURN 'Contrato actualizado correctamente.';
     END IF;
 
     RETURN 'No se encontró el contrato activo para actualizar.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'No existe el área indicada.';
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'El tipo de contrato indicado no es válido.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al actualizar el contrato.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

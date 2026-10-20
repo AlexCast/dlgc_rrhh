@@ -1,22 +1,22 @@
--- Revierte la anulación de un ajuste de vacaciones (restaurar borrado lógico).
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_restore_vacaciones_ajustes(
-    wid_ajuste t_vacaciones_ajustes.id_ajuste%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_ajuste INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_vacaciones_ajustes
     SET fec_delete = NULL,
         usr_delete = NULL
     WHERE id_ajuste = wid_ajuste
       AND fec_delete IS NOT NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Ajuste de vacaciones % restaurado.', wid_ajuste;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró ajuste anulado con ID %.', wid_ajuste;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

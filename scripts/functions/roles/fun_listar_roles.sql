@@ -1,33 +1,32 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_roles(
-    wid_rol t_roles.id_rol%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_rol t_roles%ROWTYPE;
+    wid_rol INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_rol INT;
+    DECLARE v_nombre_rol VARCHAR(50);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_rol IS NULL OR wid_rol <= 0 THEN
-        RAISE NOTICE 'El ID del rol no es válido.';
         RETURN FALSE;
     END IF;
 
-    SELECT *
-    INTO wreg_rol
+    SELECT id_rol, nombre_rol
+    INTO v_id_rol, v_nombre_rol
     FROM t_roles
     WHERE id_rol = wid_rol
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No existe rol activo con ID %.', wid_rol;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Rol: %', wreg_rol.id_rol, wreg_rol.nombre_rol;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

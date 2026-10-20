@@ -85,9 +85,9 @@ try {
          FROM t_empleados e
          INNER JOIN t_usuarios ue ON ue.id_usuario = e.id_usuario
          LEFT JOIN t_usuarios u ON u.id_usuario = e.id_jefe
-         WHERE e.id_usuario = :id_empleado'
+         WHERE e.id_usuario = ?'
     );
-    $sentenciaJefe->execute([':id_empleado' => $idEmpleado]);
+    $sentenciaJefe->execute([$idEmpleado]);
     $filaJefe = $sentenciaJefe->fetch(PDO::FETCH_ASSOC);
 
     if ($filaJefe === false) {
@@ -161,31 +161,26 @@ try {
     }
 
     // --- Creación atómica de la solicitud (solicitud + motivos + aprobaciones JEFE/RRHH) ---
-    $tiposLiteral = '{' . implode(',', array_map('intval', $idsTiposPermiso)) . '}';
-    $detallesLiteral = '{' . implode(',', array_map(
-        static fn(string $d): string => '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $d) . '"',
-        array_pad($detallesMotivo, count($idsTiposPermiso), '')
-    )) . '}';
+    $tiposLiteral = json_encode(array_map('intval', $idsTiposPermiso));
+    $detallesLiteral = json_encode(array_pad($detallesMotivo, count($idsTiposPermiso), ''));
 
     $sentenciaCrear = $conexion->prepare(
-        'SELECT * FROM fun_insert_solicitudes_permisos(
-            :id_empleado, :id_jefe_responsable, :es_por_horas, :fecha_inicio, :fecha_fin,
-            :tipos_permiso, :detalles_motivo, :hora_inicio, :hora_fin, :metodo_descuento
-        )'
+        'CALL proc_insert_solicitudes_permisos(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $sentenciaCrear->execute([
-        ':id_empleado'         => $idEmpleado,
-        ':id_jefe_responsable' => $idJefeResponsable,
-        ':es_por_horas'        => $esPorHoras ? 'true' : 'false',
-        ':fecha_inicio'        => $fechaInicio,
-        ':fecha_fin'           => $fechaFin,
-        ':tipos_permiso'       => $tiposLiteral,
-        ':detalles_motivo'     => $detallesLiteral,
-        ':hora_inicio'         => $horaInicio,
-        ':hora_fin'            => $horaFin,
-        ':metodo_descuento'    => $metodoDescuento,
+        $idEmpleado,
+        $idJefeResponsable,
+        $esPorHoras ? 1 : 0,
+        $fechaInicio,
+        $fechaFin,
+        $tiposLiteral,
+        $detallesLiteral,
+        $horaInicio,
+        $horaFin,
+        $metodoDescuento,
     ]);
     $resultadoCreacion = $sentenciaCrear->fetch(PDO::FETCH_ASSOC);
+    $sentenciaCrear->closeCursor();
 
     if ($resultadoCreacion === false || !filter_var($resultadoCreacion['exito'], FILTER_VALIDATE_BOOLEAN)) {
         responderJson(false, $resultadoCreacion['mensaje'] ?? 'No se pudo crear la solicitud.', 400);
@@ -196,20 +191,19 @@ try {
     // --- Registro de evidencias ya subidas ---
     if (!empty($archivosSubidos)) {
         $sentenciaEvidencia = $conexion->prepare(
-            'SELECT fun_insert_permisos_evidencias(
-                :id_permiso, :proveedor, :storage_key, :url_publica, :nombre_original, :mime_type, :tamano_bytes
-            )'
+            'SELECT fun_insert_permisos_evidencias(?, ?, ?, ?, ?, ?, ?)'
         );
         foreach ($archivosSubidos as $evidencia) {
             $sentenciaEvidencia->execute([
-                ':id_permiso'       => $idPermiso,
-                ':proveedor'        => 'BUNNY',
-                ':storage_key'      => $evidencia['storage_key'],
-                ':url_publica'      => $evidencia['url_publica'],
-                ':nombre_original'  => $evidencia['nombre_original'],
-                ':mime_type'        => $evidencia['mime_type'],
-                ':tamano_bytes'     => $evidencia['tamano_bytes'],
+                $idPermiso,
+                'BUNNY',
+                $evidencia['storage_key'],
+                $evidencia['url_publica'],
+                $evidencia['nombre_original'],
+                $evidencia['mime_type'],
+                $evidencia['tamano_bytes'],
             ]);
+            $sentenciaEvidencia->closeCursor();
         }
     }
 

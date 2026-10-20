@@ -43,15 +43,11 @@ class RememberMeHelper
 
         $stmt = $conexion->prepare(
             "INSERT INTO t_remember_tokens (selector, token_hash, id_usuario, fec_expiracion)
-             VALUES (:selector, :token_hash, :id_usuario, CURRENT_TIMESTAMP + INTERVAL '30 days')"
+             VALUES (?, ?, ?, CURRENT_TIMESTAMP + INTERVAL 30 DAY)"
         );
 
         try {
-            $stmt->execute([
-                ':selector'   => $selector,
-                ':token_hash' => $hash,
-                ':id_usuario' => $idUsuario,
-            ]);
+            $stmt->execute([$selector, $hash, $idUsuario]);
         } catch (PDOException $e) {
             error_log('Error al crear remember token: ' . $e->getMessage());
             return false;
@@ -78,11 +74,11 @@ class RememberMeHelper
         $stmt = $conexion->prepare(
             "SELECT id, id_usuario, token_hash, fec_expiracion
              FROM t_remember_tokens
-             WHERE selector = :selector
+             WHERE selector = ?
                AND fec_delete IS NULL
                AND fec_expiracion > CURRENT_TIMESTAMP"
         );
-        $stmt->execute([':selector' => $selector]);
+        $stmt->execute([$selector]);
         $row = $stmt->fetch();
 
         if (!$row || !hash_equals($row['token_hash'], hash('sha256', $validator))) {
@@ -96,17 +92,13 @@ class RememberMeHelper
         try {
             $update = $conexion->prepare(
                 "UPDATE t_remember_tokens
-                 SET selector = :new_selector,
-                     token_hash = :new_hash,
-                     fec_expiracion = CURRENT_TIMESTAMP + INTERVAL '30 days',
+                 SET selector = ?,
+                     token_hash = ?,
+                     fec_expiracion = CURRENT_TIMESTAMP + INTERVAL 30 DAY,
                      fec_update = CURRENT_TIMESTAMP
-                 WHERE id = :id"
+                 WHERE id = ?"
             );
-            $update->execute([
-                ':new_selector' => $newSelector,
-                ':new_hash'     => $newHash,
-                ':id'           => $row['id'],
-            ]);
+            $update->execute([$newSelector, $newHash, $row['id']]);
         } catch (PDOException $e) {
             error_log('Error al rotar remember token: ' . $e->getMessage());
             // Aunque falle la rotación, permitimos el login; el token actual sigue válido.
@@ -129,10 +121,10 @@ class RememberMeHelper
                 $stmt = $conexion->prepare(
                     "UPDATE t_remember_tokens
                      SET fec_delete = CURRENT_TIMESTAMP,
-                         usr_delete = NULLIF(current_setting('app.current_user', true), '')
-                     WHERE selector = :selector AND fec_delete IS NULL"
+                         usr_delete = fun_audit_actor()
+                     WHERE selector = ? AND fec_delete IS NULL"
                 );
-                $stmt->execute([':selector' => $selector]);
+                $stmt->execute([$selector]);
             } catch (PDOException $e) {
                 error_log('Error al invalidar remember token: ' . $e->getMessage());
             }
@@ -152,10 +144,10 @@ class RememberMeHelper
             $stmt = $conexion->prepare(
                 "UPDATE t_remember_tokens
                  SET fec_delete = CURRENT_TIMESTAMP,
-                     usr_delete = NULLIF(current_setting('app.current_user', true), '')
-                 WHERE id_usuario = :id_usuario AND fec_delete IS NULL"
+                     usr_delete = fun_audit_actor()
+                 WHERE id_usuario = ? AND fec_delete IS NULL"
             );
-            $stmt->execute([':id_usuario' => $idUsuario]);
+            $stmt->execute([$idUsuario]);
         } catch (PDOException $e) {
             error_log('Error al invalidar tokens de usuario: ' . $e->getMessage());
         }
@@ -170,9 +162,9 @@ class RememberMeHelper
         try {
             $stmt = $conexion->prepare(
                 "DELETE FROM t_remember_tokens
-                 WHERE id_usuario = :id_usuario"
+                 WHERE id_usuario = ?"
             );
-            $stmt->execute([':id_usuario' => $idUsuario]);
+            $stmt->execute([$idUsuario]);
         } catch (PDOException $e) {
             error_log('Error al borrar tokens previos de usuario: ' . $e->getMessage());
         }
@@ -189,7 +181,7 @@ class RememberMeHelper
         try {
             $stmt = $conexion->prepare(
                 "DELETE FROM t_remember_tokens
-                 WHERE fec_expiracion < CURRENT_TIMESTAMP - INTERVAL '7 days'
+                 WHERE fec_expiracion < CURRENT_TIMESTAMP - INTERVAL 7 DAY
                     OR fec_delete IS NOT NULL"
             );
             $stmt->execute();

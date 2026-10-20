@@ -47,18 +47,13 @@ try {
     $sentencia = $conexion->prepare(
         'SELECT fecha_inicio, fecha_fin
          FROM t_solicitudes_permisos
-         WHERE id_empleado = :id_empleado
-           AND estado = :estado
+         WHERE id_empleado = ?
+           AND estado = ?
            AND fec_delete IS NULL
-           AND fecha_inicio <= :ultimo_dia
-           AND fecha_fin >= :primer_dia'
+           AND fecha_inicio <= ?
+           AND fecha_fin >= ?'
     );
-    $sentencia->execute([
-        ':id_empleado' => $idEmpleado,
-        ':estado' => 'APROBADO',
-        ':ultimo_dia' => $ultimoDiaMes,
-        ':primer_dia' => $primerDiaMes,
-    ]);
+    $sentencia->execute([$idEmpleado, 'APROBADO', $ultimoDiaMes, $primerDiaMes]);
     $rangos = $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
     responderJson(true, 'Ocupación obtenida correctamente.', 200, ['rangos' => $rangos]);

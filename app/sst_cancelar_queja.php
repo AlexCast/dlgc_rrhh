@@ -42,11 +42,8 @@ if (!$idQueja || $idQueja <= 0) {
 }
 
 try {
-    $sentencia = $conexion->prepare('SELECT fun_cancelar_sst_queja_usuario(:id_queja, :id_usuario);');
-    $sentencia->execute([
-        ':id_queja'   => $idQueja,
-        ':id_usuario' => $idUsuario,
-    ]);
+    $sentencia = $conexion->prepare('SELECT fun_cancelar_sst_queja_usuario(?, ?);');
+    $sentencia->execute([$idQueja, $idUsuario]);
 
     $resultado = (string) $sentencia->fetchColumn();
 

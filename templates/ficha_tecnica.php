@@ -49,25 +49,31 @@ $consultaFicha = $conexion->prepare(
         ON m.id_municipio = e.id_municipio
     LEFT JOIN t_departamentos d
         ON d.id_departamento = m.departamento_id
-    LEFT JOIN LATERAL (
-        SELECT c1.id_area, c1.puesto, c1.tipo_contrato, c1.direccion_oficina
-        FROM t_contratos_empleados c1
-        WHERE c1.id_usuario = u.id_usuario
-          AND c1.fec_delete IS NULL
-        ORDER BY c1.fecha_inicio_puesto DESC NULLS LAST, c1.id_contrato DESC
-        LIMIT 1
-    ) c ON true
+    LEFT JOIN t_contratos_empleados c
+        ON c.id_usuario = u.id_usuario
+       AND c.fec_delete IS NULL
+       AND c.id_contrato = (
+           SELECT c1.id_contrato
+           FROM t_contratos_empleados c1
+           WHERE c1.id_usuario = u.id_usuario
+             AND c1.fec_delete IS NULL
+           ORDER BY c1.fecha_inicio_puesto DESC, c1.id_contrato DESC
+           LIMIT 1
+       )
     LEFT JOIN t_areas a
         ON a.id_area = c.id_area
         AND a.fec_delete IS NULL
-    LEFT JOIN LATERAL (
-        SELECT n1.id_banco, n1.num_cuenta, n1.salario
-        FROM t_nomina n1
-        WHERE n1.id_usuario = u.id_usuario
-          AND n1.fec_delete IS NULL
-        ORDER BY n1.fec_insert DESC, n1.id_nomina DESC
-        LIMIT 1
-    ) n ON true
+    LEFT JOIN t_nomina n
+        ON n.id_usuario = u.id_usuario
+       AND n.fec_delete IS NULL
+       AND n.id_nomina = (
+           SELECT n1.id_nomina
+           FROM t_nomina n1
+           WHERE n1.id_usuario = u.id_usuario
+             AND n1.fec_delete IS NULL
+           ORDER BY n1.fec_insert DESC, n1.id_nomina DESC
+           LIMIT 1
+       )
     LEFT JOIN t_bancos b
         ON b.id_banco = n.id_banco
         AND b.fec_delete IS NULL
@@ -89,12 +95,12 @@ $consultaFicha = $conexion->prepare(
     LEFT JOIN t_cesantias ces
         ON ces.id_cesantia = af.id_cesantia
         AND ces.fec_delete IS NULL
-    WHERE u.id_usuario = :id_usuario
+    WHERE u.id_usuario = ?
       AND u.fec_delete IS NULL
     LIMIT 1"
 );
 
-$consultaFicha->execute([':id_usuario' => $idUsuarioSesion]);
+$consultaFicha->execute([$idUsuarioSesion]);
 $ficha = $consultaFicha->fetch(PDO::FETCH_ASSOC) ?: [];
 
 $escape = static function ($valor): string {

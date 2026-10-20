@@ -1,7 +1,7 @@
 <?php
 /**
  * conexion.php
- * Archivo de conexión segura a la base de datos PostgreSQL utilizando PDO.
+ * Archivo de conexión segura a la base de datos MariaDB utilizando PDO.
  *
  * Buenas prácticas aplicadas:
  * - Credenciales en variables (idealmente deberían venir de variables de entorno,
@@ -17,14 +17,14 @@ require_once __DIR__ . '/helpers/EnvLoader.php';
 load_environment_file(dirname(__DIR__) . '/.env');
 
 // --- Parámetros de conexión ---
-$host   = getenv('DB_HOST') ?: '127.0.0.1';  // Host del servidor PostgreSQL
-$port   = getenv('DB_PORT') ?: '5432';       // Puerto por defecto de PostgreSQL
+$host   = getenv('DB_HOST') ?: '127.0.0.1';  // Host del servidor MariaDB
+$port   = getenv('DB_PORT') ?: '3306';       // Puerto por defecto de MariaDB
 $dbname = getenv('DB_NAME') ?: 'db_dlgc_rrhh';  // Nombre de la base de datos
-$user   = getenv('DB_USER') ?: 'postgres';   // Usuario de la base de datos
-$pass   = getenv('DB_PASSWORD') ?: '';       // Contraseña del usuario
+$user   = getenv('DB_USER') ?: 'root';   // Usuario de la base de datos
+$pass   = getenv('DB_PASSWORD') ?: '0149';       // Contraseña del usuario
 
-// --- Cadena DSN (Data Source Name) para PostgreSQL ---
-$dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
+// --- Cadena DSN (Data Source Name) para MariaDB ---
+$dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
 
 // --- Opciones de configuración de PDO ---
 $options = [
@@ -37,18 +37,18 @@ try {
     // Se crea la instancia de conexión PDO
     $conexion = new PDO($dsn, $user, $pass, $options);
 
-    // Propagar el usuario real de la aplicación a PostgreSQL para las auditorías.
-    // Solo si ya hay sesión activa; si no, dejamos que PostgreSQL use CURRENT_USER.
+    // Propagar el usuario real de la aplicación a MariaDB para las auditorías.
+    // Solo si ya hay sesión activa; si no, dejamos que MariaDB use CURRENT_USER.
     if (session_status() === PHP_SESSION_ACTIVE) {
         $actorAuditoria = $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? '';
         $actorAuditoria = trim((string) $actorAuditoria);
         if ($actorAuditoria !== '') {
             try {
-                $sentenciaAuditoria = $conexion->prepare("SELECT set_config('app.current_user', ?, false)");
+                $sentenciaAuditoria = $conexion->prepare('SET @app_current_user = ?');
                 $sentenciaAuditoria->execute([$actorAuditoria]);
             } catch (PDOException $eAuditoria) {
                 // No debe romper la aplicación; solo registramos el error para diagnóstico.
-                error_log('Error al configurar app.current_user: ' . $eAuditoria->getMessage());
+                error_log('Error al configurar @app_current_user: ' . $eAuditoria->getMessage());
             }
         }
     }

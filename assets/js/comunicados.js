@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const csrfToken = lista.dataset.csrfToken || '';
-    const marcarVistoUrl = '/dlgc_rrhh/src/comunicados/marcar_visto.php';
+    const marcarVistoUrl = '/src/comunicados/marcar_visto.php';
 
     // Modal de lectura
     const modal = document.getElementById('cp-modal-comunicado');

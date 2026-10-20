@@ -1,9 +1,13 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_roles_operaciones(
-    wid_rol t_roles_operaciones.id_rol%TYPE,
-    wid_operacion t_roles_operaciones.id_operacion%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_rol INT,
+    wid_operacion INT
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'La asignación rol-operación ya existe o el rol/operación no existe.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al insertar la asignación rol-operación.';
+
     IF wid_rol IS NULL OR wid_rol <= 0 THEN
         RETURN 'El ID del rol no es válido.';
     END IF;
@@ -21,20 +25,11 @@ BEGIN
     VALUES (
         wid_rol,
         wid_operacion,
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Asignación rol-operación insertada correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'La asignación rol-operación ya existe.';
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'El rol u operación indicado no existe.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar la asignación rol-operación.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

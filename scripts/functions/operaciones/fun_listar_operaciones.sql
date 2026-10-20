@@ -1,36 +1,33 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_operaciones(
-    wid_operacion t_operaciones.id_operacion%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_operacion t_operaciones%ROWTYPE;
+    wid_operacion INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_operacion INT;
+    DECLARE v_id_modulo INT;
+    DECLARE v_nombre_operacion VARCHAR(50);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_operacion IS NULL OR wid_operacion <= 0 THEN
-        RAISE NOTICE 'El ID de la operación no es válido.';
         RETURN FALSE;
     END IF;
 
-    SELECT *
-    INTO wreg_operacion
+    SELECT id_operacion, id_modulo, nombre_operacion
+    INTO v_id_operacion, v_id_modulo, v_nombre_operacion
     FROM t_operaciones
     WHERE id_operacion = wid_operacion
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No existe operación activa con ID %.', wid_operacion;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Módulo: %, Operación: %',
-        wreg_operacion.id_operacion,
-        wreg_operacion.id_modulo,
-        wreg_operacion.nombre_operacion;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

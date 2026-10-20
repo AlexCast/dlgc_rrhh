@@ -1,9 +1,13 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_marcar_visto_comunicado(
-    wid_comunicado t_comunicados.id_comunicado%TYPE,
-    wid_usuario t_usuarios.id_usuario%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_comunicado INT,
+    wid_usuario VARCHAR(20)
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_existe INT DEFAULT 0;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_comunicado IS NULL OR wid_comunicado <= 0 THEN
         RETURN FALSE;
     END IF;
@@ -12,24 +16,21 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    IF NOT EXISTS (
-        SELECT 1 FROM t_comunicados
-        WHERE id_comunicado = wid_comunicado
-          AND fec_delete IS NULL
-    ) THEN
+    SELECT 1 INTO v_existe 
+    FROM t_comunicados
+    WHERE id_comunicado = wid_comunicado
+      AND fec_delete IS NULL
+    LIMIT 1;
+
+    IF v_existe = 0 THEN
         RETURN FALSE;
     END IF;
 
-    INSERT INTO t_comunicados_vistos (id_comunicado, id_usuario, fec_visto)
-    VALUES (wid_comunicado, TRIM(wid_usuario), CURRENT_TIMESTAMP)
-    ON CONFLICT (id_comunicado, id_usuario) DO NOTHING;
+    -- INSERT IGNORE es el equivalente de MariaDB para ON CONFLICT DO NOTHING
+    INSERT IGNORE INTO t_comunicados_vistos (id_comunicado, id_usuario, fec_visto)
+    VALUES (wid_comunicado, TRIM(wid_usuario), CURRENT_TIMESTAMP);
 
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

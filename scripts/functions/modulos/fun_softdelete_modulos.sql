@@ -1,21 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_modulos(
-    wid_modulo t_modulos.id_modulo%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_modulo INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_modulos
     SET fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_modulo = wid_modulo
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Módulo % eliminado lógicamente.', wid_modulo;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró módulo activo con ID %.', wid_modulo;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

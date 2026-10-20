@@ -1,4 +1,4 @@
-<?php
+ <?php
 /**
  * register.php
  * Activación/registro de cuentas en t_usuarios: valida los datos recibidos
@@ -44,10 +44,10 @@ function guardarDatosRegistroEnSesion(array $datos): void
 
 function generarCodigoRegistro(PDO $conexion): string
 {
-    $stmtExiste = $conexion->prepare("SELECT COUNT(*) FROM t_codigos_registro WHERE codigo = :codigo");
+    $stmtExiste = $conexion->prepare("SELECT COUNT(*) FROM t_codigos_registro WHERE codigo = ?");
     do {
         $codigo = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-        $stmtExiste->execute([':codigo' => $codigo]);
+        $stmtExiste->execute([$codigo]);
         $existe = (int) $stmtExiste->fetchColumn() > 0;
     } while ($existe);
     return $codigo;
@@ -90,7 +90,7 @@ if ($esValidacionCodigo) {
     $stmtCodigo = $conexion->prepare(
         "SELECT id_codigo, tipo, fecha_expiracion
          FROM t_codigos_registro
-         WHERE codigo = :codigo
+         WHERE codigo = ?
            AND fec_delete IS NULL
            AND (
                 (tipo = 'TEMPORAL' AND (fecha_expiracion IS NULL OR fecha_expiracion >= CURRENT_TIMESTAMP))
@@ -98,7 +98,7 @@ if ($esValidacionCodigo) {
                 (tipo = 'UNICO_USO' AND usado = FALSE)
            )"
     );
-    $stmtCodigo->execute([':codigo' => $codigoIngresado]);
+    $stmtCodigo->execute([$codigoIngresado]);
     $codigoBD = $stmtCodigo->fetch(PDO::FETCH_ASSOC);
 
     if (!$codigoBD) {
@@ -237,7 +237,7 @@ if ($codigoIngresado === '') {
 $stmtCodigo = $conexion->prepare(
     "SELECT id_codigo, tipo, fecha_expiracion
      FROM t_codigos_registro
-     WHERE codigo = :codigo
+     WHERE codigo = ?
        AND fec_delete IS NULL
        AND (
             (tipo = 'TEMPORAL' AND (fecha_expiracion IS NULL OR fecha_expiracion >= CURRENT_TIMESTAMP))
@@ -245,7 +245,7 @@ $stmtCodigo = $conexion->prepare(
             (tipo = 'UNICO_USO' AND usado = FALSE)
        )"
 );
-$stmtCodigo->execute([':codigo' => $codigoIngresado]);
+$stmtCodigo->execute([$codigoIngresado]);
 $codigoBD = $stmtCodigo->fetch(PDO::FETCH_ASSOC);
 
 if (!$codigoBD) {
@@ -262,12 +262,12 @@ if ($codigoBD['tipo'] === 'UNICO_USO') {
     $conexion->prepare(
         "UPDATE t_codigos_registro
          SET usado = TRUE,
-             usr_update = :usr_update,
+             usr_update = ?,
              fec_update = CURRENT_TIMESTAMP
-         WHERE id_codigo = :id_codigo"
+         WHERE id_codigo = ?"
     )->execute([
-        ':id_codigo' => $codigoBD['id_codigo'],
-        ':usr_update' => $usrInsert,
+        $usrInsert,
+        $codigoBD['id_codigo'],
     ]);
 
     // El trigger tri_borrar_codigo_registro eliminará físicamente la fila marcada como usada.
@@ -275,10 +275,10 @@ if ($codigoBD['tipo'] === 'UNICO_USO') {
     $nuevoCodigo = generarCodigoRegistro($conexion);
     $conexion->prepare(
         "INSERT INTO t_codigos_registro (codigo, tipo, usr_insert, fec_insert)
-         VALUES (:codigo, 'UNICO_USO', :usr_insert, CURRENT_TIMESTAMP)"
+         VALUES (?, 'UNICO_USO', ?, CURRENT_TIMESTAMP)"
     )->execute([
-        ':codigo' => $nuevoCodigo,
-        ':usr_insert' => $usrInsert,
+        $nuevoCodigo,
+        $usrInsert,
     ]);
 }
 
@@ -311,13 +311,13 @@ try {
     // Limpiar registros pendientes expirados del mismo documento/correo/usuario.
     $limpiarPendientes = $conexion->prepare(
         "DELETE FROM t_registros_pendientes
-         WHERE (id_usuario = :id_usuario OR username = :username OR correo = :correo)
+         WHERE (id_usuario = ? OR username = ? OR correo = ?)
            AND fecha_expiracion < CURRENT_TIMESTAMP"
     );
     $limpiarPendientes->execute([
-        ':id_usuario' => $idUsuario,
-        ':username'   => $username,
-        ':correo'     => $correo,
+        $idUsuario,
+        $username,
+        $correo,
     ]);
 
     try {
@@ -326,25 +326,25 @@ try {
                 (id_usuario, id_rol, username, tipo_documento, primer_nombre, segundo_nombre,
                  primer_apellido, segundo_apellido, correo, contrasena, fecha_expiracion, usr_insert, fec_insert)
              VALUES
-                (:id_usuario, :id_rol, :username, :tipo_documento, :primer_nombre, :segundo_nombre,
-                 :primer_apellido, :segundo_apellido, :correo, :contrasena, :fecha_expiracion, :usr_insert, CURRENT_TIMESTAMP)"
+                (?, ?, ?, ?, ?, ?,
+                 ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)"
         );
         $insertarPendiente->execute([
-            ':id_usuario'       => $idUsuario,
-            ':id_rol'           => $idRol,
-            ':username'         => $username,
-            ':tipo_documento'   => $tipoDocumento,
-            ':primer_nombre'    => $primerNombre,
-            ':segundo_nombre'   => $segundoNombre,
-            ':primer_apellido'  => $primerApellido,
-            ':segundo_apellido' => $segundoApellido,
-            ':correo'           => $correo,
-            ':contrasena'       => $hashContrasena,
-            ':fecha_expiracion' => $fechaExpiracionRegistro,
-            ':usr_insert'       => $usrInsert,
+            $idUsuario,
+            $idRol,
+            $username,
+            $tipoDocumento,
+            $primerNombre,
+            $segundoNombre,
+            $primerApellido,
+            $segundoApellido,
+            $correo,
+            $hashContrasena,
+            $fechaExpiracionRegistro,
+            $usrInsert,
         ]);
     } catch (PDOException $e) {
-        if ($e->getCode() === '23505') {
+        if (($e->errorInfo[1] ?? null) == 1062) {
             redirigirRegistro([
                 'tab' => 'register',
                 'status' => 'error',
@@ -355,7 +355,7 @@ try {
         throw $e;
     }
 
-    $idRegistroPendiente = (int) $conexion->lastInsertId('t_registros_pendientes_id_registro_pendiente_seq');
+    $idRegistroPendiente = (int) $conexion->lastInsertId();
 
     // --- 4b. Rate limiting antes de enviar correo ---
     $rateLimiter = new RateLimiter($conexion);
@@ -378,24 +378,24 @@ try {
     // Limpiar tokens expirados no usados del mismo registro pendiente.
     $limpiarExpirados = $conexion->prepare(
         "DELETE FROM t_verificacion_correo
-         WHERE id_registro_pendiente = :id_registro_pendiente
+         WHERE id_registro_pendiente = ?
            AND fecha_expiracion < CURRENT_TIMESTAMP
            AND fecha_uso IS NULL"
     );
-    $limpiarExpirados->execute([':id_registro_pendiente' => $idRegistroPendiente]);
+    $limpiarExpirados->execute([$idRegistroPendiente]);
 
     // Invalidar tokens anteriores no usados del mismo registro pendiente.
     $invalidar = $conexion->prepare(
         "UPDATE t_verificacion_correo
          SET fec_delete = CURRENT_TIMESTAMP,
-             usr_delete = :usr_delete
-         WHERE id_registro_pendiente = :id_registro_pendiente
+             usr_delete = ?
+         WHERE id_registro_pendiente = ?
            AND fecha_uso IS NULL
            AND fec_delete IS NULL"
     );
     $invalidar->execute([
-        ':id_registro_pendiente' => $idRegistroPendiente,
-        ':usr_delete'            => $usrInsert,
+        $usrInsert,
+        $idRegistroPendiente,
     ]);
 
     // Insertar nuevo token.
@@ -403,13 +403,13 @@ try {
         "INSERT INTO t_verificacion_correo
             (id_registro_pendiente, token_hash, fecha_expiracion, usr_insert, fec_insert)
          VALUES
-            (:id_registro_pendiente, :token_hash, :fecha_expiracion, :usr_insert, CURRENT_TIMESTAMP)"
+            (?, ?, ?, ?, CURRENT_TIMESTAMP)"
     );
     $insertarToken->execute([
-        ':id_registro_pendiente' => $idRegistroPendiente,
-        ':token_hash'            => $tokenHash,
-        ':fecha_expiracion'      => $fechaExpiracion,
-        ':usr_insert'            => $usrInsert,
+        $idRegistroPendiente,
+        $tokenHash,
+        $fechaExpiracion,
+        $usrInsert,
     ]);
 
     // --- 6. Construir enlace y enviar correo de verificación ---
@@ -515,8 +515,8 @@ try {
     // para no dejar datos huérfanos si el usuario nunca verifica.
     if (isset($idRegistroPendiente) && $idRegistroPendiente > 0) {
         try {
-            $conexion->prepare("DELETE FROM t_registros_pendientes WHERE id_registro_pendiente = :id")
-                     ->execute([':id' => $idRegistroPendiente]);
+            $conexion->prepare("DELETE FROM t_registros_pendientes WHERE id_registro_pendiente = ?")
+                     ->execute([$idRegistroPendiente]);
         } catch (PDOException $cleanupError) {
             error_log('Error limpiando registro pendiente: ' . $cleanupError->getMessage());
         }

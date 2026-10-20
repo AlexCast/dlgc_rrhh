@@ -28,8 +28,8 @@ $idEmpleado = trim($_GET['id_empleado'] ?? '');
 $parametros = [];
 $filtroEmpleado = '';
 if ($idEmpleado !== '') {
-    $filtroEmpleado = ' AND e.id_usuario = :id_empleado';
-    $parametros[':id_empleado'] = $idEmpleado;
+    $filtroEmpleado = ' AND e.id_usuario = ?';
+    $parametros[] = $idEmpleado;
 }
 
 $sentenciaEmpleados = $conexion->prepare(
@@ -44,12 +44,13 @@ $sentenciaEmpleados = $conexion->prepare(
 $sentenciaEmpleados->execute($parametros);
 $empleados = $sentenciaEmpleados->fetchAll(PDO::FETCH_ASSOC);
 
-$sentenciaSaldo = $conexion->prepare('SELECT * FROM fun_calcular_saldo_vacaciones(:id_empleado)');
+$sentenciaSaldo = $conexion->prepare('CALL proc_calcular_saldo_vacaciones(?)');
 
 $filas = [];
 foreach ($empleados as $emp) {
-    $sentenciaSaldo->execute([':id_empleado' => $emp['id_usuario']]);
+    $sentenciaSaldo->execute([$emp['id_usuario']]);
     $saldo = $sentenciaSaldo->fetch(PDO::FETCH_ASSOC);
+    $sentenciaSaldo->closeCursor();
     if ($saldo === false) {
         continue;
     }

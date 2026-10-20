@@ -1,22 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_empleados(
-    wid_usuario t_empleados.id_usuario%TYPE
-)
-RETURNS BOOLEAN AS
-$$
+    wid_usuario VARCHAR(20)
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_empleados
-    SET
-        fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+    SET fec_delete = CURRENT_TIMESTAMP,
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_usuario = wid_usuario
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Empleado % eliminado lógicamente.', wid_usuario;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
-    ELSE
-        RAISE NOTICE 'No se encontró el empleado o ya está eliminado.';
-        RETURN FALSE;
     END IF;
-END;
-$$ LANGUAGE PLPGSQL;
+    
+    RETURN FALSE;
+END //
+
+DELIMITER ;

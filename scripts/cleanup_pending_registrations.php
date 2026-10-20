@@ -5,7 +5,7 @@
  * Ejecutar periódicamente vía cron en producción (Linux/Ubuntu).
  *
  * Ejemplo de cron cada hora:
- *   0 * * * * /usr/bin/php /var/www/html/dlgc_rrhh/scripts/cleanup_pending_registrations.php >> /var/log/dlgc_cleanup.log 2>&1
+ *   0 * * * * /usr/bin/php /var/www/html/scripts/cleanup_pending_registrations.php >> /var/log/dlgc_cleanup.log 2>&1
  */
 
 declare(strict_types=1);

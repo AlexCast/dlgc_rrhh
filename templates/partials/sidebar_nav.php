@@ -41,34 +41,34 @@ $grupos = [
         'titulo' => 'Seguridad Social',
         'icono'  => $iconSegSocial,
         'modulos' => [
-            ['id' => 14, 'slug' => 'eps',        'titulo' => 'EPS',               'url' => '/dlgc_rrhh/src/eps/listar_eps.php',               'icono' => $iconEps],
-            ['id' => 9,  'slug' => 'arl',        'titulo' => 'ARL',               'url' => '/dlgc_rrhh/src/arl/listar_arl.php',               'icono' => $iconArl],
-            ['id' => 16, 'slug' => 'pension',    'titulo' => 'Pensión',           'url' => '/dlgc_rrhh/src/pension/listar_pension.php',       'icono' => $iconPension],
-            ['id' => 11, 'slug' => 'caja',       'titulo' => 'Caja Compensación', 'url' => '/dlgc_rrhh/src/cajacompensacion/listar_cajacompensacion.php', 'icono' => $iconCaja],
-            ['id' => 12, 'slug' => 'cesantias',  'titulo' => 'Cesantías',         'url' => '/dlgc_rrhh/src/cesantias/listar_cesantias.php',   'icono' => $iconCesantias],
+            ['id' => 14, 'slug' => 'eps',        'titulo' => 'EPS',               'url' => '/src/eps/listar_eps.php',               'icono' => $iconEps],
+            ['id' => 9,  'slug' => 'arl',        'titulo' => 'ARL',               'url' => '/src/arl/listar_arl.php',               'icono' => $iconArl],
+            ['id' => 16, 'slug' => 'pension',    'titulo' => 'Pensión',           'url' => '/src/pension/listar_pension.php',       'icono' => $iconPension],
+            ['id' => 11, 'slug' => 'caja',       'titulo' => 'Caja Compensación', 'url' => '/src/cajacompensacion/listar_cajacompensacion.php', 'icono' => $iconCaja],
+            ['id' => 12, 'slug' => 'cesantias',  'titulo' => 'Cesantías',         'url' => '/src/cesantias/listar_cesantias.php',   'icono' => $iconCesantias],
         ],
     ],
     'empresa' => [
         'titulo' => 'Empresa',
         'icono'  => $iconEmpresa,
         'modulos' => [
-            ['id' => 10, 'slug' => 'bancos',       'titulo' => 'Bancos',               'url' => '/dlgc_rrhh/src/banco/listar_banco.php',                         'icono' => $iconBancos],
-            ['id' => 15, 'slug' => 'nomina',       'titulo' => 'Nómina',               'url' => '/dlgc_rrhh/src/nomina/listar_nomina.php',                       'icono' => $iconNomina],
-            ['id' => 13, 'slug' => 'contratos',    'titulo' => 'Contratos Empleados',  'url' => '/dlgc_rrhh/src/contratos_empleados/listar_contratos_empleados.php', 'icono' => $iconContratos],
-            ['id' => 7,  'slug' => 'afiliaciones', 'titulo' => 'Afiliaciones Empleados','url' => '/dlgc_rrhh/src/afiliaciones_empleados/listar_afiliaciones_empleados.php', 'icono' => $iconAfiliaciones],
-            ['id' => 8,  'slug' => 'areas',        'titulo' => 'Áreas',                'url' => '/dlgc_rrhh/src/area/listar_area.php',                           'icono' => $iconAreas],
-            ['id' => 28, 'slug' => 'dias_festivos','titulo' => 'Días Festivos',        'url' => '/dlgc_rrhh/src/dias_festivos/listar_dias_festivos.php',         'icono' => $iconFestivos],
+            ['id' => 10, 'slug' => 'bancos',       'titulo' => 'Bancos',               'url' => '/src/banco/listar_banco.php',                         'icono' => $iconBancos],
+            ['id' => 15, 'slug' => 'nomina',       'titulo' => 'Nómina',               'url' => '/src/nomina/listar_nomina.php',                       'icono' => $iconNomina],
+            ['id' => 13, 'slug' => 'contratos',    'titulo' => 'Contratos Empleados',  'url' => '/src/contratos_empleados/listar_contratos_empleados.php', 'icono' => $iconContratos],
+            ['id' => 7,  'slug' => 'afiliaciones', 'titulo' => 'Afiliaciones Empleados','url' => '/src/afiliaciones_empleados/listar_afiliaciones_empleados.php', 'icono' => $iconAfiliaciones],
+            ['id' => 8,  'slug' => 'areas',        'titulo' => 'Áreas',                'url' => '/src/area/listar_area.php',                           'icono' => $iconAreas],
+            ['id' => 28, 'slug' => 'dias_festivos','titulo' => 'Días Festivos',        'url' => '/src/dias_festivos/listar_dias_festivos.php',         'icono' => $iconFestivos],
         ],
     ],
     'software' => [
         'titulo' => 'Software',
         'icono'  => $iconSoftware,
         'modulos' => [
-            ['id' => 17, 'slug' => 'roles',       'titulo' => 'Roles',            'url' => '/dlgc_rrhh/src/roles/listar_roles.php',                   'icono' => $iconRoles],
-            ['id' => 19, 'slug' => 'operaciones', 'titulo' => 'Operaciones',      'url' => '/dlgc_rrhh/src/operaciones/listar_operaciones.php',       'icono' => $iconOperaciones],
-            ['id' => 20, 'slug' => 'usuarios',    'titulo' => 'Usuarios',         'url' => '/dlgc_rrhh/src/usuarios/listar_usuarios.php',             'icono' => $iconUsuarios],
-            ['id' => 6,  'slug' => 'src',         'titulo' => 'Roles Operaciones','url' => '/dlgc_rrhh/src/roles_operaciones/listar_roles_operaciones.php', 'icono' => $iconSrc],
-            ['id' => 18, 'slug' => 'modulos',     'titulo' => 'Módulos',          'url' => '/dlgc_rrhh/src/modulos/listar_modulos.php',               'icono' => $iconModulos],
+            ['id' => 17, 'slug' => 'roles',       'titulo' => 'Roles',            'url' => '/src/roles/listar_roles.php',                   'icono' => $iconRoles],
+            ['id' => 19, 'slug' => 'operaciones', 'titulo' => 'Operaciones',      'url' => '/src/operaciones/listar_operaciones.php',       'icono' => $iconOperaciones],
+            ['id' => 20, 'slug' => 'usuarios',    'titulo' => 'Usuarios',         'url' => '/src/usuarios/listar_usuarios.php',             'icono' => $iconUsuarios],
+            ['id' => 6,  'slug' => 'src',         'titulo' => 'Roles Operaciones','url' => '/src/roles_operaciones/listar_roles_operaciones.php', 'icono' => $iconSrc],
+            ['id' => 18, 'slug' => 'modulos',     'titulo' => 'Módulos',          'url' => '/src/modulos/listar_modulos.php',               'icono' => $iconModulos],
         ],
     ],
 ];
@@ -89,9 +89,9 @@ foreach ($grupos as $key => $grupo) {
 $mostrarBandejaPermisos = false;
 if (isset($conexion) && has_module_permission(3, 'actualizar')) {
     $stmtSubNav = $conexion->prepare(
-        'SELECT COUNT(*) AS total FROM t_empleados WHERE id_jefe = :id_jefe AND fec_delete IS NULL'
+        'SELECT COUNT(*) AS total FROM t_empleados WHERE id_jefe = ? AND fec_delete IS NULL'
     );
-    $stmtSubNav->execute([':id_jefe' => $_SESSION['id_usuario'] ?? null]);
+    $stmtSubNav->execute([$_SESSION['id_usuario'] ?? null]);
     $mostrarBandejaPermisos = ((int) $stmtSubNav->fetchColumn()) > 0;
 }
 if (has_module_access(27)) {
@@ -101,9 +101,9 @@ if (has_module_access(27)) {
 // Módulos SRC/administrativos sueltos (no agrupados) que el usuario tenga asignados.
 // La clave es el slug usado como $activeItem en cada vista.
 $modulosAdminSueltos = [
-    ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/dlgc_rrhh/src/comunicados/listar_comunicados.php', 'icono' => $iconSrc],
-    ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/dlgc_rrhh/src/sst/listar_quejas.php',              'icono' => $iconSst],
-    ['id' => 29, 'slug' => 'vacaciones',        'titulo' => 'Gestión de Vacaciones',   'url' => '/dlgc_rrhh/templates/vacaciones.php',               'icono' => $iconVacaciones],
+    ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/src/comunicados/listar_comunicados.php', 'icono' => $iconSrc],
+    ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/src/sst/listar_quejas.php',              'icono' => $iconSst],
+    ['id' => 29, 'slug' => 'vacaciones',        'titulo' => 'Gestión de Vacaciones',   'url' => '/templates/vacaciones.php',               'icono' => $iconVacaciones],
 ];
 
 function renderNavItem(string $url, string $titulo, string $icono, string $slug, string $activeItem): string {
@@ -149,14 +149,14 @@ function renderGrupo(string $key, array $grupo, string $activeItem, string $icon
 ?>
 <nav class="sidebar-nav" aria-label="Enlaces del panel">
     <ul>
-        <?php echo renderNavItem('/dlgc_rrhh/templates/firstpage.php',      'Inicio',                $iconInicio,      'inicio',      $activeItem); ?>
-        <?php echo renderNavItem('/dlgc_rrhh/templates/comunicados.php',   'Comunicados',           $iconComunicados, 'comunicados', $activeItem); ?>
-        <?php echo renderNavItem('/dlgc_rrhh/templates/empleados.php',     'Empleados',             $iconEmpleados,   'empleados',   $activeItem); ?>
-        <?php echo renderNavItem('/dlgc_rrhh/templates/solicitud_permiso.php', 'Solicitudes y Permisos', $iconSolicitudes, 'solicitudes', $activeItem); ?>
+        <?php echo renderNavItem('/templates/firstpage.php',      'Inicio',                $iconInicio,      'inicio',      $activeItem); ?>
+        <?php echo renderNavItem('/templates/comunicados.php',   'Comunicados',           $iconComunicados, 'comunicados', $activeItem); ?>
+        <?php echo renderNavItem('/templates/empleados.php',     'Empleados',             $iconEmpleados,   'empleados',   $activeItem); ?>
+        <?php echo renderNavItem('/templates/solicitud_permiso.php', 'Solicitudes y Permisos', $iconSolicitudes, 'solicitudes', $activeItem); ?>
         <?php if ($mostrarBandejaPermisos): ?>
-            <?php echo renderNavItem('/dlgc_rrhh/templates/bandeja_permisos.php', 'Bandeja de Aprobaciones', $iconBandeja, 'bandeja_permisos', $activeItem); ?>
+            <?php echo renderNavItem('/templates/bandeja_permisos.php', 'Bandeja de Aprobaciones', $iconBandeja, 'bandeja_permisos', $activeItem); ?>
         <?php endif; ?>
-        <?php echo renderNavItem('/dlgc_rrhh/templates/sst.php',           'SST',                   $iconSst,         'sst',         $activeItem); ?>
+        <?php echo renderNavItem('/templates/sst.php',           'SST',                   $iconSst,         'sst',         $activeItem); ?>
 
         <?php foreach ($gruposVisibles as $key => $grupo): ?>
             <?php echo renderGrupo($key, $grupo, $activeItem, $iconChevron); ?>

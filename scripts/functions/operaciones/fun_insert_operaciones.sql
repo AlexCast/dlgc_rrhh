@@ -1,10 +1,15 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_operaciones(
-    wid_operacion t_operaciones.id_operacion%TYPE,
-    wid_modulo t_operaciones.id_modulo%TYPE,
-    wnombre_operacion t_operaciones.nombre_operacion%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_operacion INT,
+    wid_modulo INT,
+    wnombre_operacion VARCHAR(50)
+) RETURNS VARCHAR(255)
 BEGIN
+    -- En MariaDB, SQLSTATE '23000' cubre tanto duplicados (23505 en PG) como llaves foráneas inexistentes (23503 en PG)
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'La operación ya existe o el módulo indicado no existe.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al insertar la operación.';
+
     IF wid_operacion IS NULL OR wid_operacion <= 0 THEN
         RETURN 'El ID de la operación no es válido.';
     END IF;
@@ -28,20 +33,11 @@ BEGIN
         wid_operacion,
         wid_modulo,
         TRIM(wnombre_operacion),
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Operación insertada correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'La operación ya existe.';
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'El módulo indicado no existe.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar la operación.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

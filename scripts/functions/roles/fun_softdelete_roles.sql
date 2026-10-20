@@ -1,21 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_roles(
-    wid_rol t_roles.id_rol%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_rol INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_roles
     SET fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_rol = wid_rol
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Rol % eliminado lógicamente.', wid_rol;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró rol activo con ID %.', wid_rol;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

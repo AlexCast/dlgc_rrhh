@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 formData.append('clear_register_form_cache', '1');
                 formData.append('csrf_token', csrfToken);
-                fetch('/dlgc_rrhh/app/register.php', {
+                fetch('/app/register.php', {
                     method: 'POST',
                     body: formData,
                     credentials: 'same-origin'

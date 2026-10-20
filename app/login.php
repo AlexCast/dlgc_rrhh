@@ -55,12 +55,13 @@ if (strlen($userInput) > 40 || strlen($contrasena) > 255) {
     ]);
 }
 
-// --- 2. Búsqueda del usuario mediante la función del motor fun_login_usuarios ---
-// (acepta tanto username como correo, la función resuelve la coincidencia)
+// --- 2. Búsqueda del usuario mediante el procedimiento proc_login_usuarios ---
+// (acepta tanto username como correo, el procedimiento resuelve la coincidencia)
 try {
-    $sentencia = $conexion->prepare('SELECT * FROM fun_login_usuarios(:userInput)');
-    $sentencia->execute([':userInput' => $userInput]);
+    $sentencia = $conexion->prepare('CALL proc_login_usuarios(?)');
+    $sentencia->execute([$userInput]);
     $usuario = $sentencia->fetch();
+    $sentencia->closeCursor();
 
     // --- 2b. Rate limiting de intentos fallidos (solo si la cuenta existe). ---
     if ($usuario) {

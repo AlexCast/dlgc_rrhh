@@ -1,33 +1,32 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_banco(
-    wid_banco t_bancos.id_banco%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_banco t_bancos%ROWTYPE;
+    wid_banco INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_banco INT;
+    DECLARE v_nombre_banco VARCHAR(50);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_banco IS NULL OR wid_banco <= 0 THEN
-        RAISE NOTICE 'El ID del banco no es válido.';
         RETURN FALSE;
     END IF;
 
-    SELECT *
-    INTO wreg_banco
+    SELECT id_banco, nombre_banco
+    INTO v_id_banco, v_nombre_banco
     FROM t_bancos
     WHERE id_banco = wid_banco
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No existe banco activo con ID %.', wid_banco;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Banco: %', wreg_banco.id_banco, wreg_banco.nombre_banco;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

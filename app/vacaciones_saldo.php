@@ -58,9 +58,10 @@ if ($idEmpleado === '') {
 }
 
 try {
-    $sentenciaSaldo = $conexion->prepare('SELECT * FROM fun_calcular_saldo_vacaciones(:id_empleado)');
-    $sentenciaSaldo->execute([':id_empleado' => $idEmpleado]);
+    $sentenciaSaldo = $conexion->prepare('CALL proc_calcular_saldo_vacaciones(?)');
+    $sentenciaSaldo->execute([$idEmpleado]);
     $saldo = $sentenciaSaldo->fetch(PDO::FETCH_ASSOC);
+    $sentenciaSaldo->closeCursor();
 
     if ($saldo === false) {
         responderJson(false, 'No se encontró el empleado indicado.', 404);
@@ -68,9 +69,10 @@ try {
 
     $ajustes = [];
     if ($esRrhh) {
-        $sentenciaAjustes = $conexion->prepare('SELECT * FROM fun_listar_vacaciones_ajustes(:id_empleado)');
-        $sentenciaAjustes->execute([':id_empleado' => $idEmpleado]);
+        $sentenciaAjustes = $conexion->prepare('CALL proc_listar_vacaciones_ajustes(?)');
+        $sentenciaAjustes->execute([$idEmpleado]);
         $ajustes = $sentenciaAjustes->fetchAll(PDO::FETCH_ASSOC);
+        $sentenciaAjustes->closeCursor();
         // PDO pgsql devuelve los boolean como 't'/'f'; sin castear, "f" es truthy en JS.
         foreach ($ajustes as &$ajuste) {
             $ajuste['activo'] = filter_var($ajuste['activo'], FILTER_VALIDATE_BOOLEAN);

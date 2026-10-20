@@ -1,17 +1,22 @@
-CREATE OR REPLACE FUNCTION fun_restore_eps(wid_eps t_eps.id_eps%TYPE)
-RETURNS BOOLEAN AS
-$$
-BEGIN
-    UPDATE t_eps
-    SET fec_delete = NULL, usr_delete = NULL
-    WHERE id_eps = wid_eps AND fec_delete IS NOT NULL;
+DELIMITER //
 
-    IF FOUND THEN
-        RAISE NOTICE 'EPS % restaurada correctamente.', wid_eps;
+CREATE OR REPLACE FUNCTION fun_restore_eps(
+    wid_eps INT
+) RETURNS BOOLEAN
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
+    UPDATE t_eps
+    SET fec_delete = NULL, 
+        usr_delete = NULL
+    WHERE id_eps = wid_eps 
+      AND fec_delete IS NOT NULL;
+
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     ELSE
-        RAISE NOTICE 'No se encontró la EPS eliminada.';
         RETURN FALSE;
     END IF;
-END;
-$$ LANGUAGE plpgsql;
+END //
+
+DELIMITER ;

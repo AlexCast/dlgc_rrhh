@@ -50,13 +50,8 @@ if (strlen($motivo) < 5) {
 }
 
 try {
-    $sentencia = $conexion->prepare('SELECT fun_insert_vacaciones_ajustes(:id_empleado, :dias_ajuste, :motivo, :fecha_ajuste) AS mensaje');
-    $sentencia->execute([
-        ':id_empleado' => $idEmpleado,
-        ':dias_ajuste' => $diasAjuste,
-        ':motivo'      => $motivo,
-        ':fecha_ajuste' => $fechaAjuste,
-    ]);
+    $sentencia = $conexion->prepare('SELECT fun_insert_vacaciones_ajustes(?, ?, ?, ?) AS mensaje');
+    $sentencia->execute([$idEmpleado, $diasAjuste, $motivo, $fechaAjuste]);
     $mensaje = $sentencia->fetchColumn();
 
     $exito = is_string($mensaje) && stripos($mensaje, 'correctamente') !== false;

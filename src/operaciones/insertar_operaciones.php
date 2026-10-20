@@ -23,12 +23,8 @@ $nombre_operacion = trim($_POST['nombre_operacion'] ?? '');
 
 require_once __DIR__ . '/../../app/conexion.php';
 
-$sentencia = $conexion->prepare('SELECT fun_insert_operaciones(:id_operacion, :id_modulo, :nombre_operacion);');
-$sentencia->execute([
-    ':id_operacion' => id_operacion,
-        ':id_modulo' => id_modulo,
-        ':nombre_operacion' => nombre_operacion,
-]);
+$sentencia = $conexion->prepare('SELECT fun_insert_operaciones(?, ?, ?);');
+$sentencia->execute([$id_operacion, $id_modulo, $nombre_operacion]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false || stripos($resultado, 'Esta vaina funcionó') !== false) {

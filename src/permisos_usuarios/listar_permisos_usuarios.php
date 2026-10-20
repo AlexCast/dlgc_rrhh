@@ -22,7 +22,7 @@ $sentencia = $conexion->query('
     INNER JOIN t_usuarios u ON u.id_usuario = uo.id_usuario AND u.fec_delete IS NULL
     INNER JOIN t_operaciones o ON o.id_operacion = uo.id_operacion AND o.fec_delete IS NULL
     INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
-    ORDER BY nombre_usuario, m.id_modulo::integer, o.id_operacion
+    ORDER BY nombre_usuario, m.id_modulo, o.id_operacion
 ');
 $relaciones = $sentencia->fetchAll(PDO::FETCH_OBJ);
 

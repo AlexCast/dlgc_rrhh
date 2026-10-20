@@ -1,11 +1,15 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_update_dias_festivos(
-    wid_festivo t_dias_festivos.id_festivo%TYPE,
-    wfecha t_dias_festivos.fecha%TYPE,
-    wdescripcion t_dias_festivos.descripcion%TYPE,
-    wdescuenta_salario t_dias_festivos.descuenta_salario%TYPE DEFAULT TRUE
-) RETURNS VARCHAR AS
-$$
+    wid_festivo INT,
+    wfecha DATE,
+    wdescripcion VARCHAR(100),
+    wdescuenta_salario BOOLEAN
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'Ya existe otro festivo con esa fecha.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al actualizar el día festivo.';
+
     IF wid_festivo IS NULL OR wid_festivo <= 0 THEN
         RETURN 'El ID del festivo no es válido.';
     END IF;
@@ -23,24 +27,17 @@ BEGIN
     SET fecha = wfecha,
         descripcion = TRIM(wdescripcion),
         descuenta_salario = COALESCE(wdescuenta_salario, TRUE),
-        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_festivo = wid_festivo
       AND tipo_festivo = 'EMPRESA'
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
+    IF ROW_COUNT() > 0 THEN
         RETURN 'Día festivo actualizado correctamente.';
     END IF;
 
     RETURN 'No se encontró el festivo de empresa activo para actualizar.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'Ya existe otro festivo con esa fecha.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al actualizar el día festivo.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

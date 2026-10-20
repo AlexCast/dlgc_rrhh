@@ -58,7 +58,7 @@ if (empty($_SESSION['user_id'])) {
         $actorAuditoria = trim((string) $actorAuditoria);
         if ($actorAuditoria !== '') {
             try {
-                $sentenciaAuditoria = $conexion->prepare("SELECT set_config('app.current_user', ?, false)");
+                $sentenciaAuditoria = $conexion->prepare('SET @app_current_user = ?');
                 $sentenciaAuditoria->execute([$actorAuditoria]);
             } catch (PDOException $eAuditoria) {
                 error_log('Error al configurar app.current_user tras remember-me: ' . $eAuditoria->getMessage());

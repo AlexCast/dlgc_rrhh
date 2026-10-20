@@ -1,21 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_solicitudes_permisos(
-    wid_permiso t_solicitudes_permisos.id_permiso%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_permiso INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_solicitudes_permisos
     SET fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_permiso = wid_permiso
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Solicitud % eliminada lógicamente.', wid_permiso;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró solicitud activa con ID %.', wid_permiso;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

@@ -593,7 +593,7 @@ CREATE TABLE IF NOT EXISTS t_verificacion_correo (
     usr_delete VARCHAR(255),
     fec_delete DATETIME,
     PRIMARY KEY (id_verificacion),
-    FOREIGN KEY (id_registro_pendiente) REFERENCES t_registros_pendientes(id_registro_pendiente)
+    CONSTRAINT fk_verificacion_pendiente FOREIGN KEY (id_registro_pendiente) REFERENCES t_registros_pendientes(id_registro_pendiente) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_recuperacion_token ON t_recuperacion_contrasena(token_hash);

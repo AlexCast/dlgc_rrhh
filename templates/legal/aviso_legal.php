@@ -84,6 +84,6 @@ require_once __DIR__ . '/../partials/legal_header.php';
     </div>
 </footer>
 
-<script src="/dlgc_rrhh/assets/js/theme.js"></script>
+<script src="/assets/js/theme.js"></script>
 </body>
 </html>

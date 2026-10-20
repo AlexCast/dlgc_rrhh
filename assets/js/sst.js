@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const csrfToken = form.dataset.csrfToken || '';
-    const guardarUrl = '/dlgc_rrhh/app/sst_guardar_queja.php';
-    const actualizarUrl = '/dlgc_rrhh/app/sst_actualizar_queja.php';
-    const cancelarUrl = '/dlgc_rrhh/app/sst_cancelar_queja.php';
+    const guardarUrl = '/app/sst_guardar_queja.php';
+    const actualizarUrl = '/app/sst_actualizar_queja.php';
+    const cancelarUrl = '/app/sst_cancelar_queja.php';
 
     function mostrarFeedback(mensaje, tipo) {
         feedback.textContent = mensaje;

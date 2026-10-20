@@ -1,9 +1,12 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_restore_permisos_usuarios(
-    wid_usuario t_usuarios_operaciones.id_usuario%TYPE,
-    wid_operacion t_usuarios_operaciones.id_operacion%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_usuario VARCHAR(20),
+    wid_operacion INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_usuarios_operaciones
     SET fec_delete = NULL,
         usr_delete = NULL
@@ -11,13 +14,11 @@ BEGIN
       AND id_operacion = wid_operacion
       AND fec_delete IS NOT NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Permiso usuario % - operación % restaurado correctamente.', wid_usuario, wid_operacion;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró permiso eliminado para restaurar.';
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

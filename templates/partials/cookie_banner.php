@@ -10,7 +10,7 @@
  * cookie técnica dlgc_cookie_consent para que el backend también la conozca.
  */
 ?>
-<link rel="stylesheet" href="/dlgc_rrhh/assets/css/cookie-banner.css">
+<link rel="stylesheet" href="/assets/css/cookie-banner.css">
 <div id="cookie-banner" class="cookie-banner" role="dialog" aria-live="polite" aria-label="Preferencias de cookies" hidden>
     <div class="cookie-banner__content">
         <div class="cookie-banner__text">
@@ -19,7 +19,7 @@
                 Utilizamos cookies técnicas necesarias para el funcionamiento del portal
                 (inicio de sesión, seguridad CSRF). También puedes aceptar cookies opcionales
                 para recordar tu sesión durante 30 días. Conoce más en nuestra
-                <a href="/dlgc_rrhh/templates/legal/privacidad.php?from=login">Política de Privacidad</a>.
+                <a href="/templates/legal/privacidad.php?from=login">Política de Privacidad</a>.
             </p>
         </div>
         <div class="cookie-banner__actions">
@@ -32,4 +32,4 @@
         </div>
     </div>
 </div>
-<script src="/dlgc_rrhh/assets/js/cookie-banner.js"></script>
+<script src="/assets/js/cookie-banner.js"></script>

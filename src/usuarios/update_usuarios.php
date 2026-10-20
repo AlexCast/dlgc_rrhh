@@ -32,21 +32,24 @@ $primer_apellido = trim($_POST['primer_apellido'] ?? '');
 $segundo_apellido = trim($_POST['segundo_apellido'] ?? '');
 $correo = trim($_POST['correo'] ?? '');
 $contrasena = trim($_POST['contrasena'] ?? '');
+if ($contrasena !== '') {
+    $contrasena = password_hash($contrasena, PASSWORD_DEFAULT);
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 
-$sentencia = $conexion->prepare('SELECT fun_update_usuarios(:id_usuario, :id_rol, :username, :tipo_documento, :primer_nombre, :segundo_nombre, :primer_apellido, :segundo_apellido, :correo, :contrasena);');
+$sentencia = $conexion->prepare('SELECT fun_update_usuarios(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 $sentencia->execute([
-    ':id_usuario' => $id_usuario,
-        ':id_rol' => $id_rol,
-        ':username' => $username,
-        ':tipo_documento' => $tipo_documento,
-        ':primer_nombre' => $primer_nombre,
-        ':segundo_nombre' => $segundo_nombre,
-        ':primer_apellido' => $primer_apellido,
-        ':segundo_apellido' => $segundo_apellido,
-        ':correo' => $correo,
-        ':contrasena' => $contrasena,
+    $id_usuario,
+    $id_rol,
+    $username,
+    $tipo_documento,
+    $primer_nombre,
+    $primer_apellido,
+    $correo,
+    $contrasena,
+    $segundo_nombre,
+    $segundo_apellido,
 ]);
 $resultado = (string) $sentencia->fetchColumn();
 

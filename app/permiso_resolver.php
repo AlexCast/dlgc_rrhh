@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Endpoint para aprobar/rechazar una solicitud de permiso en el nivel JEFE o RRHH.
  * El nivel JEFE solo lo puede resolver el jefe directo fijado en la solicitud (lo valida
- * la función fun_resolver_permisos_aprobaciones); el nivel RRHH requiere permiso del módulo 27.
+ * el procedimiento proc_resolver_permisos_aprobaciones); el nivel RRHH requiere permiso del módulo 27.
  */
 
 require_once __DIR__ . '/session_bootstrap.php';
@@ -62,17 +62,18 @@ if ($nivel === 'RRHH' && !has_module_permission(27, 'actualizar')) {
 
 try {
     $sentencia = $conexion->prepare(
-        'SELECT * FROM fun_resolver_permisos_aprobaciones(:id_permiso, :nivel, :id_actor, :accion, :observacion, :metodo_descuento)'
+        'CALL proc_resolver_permisos_aprobaciones(?, ?, ?, ?, ?, ?)'
     );
     $sentencia->execute([
-        ':id_permiso'       => $idPermiso,
-        ':nivel'            => $nivel,
-        ':id_actor'         => $idActor,
-        ':accion'           => $accion,
-        ':observacion'      => $observacion,
-        ':metodo_descuento' => $metodoDescuento,
+        $idPermiso,
+        $nivel,
+        $idActor,
+        $accion,
+        $observacion,
+        $metodoDescuento,
     ]);
     $resultado = $sentencia->fetch(PDO::FETCH_ASSOC);
+    $sentencia->closeCursor();
 
     if ($resultado === false || !filter_var($resultado['exito'], FILTER_VALIDATE_BOOLEAN)) {
         responderJson(false, $resultado['mensaje'] ?? 'No se pudo resolver la aprobación.', 400);
@@ -102,9 +103,9 @@ function notificarResolucionSolicitud(PDO $conexion, int $idPermiso, string $niv
             'SELECT u.correo, u.primer_nombre
              FROM t_solicitudes_permisos sp
              INNER JOIN t_usuarios u ON u.id_usuario = sp.id_empleado
-             WHERE sp.id_permiso = :id_permiso'
+             WHERE sp.id_permiso = ?'
         );
-        $sentencia->execute([':id_permiso' => $idPermiso]);
+        $sentencia->execute([$idPermiso]);
         $empleado = $sentencia->fetch(PDO::FETCH_ASSOC);
 
         if ($empleado === false || empty($empleado['correo'])) {

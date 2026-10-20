@@ -1,8 +1,11 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_restore_dias_festivos(
-    wid_festivo t_dias_festivos.id_festivo%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_festivo INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_dias_festivos
     SET fec_delete = NULL,
         usr_delete = NULL
@@ -10,13 +13,11 @@ BEGIN
       AND tipo_festivo = 'EMPRESA'
       AND fec_delete IS NOT NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Festivo % restaurado correctamente.', wid_festivo;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró festivo eliminado con ID %.', wid_festivo;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

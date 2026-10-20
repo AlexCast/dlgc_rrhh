@@ -1,9 +1,14 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_modulos(
-    wid_modulo t_modulos.id_modulo%TYPE,
-    wnombre_modulo t_modulos.nombre_modulo%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_modulo INT,
+    wnombre_modulo VARCHAR(30)
+) RETURNS VARCHAR(255)
 BEGIN
+    -- Declaración de excepciones al inicio del bloque
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'El módulo ya existe.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al insertar el módulo.';
+
     IF wid_modulo IS NULL OR wid_modulo <= 0 THEN
         RETURN 'El ID del módulo no es válido.';
     END IF;
@@ -21,18 +26,11 @@ BEGIN
     VALUES (
         wid_modulo,
         TRIM(wnombre_modulo),
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Módulo insertado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'El módulo ya existe.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar el módulo.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

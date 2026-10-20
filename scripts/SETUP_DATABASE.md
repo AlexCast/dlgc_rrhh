@@ -1,5 +1,9 @@
 # Setup de Base de Datos — DLGC RRHH
 
+> **Nota:** este documento aún usa comandos `psql` (PostgreSQL). La migración a MariaDB
+> está en curso; consulta [migracion_a_mariadb.md](../migracion_a_mariadb.md) para los
+> comandos `mariadb` y el estado actual.
+
 Orden de ejecución para una base de datos **nueva** o **vacía**.
 
 ## 1. Esquema base

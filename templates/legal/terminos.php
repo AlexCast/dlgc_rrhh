@@ -93,7 +93,7 @@ require_once __DIR__ . '/../partials/legal_header.php';
             <h2>9. Protección de datos</h2>
             <p>
                 El tratamiento de datos personales se rige por la
-                <a href="/dlgc_rrhh/templates/legal/privacidad.php">Política de Privacidad</a>, la cual forma
+                <a href="/templates/legal/privacidad.php">Política de Privacidad</a>, la cual forma
                 parte integral de estos Términos y Condiciones.
             </p>
         </section>
@@ -124,6 +124,6 @@ require_once __DIR__ . '/../partials/legal_header.php';
     </div>
 </footer>
 
-<script src="/dlgc_rrhh/assets/js/theme.js"></script>
+<script src="/assets/js/theme.js"></script>
 </body>
 </html>

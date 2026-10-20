@@ -1,36 +1,33 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_comunicados(
-    wid_comunicado t_comunicados.id_comunicado%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_comunicado t_comunicados%ROWTYPE;
+    wid_comunicado INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_comunicado INT;
+    DECLARE v_titulo VARCHAR(100);
+    DECLARE v_categoria VARCHAR(30);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_comunicado IS NULL OR wid_comunicado <= 0 THEN
-        RAISE NOTICE 'El ID del comunicado no es válido.';
         RETURN FALSE;
     END IF;
 
-    SELECT *
-    INTO wreg_comunicado
+    SELECT id_comunicado, titulo, categoria
+    INTO v_id_comunicado, v_titulo, v_categoria
     FROM t_comunicados
     WHERE id_comunicado = wid_comunicado
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No existe comunicado activo con ID %.', wid_comunicado;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Título: %, Categoría: %',
-        wreg_comunicado.id_comunicado,
-        wreg_comunicado.titulo,
-        wreg_comunicado.categoria;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

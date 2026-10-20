@@ -3,9 +3,9 @@
 -- EPS, Pensiones, Cajas de Compensacion, Bancos, ARL y Cesantias
 -- ============================================================
 
-BEGIN;
+START TRANSACTION;
 
-SELECT set_config('app.current_user', 'seed_institutions_2026', false);
+SET @app_current_user = 'seed_institutions_2026';
 
 -- ------------------------------------------------------------
 -- EPS vigentes

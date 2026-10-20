@@ -1,34 +1,32 @@
-CREATE OR REPLACE FUNCTION fun_listar_area(wid_area t_areas.id_area%TYPE) 
-RETURNS BOOLEAN AS
-$$
-DECLARE 
-    wreg_area t_areas%ROWTYPE;
+DELIMITER //
+
+CREATE OR REPLACE FUNCTION fun_listar_area(
+    wid_area INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_area INT;
+    DECLARE v_nombre_area VARCHAR(30);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_area IS NULL OR wid_area <= 0 THEN
-        RAISE NOTICE 'El ID del área no puede ser nulo o menor/igual a 0.';
         RETURN FALSE;
     END IF;
 
     SELECT id_area, nombre_area
-    INTO wreg_area
+    INTO v_id_area, v_nombre_area
     FROM t_areas
-        WHERE id_area = wid_area
-            AND fec_delete IS NULL;
+    WHERE id_area = wid_area
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'El área con ID % no existe.', wid_area;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Nombre: %',
-        wreg_area.id_area,
-        wreg_area.nombre_area;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

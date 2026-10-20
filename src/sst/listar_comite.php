@@ -8,8 +8,10 @@ require_once __DIR__ . '/../../app/conexion.php';
 
 date_default_timezone_set('America/Bogota');
 
-$sentencia = $conexion->query('SELECT * FROM fun_listar_sst_comite_miembros(NULL);');
+$sentencia = $conexion->prepare('CALL proc_listar_sst_comite_miembros(?)');
+$sentencia->execute([null]);
 $miembros = $sentencia->fetchAll(PDO::FETCH_OBJ);
+$sentencia->closeCursor();
 
 $activos = array_filter($miembros, fn($m) => empty($m->fec_delete));
 $eliminados = array_filter($miembros, fn($m) => !empty($m->fec_delete));

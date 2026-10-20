@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function cargarFestivos(anio) {
         if (aniosFestivosCargados.has(anio)) return Promise.resolve();
 
-        return fetch('/dlgc_rrhh/app/festivos_listar.php?anio=' + encodeURIComponent(anio), {
+        return fetch('/app/festivos_listar.php?anio=' + encodeURIComponent(anio), {
             credentials: 'same-origin'
         })
             .then(response => response.json())
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const parametros = new URLSearchParams({ id_empleado: idEmpleado, anio: String(anio), mes: String(mes + 1) });
 
-        return fetch('/dlgc_rrhh/app/empleado_ocupacion.php?' + parametros.toString(), {
+        return fetch('/app/empleado_ocupacion.php?' + parametros.toString(), {
             credentials: 'same-origin'
         })
             .then(response => response.json())
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'employee-card';
             card.setAttribute('aria-label', `Ver disponibilidad de ${emp.name}`);
             const avatarHtml = emp.foto_perfil
-                ? `<img src="/dlgc_rrhh/uploads/perfiles/${encodeURIComponent(emp.foto_perfil)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+                ? `<img src="/uploads/perfiles/${encodeURIComponent(emp.foto_perfil)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
                 : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
             card.innerHTML = `
                 <div class="emp-avatar">${avatarHtml}</div>
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function cargarEmpleados() {
         employeeGrid.innerHTML = '<p class="employee-grid-empty">Cargando empleados…</p>';
 
-        return fetch('/dlgc_rrhh/app/empleados_listar.php', { credentials: 'same-origin' })
+        return fetch('/app/empleados_listar.php', { credentials: 'same-origin' })
             .then(response => response.json())
             .then(data => {
                 if (data.success && Array.isArray(data.empleados)) {
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('employee-modal-email').textContent = empleadoSeleccionado.email || 'No registrado';
         const avatarContainer = document.getElementById('employee-modal-avatar');
         if (empleadoSeleccionado.foto_perfil) {
-            avatarContainer.innerHTML = `<img src="/dlgc_rrhh/uploads/perfiles/${encodeURIComponent(empleadoSeleccionado.foto_perfil)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            avatarContainer.innerHTML = `<img src="/uploads/perfiles/${encodeURIComponent(empleadoSeleccionado.foto_perfil)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
         } else {
             avatarContainer.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
         }

@@ -1139,8 +1139,5 @@ VALUES
 	(1100,'Útica',1,25);
 
 
--- Sincronizar el contador de departamentos
-SELECT setval('t_departamentos_id_departamento_seq', (SELECT MAX(id_departamento) FROM t_departamentos));
-
--- Sincronizar el contador de municipios
-SELECT setval('t_municipios_id_municipio_seq', (SELECT MAX(id_municipio) FROM t_municipios));
+-- MariaDB sincroniza el AUTO_INCREMENT automáticamente al insertar IDs explícitos;
+-- no se requiere setval (secuencias de PostgreSQL).

@@ -34,9 +34,9 @@ try {
         'SELECT sp.*, ue.primer_nombre AS empleado_nombre, ue.primer_apellido AS empleado_apellido
          FROM t_solicitudes_permisos sp
          INNER JOIN t_usuarios ue ON ue.id_usuario = sp.id_empleado
-         WHERE sp.id_permiso = :id_permiso AND sp.fec_delete IS NULL'
+         WHERE sp.id_permiso = ? AND sp.fec_delete IS NULL'
     );
-    $sentencia->execute([':id_permiso' => $idPermiso]);
+    $sentencia->execute([$idPermiso]);
     $solicitud = $sentencia->fetch(PDO::FETCH_ASSOC);
 
     if ($solicitud === false) {
@@ -55,27 +55,27 @@ try {
         'SELECT tp.nombre_tipo, spm.detalle_motivo
          FROM t_solicitudes_permisos_motivos spm
          INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
-         WHERE spm.id_permiso = :id_permiso AND spm.fec_delete IS NULL'
+         WHERE spm.id_permiso = ? AND spm.fec_delete IS NULL'
     );
-    $sentenciaMotivos->execute([':id_permiso' => $idPermiso]);
+    $sentenciaMotivos->execute([$idPermiso]);
     $motivos = $sentenciaMotivos->fetchAll(PDO::FETCH_ASSOC);
 
     $sentenciaEvidencias = $conexion->prepare(
         'SELECT id_evidencia, nombre_original, mime_type, tamano_bytes, url_publica
          FROM t_permisos_evidencias
-         WHERE id_permiso = :id_permiso AND fec_delete IS NULL
+         WHERE id_permiso = ? AND fec_delete IS NULL
          ORDER BY fec_insert'
     );
-    $sentenciaEvidencias->execute([':id_permiso' => $idPermiso]);
+    $sentenciaEvidencias->execute([$idPermiso]);
     $evidencias = $sentenciaEvidencias->fetchAll(PDO::FETCH_ASSOC);
 
     $sentenciaAprobaciones = $conexion->prepare(
         'SELECT nivel_aprobacion, id_aprobador, estado, observacion, fec_resolucion
          FROM t_permisos_aprobaciones
-         WHERE id_permiso = :id_permiso AND fec_delete IS NULL
+         WHERE id_permiso = ? AND fec_delete IS NULL
          ORDER BY nivel_aprobacion'
     );
-    $sentenciaAprobaciones->execute([':id_permiso' => $idPermiso]);
+    $sentenciaAprobaciones->execute([$idPermiso]);
     $aprobaciones = $sentenciaAprobaciones->fetchAll(PDO::FETCH_ASSOC);
 
     responderJson(true, 'Detalle obtenido correctamente.', 200, [

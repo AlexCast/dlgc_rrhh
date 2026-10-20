@@ -50,10 +50,10 @@ try {
         FROM t_comunicados_vistos v
         INNER JOIN t_usuarios u ON u.id_usuario = v.id_usuario
         LEFT JOIN t_empleados e ON e.id_usuario = v.id_usuario
-        WHERE v.id_comunicado = :id_comunicado
+        WHERE v.id_comunicado = ?
         ORDER BY v.fec_visto DESC
     ");
-    $sentencia->execute([':id_comunicado' => $id_comunicado]);
+    $sentencia->execute([$id_comunicado]);
     $lectores = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
     foreach ($lectores as $lector) {

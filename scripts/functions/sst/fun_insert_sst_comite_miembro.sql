@@ -1,13 +1,16 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_sst_comite_miembro(
-    wnombre_completo t_sst_comite_miembros.nombre_completo%TYPE,
-    wcargo t_sst_comite_miembros.cargo%TYPE,
-    wtipo_comite t_sst_comite_miembros.tipo_comite%TYPE,
-    wcorreo t_sst_comite_miembros.correo%TYPE DEFAULT NULL,
-    wtelefono t_sst_comite_miembros.telefono%TYPE DEFAULT NULL,
-    worden_visualizacion t_sst_comite_miembros.orden_visualizacion%TYPE DEFAULT 0
-) RETURNS VARCHAR AS
-$$
+    wnombre_completo VARCHAR(100),
+    wcargo VARCHAR(50),
+    wtipo_comite VARCHAR(30),
+    wcorreo VARCHAR(40),
+    wtelefono VARCHAR(15),
+    worden_visualizacion INT
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'El tipo de comité no es válido o ocurrió un error al registrar.';
+
     IF wnombre_completo IS NULL OR LENGTH(TRIM(wnombre_completo)) < 3 THEN
         RETURN 'El nombre completo debe tener al menos 3 caracteres.';
     END IF;
@@ -37,18 +40,11 @@ BEGIN
         NULLIF(TRIM(wcorreo), ''),
         NULLIF(TRIM(wtelefono), ''),
         COALESCE(worden_visualizacion, 0),
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Miembro del comité registrado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'El tipo de comité indicado no es válido.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al registrar el miembro del comité.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

@@ -26,8 +26,8 @@ Options -Indexes
     AcceptPathInfo Off
 </FilesMatch>
 
-ErrorDocument 403 /dlgc_rrhh/templates/access_denied.php
-ErrorDocument 404 /dlgc_rrhh/templates/not_found.php
+ErrorDocument 403 /templates/access_denied.php
+ErrorDocument 404 /templates/not_found.php
 
 # ==============================================================================
 # SECURITY HEADERS

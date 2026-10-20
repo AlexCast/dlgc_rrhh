@@ -14,9 +14,10 @@ if ($filtroEstado !== '' && !in_array($filtroEstado, $estadosValidos, true)) {
     $filtroEstado = '';
 }
 
-$sentencia = $conexion->prepare('SELECT * FROM fun_listar_sst_quejas_encargado(:estado);');
-$sentencia->execute([':estado' => $filtroEstado]);
+$sentencia = $conexion->prepare('CALL proc_listar_sst_quejas_encargado(?)');
+$sentencia->execute([$filtroEstado]);
 $quejas = $sentencia->fetchAll(PDO::FETCH_OBJ);
+$sentencia->closeCursor();
 
 $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 

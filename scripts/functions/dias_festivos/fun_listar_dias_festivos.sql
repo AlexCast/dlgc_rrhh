@@ -1,36 +1,33 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_dias_festivos(
-    wid_festivo t_dias_festivos.id_festivo%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_festivo t_dias_festivos%ROWTYPE;
+    wid_festivo INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_festivo INT;
+    DECLARE v_fecha DATE;
+    DECLARE v_descripcion VARCHAR(100);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_festivo IS NULL OR wid_festivo <= 0 THEN
-        RAISE NOTICE 'El ID del festivo no es válido.';
         RETURN FALSE;
     END IF;
 
-    SELECT *
-    INTO wreg_festivo
+    SELECT id_festivo, fecha, descripcion
+    INTO v_id_festivo, v_fecha, v_descripcion
     FROM t_dias_festivos
     WHERE id_festivo = wid_festivo
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No existe festivo activo con ID %.', wid_festivo;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Fecha: %, Descripción: %',
-        wreg_festivo.id_festivo,
-        wreg_festivo.fecha,
-        wreg_festivo.descripcion;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

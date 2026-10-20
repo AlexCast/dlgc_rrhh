@@ -21,11 +21,8 @@ $nombre_modulo = trim($_POST['nombre_modulo'] ?? '');
 
 require_once __DIR__ . '/../../app/conexion.php';
 
-$sentencia = $conexion->prepare('SELECT fun_update_modulos(:id_modulo, :nombre_modulo);');
-$sentencia->execute([
-    ':id_modulo' => $id_modulo,
-        ':nombre_modulo' => $nombre_modulo,
-]);
+$sentencia = $conexion->prepare('SELECT fun_update_modulos(?, ?);');
+$sentencia->execute([$id_modulo, $nombre_modulo]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false || stripos($resultado, 'Esta vaina funcionó') !== false) {

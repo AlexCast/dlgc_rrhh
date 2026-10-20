@@ -1,22 +1,22 @@
--- Anula (borrado lógico) un ajuste manual de vacaciones cargado por error.
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_vacaciones_ajustes(
-    wid_ajuste t_vacaciones_ajustes.id_ajuste%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_ajuste INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_vacaciones_ajustes
     SET fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_ajuste = wid_ajuste
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Ajuste de vacaciones % anulado.', wid_ajuste;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró ajuste activo con ID %.', wid_ajuste;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

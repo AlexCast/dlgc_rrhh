@@ -2,91 +2,58 @@
 /* GRUPO 3 - BORRADO FÍSICO                                   */
 /* Elimina físicamente registros temporales una vez que son   */
 /* usados o marcados como eliminados (no son soft delete).    */
+/*                                                            */
+/* Adaptación MariaDB:                                        */
+/*  - MariaDB no permite que un trigger modifique (DELETE)     */
+/*    la misma tabla sobre la que está definido (error 1442).  */
+/*    Por eso los triggers que borraban su propia fila         */
+/*    (tri_borrar_codigo_registro, tri_borrar_token_* ) no     */
+/*    pueden replicarse: esas filas quedan marcadas            */
+/*    (usado/fecha_uso/fec_delete) y se excluyen de las        */
+/*    consultas mediante filtros.                              */
+/*  - El borrado de t_registros_pendientes se mantiene         */
+/*    eliminando la fila padre; requiere ON DELETE CASCADE     */
+/*    en t_verificacion_correo.id_registro_pendiente.          */
 /*------------------------------------------------------------*/
 
--- t_codigos_registro: se borra físicamente al usar o cancelar código
-CREATE OR REPLACE FUNCTION fun_borrar_codigo_registro()
-RETURNS TRIGGER AS
-$$
-BEGIN
-    DELETE FROM t_codigos_registro WHERE id_codigo = OLD.id_codigo;
-    RETURN NULL;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER //
 
-CREATE OR REPLACE TRIGGER tri_borrar_codigo_registro
-AFTER UPDATE OF usado, fec_delete ON t_codigos_registro
-FOR EACH ROW
-WHEN (NEW.usado = TRUE OR NEW.fec_delete IS NOT NULL)
-EXECUTE FUNCTION fun_borrar_codigo_registro();
-
--- t_verificacion_correo: se borra físicamente al usar o marcar token
-CREATE OR REPLACE FUNCTION fun_borrar_token_verificacion()
-RETURNS TRIGGER AS
-$$
-BEGIN
-    DELETE FROM t_verificacion_correo WHERE id_verificacion = OLD.id_verificacion;
-    RETURN NULL;
-END;
-$$
-LANGUAGE PLPGSQL;
-
-CREATE OR REPLACE TRIGGER tri_borrar_token_verificacion
-AFTER UPDATE OF fecha_uso, fec_delete ON t_verificacion_correo
-FOR EACH ROW
-WHEN (NEW.fecha_uso IS NOT NULL OR NEW.fec_delete IS NOT NULL)
-EXECUTE FUNCTION fun_borrar_token_verificacion();
-
--- t_registros_pendientes: se limpian al verificar o marcar token de verificación
-CREATE OR REPLACE FUNCTION fun_limpiar_registros_pendientes()
-RETURNS TRIGGER AS
-$$
-DECLARE
-    v_id_registro_pendiente INT;
-BEGIN
-    SELECT id_registro_pendiente INTO v_id_registro_pendiente
-    FROM t_verificacion_correo
-    WHERE id_verificacion = OLD.id_verificacion;
-
-    IF v_id_registro_pendiente IS NOT NULL THEN
-        -- ON DELETE CASCADE de t_verificacion_correo hace el resto.
-        DELETE FROM t_registros_pendientes
-        WHERE id_registro_pendiente = v_id_registro_pendiente;
-    END IF;
-
-    RETURN NULL;
-END;
-$$
-LANGUAGE PLPGSQL;
-
+-- Limpia el registro pendiente cuando su token se marca como usado o eliminado.
 CREATE OR REPLACE TRIGGER tri_limpiar_registros_pendientes
-AFTER UPDATE OF fecha_uso, fec_delete ON t_verificacion_correo
+AFTER UPDATE ON t_verificacion_correo
 FOR EACH ROW
-WHEN (NEW.fecha_uso IS NOT NULL OR NEW.fec_delete IS NOT NULL)
-EXECUTE FUNCTION fun_limpiar_registros_pendientes();
-
--- t_recuperacion_contrasena: se borra físicamente al usar o expirar token
-CREATE OR REPLACE FUNCTION fun_borrar_token_recuperacion()
-RETURNS TRIGGER AS
-$$
 BEGIN
-    DELETE FROM t_recuperacion_contrasena WHERE id_recuperacion = OLD.id_recuperacion;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
+    IF NEW.fecha_uso IS NOT NULL OR NEW.fec_delete IS NOT NULL THEN
+        DELETE FROM t_registros_pendientes
+        WHERE id_registro_pendiente = OLD.id_registro_pendiente;
+    END IF;
+END//
 
-CREATE OR REPLACE TRIGGER tri_borrar_token_recuperacion
-AFTER UPDATE OF fecha_uso, fec_delete ON t_recuperacion_contrasena
-FOR EACH ROW
-WHEN (NEW.fecha_uso IS NOT NULL OR NEW.fec_delete IS NOT NULL)
-EXECUTE FUNCTION fun_borrar_token_recuperacion();
-
--- Procedimiento opcional: limpiar registros pendientes expirados manualmente
+-- Procedimiento opcional: limpiar registros pendientes expirados manualmente.
 CREATE OR REPLACE PROCEDURE sp_limpiar_registros_pendientes_expirados()
-LANGUAGE SQL
-AS $$
+BEGIN
     DELETE FROM t_registros_pendientes
     WHERE fecha_expiracion < CURRENT_TIMESTAMP
        OR fec_delete IS NOT NULL;
-$$;
+END//
+
+DELIMITER ;
+
+/*---------------------------------------------------------------------------*/
+/* Triggers no migrables (limitación de MariaDB, error 1442):                */
+/*                                                                           */
+/* - tri_borrar_codigo_registro (AFTER UPDATE ON t_codigos_registro)         */
+/*   En PostgreSQL borraba físicamente el código tras marcarlo usado.        */
+/*   En MariaDB la fila queda con usado = TRUE y se excluye de las consultas */
+/*   (filtros usado = FALSE).                                                */
+/*                                                                           */
+/* - tri_borrar_token_verificacion (AFTER UPDATE ON t_verificacion_correo)   */
+/*   En PostgreSQL borraba el token usado. En MariaDB el token queda con     */
+/*   fecha_uso seteada; la fila padre y sus tokens se eliminan mediante      */
+/*   tri_limpiar_registros_pendientes + ON DELETE CASCADE.                   */
+/*                                                                           */
+/* - tri_borrar_token_recuperacion (AFTER UPDATE ON t_recuperacion_contrasena)*/
+/*   En PostgreSQL borraba el token usado. En MariaDB el token queda con     */
+/*   fecha_uso seteada y se excluye de las consultas                         */
+/*   (filtro fecha_uso IS NULL).                                             */
+/*---------------------------------------------------------------------------*/

@@ -1,22 +1,23 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_dias_festivos(
-    wid_festivo t_dias_festivos.id_festivo%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_festivo INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_dias_festivos
     SET fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_festivo = wid_festivo
       AND tipo_festivo = 'EMPRESA'
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Festivo % eliminado lógicamente.', wid_festivo;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró festivo activo con ID %.', wid_festivo;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

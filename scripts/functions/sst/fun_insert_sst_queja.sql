@@ -1,11 +1,15 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_sst_queja(
-    wid_usuario t_sst_buzon_quejas.id_usuario%TYPE,
-    wtipo_peticion t_sst_buzon_quejas.tipo_peticion%TYPE,
-    wasunto t_sst_buzon_quejas.asunto%TYPE,
-    wdescripcion t_sst_buzon_quejas.descripcion%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_usuario VARCHAR(20),
+    wtipo_peticion VARCHAR(30),
+    wasunto VARCHAR(150),
+    wdescripcion TEXT
+) RETURNS VARCHAR(255)
 BEGIN
+    -- Maneja violación de llave foránea (usuario no existe) y checks en MariaDB
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'El usuario/petición no es válido o ocurrió un error al enviar.';
+
     IF wid_usuario IS NULL OR wid_usuario = '' THEN
         RETURN 'El usuario es obligatorio.';
     END IF;
@@ -37,20 +41,11 @@ BEGIN
         TRIM(wasunto),
         TRIM(wdescripcion),
         'PENDIENTE',
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Queja / sugerencia enviada correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'No existe el usuario indicado.';
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'El tipo de petición o estado no es válido.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al enviar la queja / sugerencia.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

@@ -48,11 +48,11 @@ try {
     $sentencia = $conexion->prepare(
         "SELECT id_usuario, username, primer_nombre, primer_apellido, correo
          FROM t_usuarios
-         WHERE correo = :email
+         WHERE correo = ?
            AND fec_delete IS NULL
          LIMIT 1"
     );
-    $sentencia->execute([':email' => $email]);
+    $sentencia->execute([$email]);
     $usuario = $sentencia->fetch();
 
     // Si no existe el usuario, no revelamos información.
@@ -89,14 +89,14 @@ try {
     $invalidar = $conexion->prepare(
         "UPDATE t_recuperacion_contrasena
          SET fec_delete = CURRENT_TIMESTAMP,
-             usr_delete = :usr_delete
-         WHERE id_usuario = :id_usuario
+             usr_delete = ?
+         WHERE id_usuario = ?
            AND fecha_uso IS NULL
            AND fec_delete IS NULL"
     );
     $invalidar->execute([
-        ':id_usuario' => $usuario['id_usuario'],
-        ':usr_delete' => $usrInsert,
+        $usrInsert,
+        $usuario['id_usuario'],
     ]);
 
     // Borrar tokens expirados globalmente (del mismo usuario y de todos).
@@ -113,13 +113,13 @@ try {
         "INSERT INTO t_recuperacion_contrasena
             (id_usuario, token_hash, fecha_expiracion, usr_insert, fec_insert)
          VALUES
-            (:id_usuario, :token_hash, :fecha_expiracion, :usr_insert, CURRENT_TIMESTAMP)"
+            (?, ?, ?, ?, CURRENT_TIMESTAMP)"
     );
     $insertar->execute([
-        ':id_usuario'       => $usuario['id_usuario'],
-        ':token_hash'       => $tokenHash,
-        ':fecha_expiracion' => $fechaExpiracion,
-        ':usr_insert'       => $usrInsert,
+        $usuario['id_usuario'],
+        $tokenHash,
+        $fechaExpiracion,
+        $usrInsert,
     ]);
 
     // Construir enlace de recuperación.

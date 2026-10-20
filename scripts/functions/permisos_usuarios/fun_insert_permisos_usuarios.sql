@@ -1,9 +1,13 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_permisos_usuarios(
-    wid_usuario t_usuarios_operaciones.id_usuario%TYPE,
-    wid_operacion t_usuarios_operaciones.id_operacion%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_usuario VARCHAR(20),
+    wid_operacion INT
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'El permiso individual ya existe o el usuario/operación no existe.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al insertar el permiso individual.';
+
     IF wid_usuario IS NULL OR TRIM(wid_usuario) = '' THEN
         RETURN 'El ID del usuario no es válido.';
     END IF;
@@ -21,20 +25,11 @@ BEGIN
     VALUES (
         TRIM(wid_usuario),
         wid_operacion,
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Permiso individual insertado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'El permiso individual ya existe.';
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'El usuario u operación indicado no existe.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar el permiso individual.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

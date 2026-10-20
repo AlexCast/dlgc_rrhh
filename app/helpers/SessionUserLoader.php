@@ -27,10 +27,10 @@ function load_user_session(PDO $conexion, string $idUsuario): bool
         $stmt = $conexion->prepare(
             "SELECT id_usuario, username, id_rol, primer_nombre, primer_apellido, correo_verificado
              FROM t_usuarios
-             WHERE id_usuario = :id_usuario
+             WHERE id_usuario = ?
                AND fec_delete IS NULL"
         );
-        $stmt->execute([':id_usuario' => $idUsuario]);
+        $stmt->execute([$idUsuario]);
         $usuario = $stmt->fetch();
 
         if (!$usuario || empty($usuario['correo_verificado'])) {
@@ -74,23 +74,23 @@ function fetch_module_permissions_by_role(PDO $conexion, string $idUsuario): arr
         "SELECT
             m.id_modulo,
             m.nombre_modulo,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('CREAR', 'INSERTAR', 'NUEVO', 'NUEVA')
                 OR UPPER(o.nombre_operacion) LIKE 'CREAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'INSERTAR%'
             ) AS permiso_crear,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('ACTUALIZAR', 'EDITAR', 'MODIFICAR')
                 OR UPPER(o.nombre_operacion) LIKE 'ACTUALIZAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'EDITAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'MODIFICAR%'
             ) AS permiso_actualizar,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('ELIMINAR', 'BORRAR')
                 OR UPPER(o.nombre_operacion) LIKE 'ELIMINAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'BORRAR%'
             ) AS permiso_eliminar,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('RESTAURAR', 'RECUPERAR', 'REACTIVAR')
                 OR UPPER(o.nombre_operacion) LIKE 'RESTAURAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'RECUPERAR%'
@@ -100,11 +100,11 @@ function fetch_module_permissions_by_role(PDO $conexion, string $idUsuario): arr
          INNER JOIN t_roles_operaciones ro ON ro.id_rol = u.id_rol AND ro.fec_delete IS NULL
          INNER JOIN t_operaciones o ON o.id_operacion = ro.id_operacion AND o.fec_delete IS NULL
          INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
-         WHERE u.id_usuario = :id_usuario
+         WHERE u.id_usuario = ?
            AND u.fec_delete IS NULL
          GROUP BY m.id_modulo, m.nombre_modulo"
     );
-    $stmt->execute([':id_usuario' => $idUsuario]);
+    $stmt->execute([$idUsuario]);
     return normalize_permissions($stmt->fetchAll());
 }
 
@@ -119,23 +119,23 @@ function fetch_module_permissions_by_user(PDO $conexion, string $idUsuario): arr
         "SELECT
             m.id_modulo,
             m.nombre_modulo,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('CREAR', 'INSERTAR', 'NUEVO', 'NUEVA')
                 OR UPPER(o.nombre_operacion) LIKE 'CREAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'INSERTAR%'
             ) AS permiso_crear,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('ACTUALIZAR', 'EDITAR', 'MODIFICAR')
                 OR UPPER(o.nombre_operacion) LIKE 'ACTUALIZAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'EDITAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'MODIFICAR%'
             ) AS permiso_actualizar,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('ELIMINAR', 'BORRAR')
                 OR UPPER(o.nombre_operacion) LIKE 'ELIMINAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'BORRAR%'
             ) AS permiso_eliminar,
-            BOOL_OR(
+            MAX(
                 UPPER(o.nombre_operacion) IN ('RESTAURAR', 'RECUPERAR', 'REACTIVAR')
                 OR UPPER(o.nombre_operacion) LIKE 'RESTAURAR%'
                 OR UPPER(o.nombre_operacion) LIKE 'RECUPERAR%'
@@ -144,11 +144,11 @@ function fetch_module_permissions_by_user(PDO $conexion, string $idUsuario): arr
          FROM t_usuarios_operaciones uo
          INNER JOIN t_operaciones o ON o.id_operacion = uo.id_operacion AND o.fec_delete IS NULL
          INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
-         WHERE uo.id_usuario = :id_usuario
+         WHERE uo.id_usuario = ?
            AND uo.fec_delete IS NULL
          GROUP BY m.id_modulo, m.nombre_modulo"
     );
-    $stmt->execute([':id_usuario' => $idUsuario]);
+    $stmt->execute([$idUsuario]);
     return normalize_permissions($stmt->fetchAll());
 }
 

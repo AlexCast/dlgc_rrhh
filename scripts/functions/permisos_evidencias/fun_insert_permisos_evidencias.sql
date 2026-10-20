@@ -1,14 +1,20 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_permisos_evidencias(
-    wid_permiso t_permisos_evidencias.id_permiso%TYPE,
-    wproveedor t_permisos_evidencias.proveedor%TYPE,
-    wstorage_key t_permisos_evidencias.storage_key%TYPE,
-    wurl_publica t_permisos_evidencias.url_publica%TYPE,
-    wnombre_original t_permisos_evidencias.nombre_original%TYPE,
-    wmime_type t_permisos_evidencias.mime_type%TYPE,
-    wtamano_bytes t_permisos_evidencias.tamano_bytes%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_permiso INT,
+    wproveedor VARCHAR(20),
+    wstorage_key VARCHAR(255),
+    wurl_publica VARCHAR(500),
+    wnombre_original VARCHAR(255),
+    wmime_type VARCHAR(100),
+    wtamano_bytes INT
+) RETURNS VARCHAR(255)
 BEGIN
+    -- En MariaDB, SQLSTATE '23000' captura las violaciones de llave foránea (23503 en PG)
+    -- y SQLEXCEPTION atrapará las fallas del CHECK de tamaño/mime_type (23514 en PG)
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'No existe la solicitud de permiso indicada.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'El tipo de archivo o tamaño no cumple las reglas permitidas, u ocurrió un error.';
+
     IF wid_permiso IS NULL OR wid_permiso <= 0 THEN
         RETURN 'El ID del permiso no es válido.';
     END IF;
@@ -18,26 +24,29 @@ BEGIN
     END IF;
 
     INSERT INTO t_permisos_evidencias (
-        id_permiso, proveedor, storage_key, url_publica, nombre_original,
-        mime_type, tamano_bytes, usr_insert, fec_insert
+        id_permiso, 
+        proveedor, 
+        storage_key, 
+        url_publica, 
+        nombre_original,
+        mime_type, 
+        tamano_bytes, 
+        usr_insert, 
+        fec_insert
     )
     VALUES (
-        wid_permiso, COALESCE(UPPER(TRIM(wproveedor)), 'BUNNY'), TRIM(wstorage_key), wurl_publica,
-        wnombre_original, wmime_type, wtamano_bytes,
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        wid_permiso, 
+        COALESCE(UPPER(TRIM(wproveedor)), 'BUNNY'), 
+        TRIM(wstorage_key), 
+        wurl_publica,
+        wnombre_original, 
+        wmime_type, 
+        wtamano_bytes,
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Evidencia registrada correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'No existe la solicitud de permiso indicada.';
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'El tipo de archivo o tamaño no cumple las reglas permitidas.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al registrar la evidencia.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

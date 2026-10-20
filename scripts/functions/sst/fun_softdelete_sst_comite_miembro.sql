@@ -1,21 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_sst_comite_miembro(
-    wid_miembro t_sst_comite_miembros.id_miembro%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_miembro INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_sst_comite_miembros
     SET fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_miembro = wid_miembro
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Miembro % eliminado lógicamente.', wid_miembro;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró miembro activo con ID %.', wid_miembro;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

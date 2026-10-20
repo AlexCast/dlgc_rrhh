@@ -1,13 +1,12 @@
--- Traslada una fecha al lunes siguiente (o la deja igual si ya es lunes).
--- Implementa la Ley Emiliani (Ley 51 de 1983): varios festivos colombianos
--- se trasladan siempre al lunes de la semana en que caen.
-CREATE OR REPLACE FUNCTION fun_siguiente_lunes(wfecha DATE) RETURNS DATE AS
-$$
-DECLARE
-    vdia_semana INT; -- EXTRACT(DOW): 0=domingo, 1=lunes, ..., 6=sábado
+DELIMITER //
+
+-- Traslada una fecha al lunes siguiente (Ley Emiliani).
+CREATE OR REPLACE FUNCTION fun_siguiente_lunes(wfecha DATE) RETURNS DATE
+DETERMINISTIC
 BEGIN
-    vdia_semana := EXTRACT(DOW FROM wfecha);
-    RETURN wfecha + (((8 - vdia_semana) % 7) || ' days')::INTERVAL;
-END;
-$$
-LANGUAGE PLPGSQL IMMUTABLE;
+    -- DAYOFWEEK en MariaDB: 1=Dom, 2=Lun, 3=Mar, 4=Mie, 5=Jue, 6=Vie, 7=Sab
+    -- La fórmula matemática estricta equivalente al EXTRACT(DOW) de Postgres:
+    RETURN DATE_ADD(wfecha, INTERVAL ((9 - DAYOFWEEK(wfecha)) MOD 7) DAY);
+END //
+
+DELIMITER ;

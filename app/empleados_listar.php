@@ -45,7 +45,7 @@ try {
                 FROM t_contratos_empleados c
                 WHERE c.id_usuario = e.id_usuario
                   AND c.fec_delete IS NULL
-                ORDER BY c.fecha_inicio_puesto DESC NULLS LAST, c.id_contrato DESC
+                ORDER BY c.fecha_inicio_puesto DESC, c.id_contrato DESC
                 LIMIT 1
             ) AS cargo
          FROM t_empleados e

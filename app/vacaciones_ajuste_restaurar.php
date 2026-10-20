@@ -36,8 +36,8 @@ if ($idAjuste <= 0) {
 }
 
 try {
-    $sentencia = $conexion->prepare('SELECT fun_restore_vacaciones_ajustes(:id_ajuste) AS restaurado');
-    $sentencia->execute([':id_ajuste' => $idAjuste]);
+    $sentencia = $conexion->prepare('SELECT fun_restore_vacaciones_ajustes(?) AS restaurado');
+    $sentencia->execute([$idAjuste]);
     $restaurado = filter_var($sentencia->fetchColumn(), FILTER_VALIDATE_BOOLEAN);
 
     responderJson($restaurado, $restaurado ? 'Ajuste restaurado correctamente.' : 'No se encontró un ajuste anulado con ese ID.', $restaurado ? 200 : 404);

@@ -1,22 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_area(
-    wid_area t_areas.id_area%TYPE
-)
-RETURNS BOOLEAN AS
-$$
+    wid_area INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_areas
-    SET
-        fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
-        WHERE id_area = wid_area
+    SET fec_delete = CURRENT_TIMESTAMP,
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
+    WHERE id_area = wid_area
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Area % eliminada logicamente.', wid_area;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     ELSE
-        RAISE NOTICE 'No se encontro el area o ya esta eliminada.';
         RETURN FALSE;
     END IF;
-END;
-$$ LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

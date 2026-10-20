@@ -1,17 +1,18 @@
--- Edita los datos propios de la solicitud (fechas/horas/método de descuento) mientras sigue
--- PENDIENTE. El estado agregado y las observaciones de aprobación ya NO se tocan aquí:
--- eso lo resuelve fun_resolver_aprobacion_permiso sobre t_permisos_aprobaciones.
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_update_solicitudes_permisos(
-    wid_permiso t_solicitudes_permisos.id_permiso%TYPE,
-    wes_por_horas t_solicitudes_permisos.es_por_horas%TYPE,
-    wfecha_inicio t_solicitudes_permisos.fecha_inicio%TYPE,
-    wfecha_fin t_solicitudes_permisos.fecha_fin%TYPE,
-    whora_inicio t_solicitudes_permisos.hora_inicio%TYPE DEFAULT NULL,
-    whora_fin t_solicitudes_permisos.hora_fin%TYPE DEFAULT NULL,
-    wmetodo_descuento t_solicitudes_permisos.metodo_descuento%TYPE DEFAULT NULL
-) RETURNS VARCHAR AS
-$$
+    wid_permiso INT,
+    wes_por_horas BOOLEAN,
+    wfecha_inicio DATE,
+    wfecha_fin DATE,
+    whora_inicio TIME,
+    whora_fin TIME,
+    wmetodo_descuento VARCHAR(20)
+) RETURNS VARCHAR(255)
 BEGIN
+    -- Maneja violaciones del constraint CHECK 'chk_t_solicitudes_permisos_horas' y otros
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al actualizar la solicitud de permiso (o no cumple reglas).';
+
     IF wid_permiso IS NULL OR wid_permiso <= 0 THEN
         RETURN 'El ID del permiso no es válido.';
     END IF;
@@ -40,24 +41,17 @@ BEGIN
             WHEN wmetodo_descuento IS NULL OR TRIM(wmetodo_descuento) = '' THEN NULL
             ELSE UPPER(TRIM(wmetodo_descuento))
         END,
-        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_permiso = wid_permiso
       AND estado = 'PENDIENTE'
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
+    IF ROW_COUNT() > 0 THEN
         RETURN 'Solicitud de permiso actualizada correctamente.';
     END IF;
 
     RETURN 'No se encontró una solicitud pendiente con ese ID para actualizar.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'Los datos de horas o método de descuento no cumplen las reglas.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al actualizar la solicitud de permiso.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

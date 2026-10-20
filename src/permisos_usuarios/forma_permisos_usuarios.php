@@ -18,7 +18,7 @@ $operaciones = $conexion->query("
     FROM t_operaciones o
     INNER JOIN t_modulos m ON m.id_modulo = o.id_modulo AND m.fec_delete IS NULL
     WHERE o.fec_delete IS NULL
-    ORDER BY m.id_modulo::integer, o.id_operacion
+    ORDER BY m.id_modulo, o.id_operacion
 ")->fetchAll(PDO::FETCH_OBJ);
 ?>
 

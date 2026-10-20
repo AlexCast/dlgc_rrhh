@@ -39,11 +39,11 @@ if ($mes < 1 || $mes > 12) {
 $primerDia = sprintf('%04d-%02d-01', $anio, $mes);
 $ultimoDia = date('Y-m-t', strtotime($primerDia));
 
-$parametros = [':inicio' => $primerDia, ':fin' => $ultimoDia];
+$parametros = [$ultimoDia, $primerDia];
 $filtroEmpleado = '';
 if ($idEmpleado !== '') {
-    $filtroEmpleado = ' AND sp.id_empleado = :id_empleado';
-    $parametros[':id_empleado'] = $idEmpleado;
+    $filtroEmpleado = ' AND sp.id_empleado = ?';
+    $parametros[] = $idEmpleado;
 }
 
 // Vista 'nomina': solo lo que efectivamente genera descuento. Vista 'rrhh': todos los permisos aprobados.
@@ -55,7 +55,7 @@ $sentenciaPermisos = $conexion->prepare(
             u.primer_nombre, u.primer_apellido,
             sp.fecha_inicio, sp.fecha_fin, sp.es_por_horas, sp.hora_inicio, sp.hora_fin,
             sp.metodo_descuento, sp.estado,
-            (SELECT STRING_AGG(tp.nombre_tipo, ', ' ORDER BY tp.nombre_tipo)
+            (SELECT GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ')
                FROM t_solicitudes_permisos_motivos spm
                INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
               WHERE spm.id_permiso = sp.id_permiso AND spm.fec_delete IS NULL) AS motivos,
@@ -63,21 +63,14 @@ $sentenciaPermisos = $conexion->prepare(
                FROM t_solicitudes_permisos_motivos spm
                INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
               WHERE spm.id_permiso = sp.id_permiso AND spm.fec_delete IS NULL) AS porcentaje_descuento,
-            CASE WHEN sp.es_por_horas THEN NULL ELSE (
-                SELECT COUNT(*) FROM generate_series(sp.fecha_inicio, sp.fecha_fin, interval '1 day') gs(dia)
-                WHERE EXTRACT(DOW FROM gs.dia) <> 0
-                  AND NOT EXISTS (
-                      SELECT 1 FROM t_dias_festivos df
-                      WHERE df.fecha = gs.dia::date AND df.fec_delete IS NULL
-                  )
-            ) END AS dias_habiles,
-            CASE WHEN sp.es_por_horas THEN EXTRACT(EPOCH FROM (sp.hora_fin - sp.hora_inicio)) / 3600 ELSE NULL END AS horas_descontadas
+            CASE WHEN sp.es_por_horas THEN NULL ELSE fun_dias_habiles_rango(sp.fecha_inicio, sp.fecha_fin) END AS dias_habiles,
+            CASE WHEN sp.es_por_horas THEN TIME_TO_SEC(TIMEDIFF(sp.hora_fin, sp.hora_inicio)) / 3600 ELSE NULL END AS horas_descontadas
      FROM t_solicitudes_permisos sp
      INNER JOIN t_usuarios u ON u.id_usuario = sp.id_empleado
      WHERE sp.fec_delete IS NULL
        AND sp.estado = 'APROBADO'
        {$filtroDescuentoPermisos}
-       AND sp.fecha_inicio <= :fin AND sp.fecha_fin >= :inicio
+       AND sp.fecha_inicio <= ? AND sp.fecha_fin >= ?
        {$filtroEmpleado}
      ORDER BY sp.fecha_inicio, u.primer_apellido"
 );
@@ -96,14 +89,14 @@ $sentenciaFestivos = $conexion->prepare(
                 AND e.fecha_ingreso <= df.fecha
                 AND (e.fecha_egreso IS NULL OR e.fecha_egreso >= df.fecha)
             ) AS empleados_afectados,
-            CASE WHEN EXTRACT(DOW FROM df.fecha) = 0 THEN 0 ELSE 1 END AS dias_habiles
+            CASE WHEN DAYOFWEEK(df.fecha) = 1 THEN 0 ELSE 1 END AS dias_habiles
      FROM t_dias_festivos df
      WHERE df.fec_delete IS NULL
        {$filtroDescuentoFestivos}
-       AND df.fecha BETWEEN :inicio AND :fin
+       AND df.fecha BETWEEN ? AND ?
      ORDER BY df.fecha"
 );
-$sentenciaFestivos->execute([':inicio' => $primerDia, ':fin' => $ultimoDia]);
+$sentenciaFestivos->execute([$primerDia, $ultimoDia]);
 $festivos = $sentenciaFestivos->fetchAll(PDO::FETCH_ASSOC);
 
 $tituloBase = $vista === 'nomina' ? 'Reporte de Nómina (solo descuentos)' : 'Reporte RRHH (todos los permisos aprobados)';

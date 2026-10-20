@@ -1,43 +1,40 @@
-CREATE OR REPLACE FUNCTION fun_listar_afiliaciones_empleados(
-    wid_usuario t_afiliaciones_empleados.id_usuario%TYPE,
-    wid_eps t_afiliaciones_empleados.id_eps%TYPE,
-    wid_arl t_afiliaciones_empleados.id_arl%TYPE,
-    wid_caja t_afiliaciones_empleados.id_caja%TYPE,
-    wid_pension t_afiliaciones_empleados.id_pension%TYPE
-) 
-RETURNS BOOLEAN AS
-$$
-DECLARE 
-    wreg_af t_afiliaciones_empleados%ROWTYPE;
-BEGIN
-    SELECT id_usuario, id_eps, id_arl, id_caja, id_pension, id_cesantia
-    INTO wreg_af
-    FROM t_afiliaciones_empleados
-        WHERE id_usuario = wid_usuario
-          AND id_eps = wid_eps
-          AND id_arl = wid_arl
-          AND id_caja = wid_caja
-          AND id_pension = wid_pension
-          AND fec_delete IS NULL;
+DELIMITER //
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'No se encontró el registro para el usuario %.', wid_usuario;
+CREATE OR REPLACE FUNCTION fun_listar_afiliaciones_empleados(
+    wid_usuario VARCHAR(20),
+    wid_eps INT,
+    wid_arl INT,
+    wid_caja INT,
+    wid_pension INT
+) RETURNS BOOLEAN
+BEGIN
+    DECLARE v_id_usuario VARCHAR(20);
+    DECLARE v_id_eps INT;
+    DECLARE v_id_arl INT;
+    DECLARE v_id_caja INT;
+    DECLARE v_id_pension INT;
+    DECLARE v_id_cesantia INT;
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
+    SELECT id_usuario, id_eps, id_arl, id_caja, id_pension, id_cesantia
+    INTO v_id_usuario, v_id_eps, v_id_arl, v_id_caja, v_id_pension, v_id_cesantia
+    FROM t_afiliaciones_empleados
+    WHERE id_usuario = wid_usuario
+      AND id_eps = wid_eps
+      AND id_arl = wid_arl
+      AND id_caja = wid_caja
+      AND id_pension = wid_pension
+      AND fec_delete IS NULL
+    LIMIT 1;
+
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'Usuario: %, EPS: %, ARL: %, Caja: %, Pensión: %, Cesantías: %',
-        wreg_af.id_usuario,
-        wreg_af.id_eps,
-        wreg_af.id_arl,
-        wreg_af.id_caja,
-        wreg_af.id_pension,
-        wreg_af.id_cesantia;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

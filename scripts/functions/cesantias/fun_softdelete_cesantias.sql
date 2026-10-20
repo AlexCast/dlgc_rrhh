@@ -1,22 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_cesantias(
-    wid_cesantia t_cesantias.id_cesantia%TYPE
-)
-RETURNS BOOLEAN AS
-$$
+    wid_cesantia INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_cesantias
-    SET 
-        fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
-        WHERE id_cesantia = wid_cesantia
+    SET fec_delete = CURRENT_TIMESTAMP,
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
+    WHERE id_cesantia = wid_cesantia
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Entidad de Cesantías % eliminada lógicamente.', wid_cesantia;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     ELSE
-        RAISE NOTICE 'No se encontró la entidad de Cesantías o ya está eliminada.';
         RETURN FALSE;
     END IF;
-END;
-$$ LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

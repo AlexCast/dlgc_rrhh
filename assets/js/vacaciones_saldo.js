@@ -57,15 +57,15 @@
             return;
         }
 
-        enlaceExcel.href = '/dlgc_rrhh/app/vacaciones_reporte.php?formato=excel&id_empleado=' + encodeURIComponent(idEmpleado);
-        enlacePdf.href = '/dlgc_rrhh/app/vacaciones_reporte.php?formato=pdf&id_empleado=' + encodeURIComponent(idEmpleado);
+        enlaceExcel.href = '/app/vacaciones_reporte.php?formato=excel&id_empleado=' + encodeURIComponent(idEmpleado);
+        enlacePdf.href = '/app/vacaciones_reporte.php?formato=pdf&id_empleado=' + encodeURIComponent(idEmpleado);
         enlaceExcel.hidden = false;
         enlacePdf.hidden = false;
     }
 
     function cargarEmpleados() {
         const selectEmpleado = document.getElementById('vacaciones-empleado');
-        fetch('/dlgc_rrhh/app/vacaciones_saldo.php?accion=empleados', { credentials: 'same-origin' })
+        fetch('/app/vacaciones_saldo.php?accion=empleados', { credentials: 'same-origin' })
             .then((response) => response.json())
             .then((data) => {
                 if (!data.success) {
@@ -94,7 +94,7 @@
         resumen.innerHTML = '<p class="vac-cycle">Cargando...</p>';
         listaAjustes.innerHTML = '';
 
-        fetch('/dlgc_rrhh/app/vacaciones_saldo.php?id_empleado=' + encodeURIComponent(idEmpleado), {
+        fetch('/app/vacaciones_saldo.php?id_empleado=' + encodeURIComponent(idEmpleado), {
             credentials: 'same-origin'
         })
             .then((response) => response.json())
@@ -190,7 +190,7 @@
         formData.append('csrf_token', document.body.dataset.csrf);
 
         btn.disabled = true;
-        fetch('/dlgc_rrhh/app/vacaciones_ajuste_restaurar.php', {
+        fetch('/app/vacaciones_ajuste_restaurar.php', {
             method: 'POST',
             body: formData,
             credentials: 'same-origin'
@@ -219,7 +219,7 @@
         formData.append('csrf_token', document.body.dataset.csrf);
 
         btn.disabled = true;
-        fetch('/dlgc_rrhh/app/vacaciones_ajuste_anular.php', {
+        fetch('/app/vacaciones_ajuste_anular.php', {
             method: 'POST',
             body: formData,
             credentials: 'same-origin'
@@ -263,7 +263,7 @@
         formData.append('motivo', document.getElementById('vacaciones-motivo').value);
         formData.append('csrf_token', document.body.dataset.csrf);
 
-        fetch('/dlgc_rrhh/app/vacaciones_ajuste_insertar.php', {
+        fetch('/app/vacaciones_ajuste_insertar.php', {
             method: 'POST',
             body: formData,
             credentials: 'same-origin'

@@ -1,9 +1,13 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_roles(
-    wid_rol t_roles.id_rol%TYPE,
-    wnombre_rol t_roles.nombre_rol%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_rol INT,
+    wnombre_rol VARCHAR(50)
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'El rol ya existe.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al insertar el rol.';
+
     IF wid_rol IS NULL OR wid_rol <= 0 THEN
         RETURN 'El ID del rol no es válido.';
     END IF;
@@ -21,18 +25,11 @@ BEGIN
     VALUES (
         wid_rol,
         TRIM(wnombre_rol),
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Rol insertado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'El rol ya existe.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar el rol.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

@@ -38,8 +38,8 @@ if ($idAjuste <= 0) {
 }
 
 try {
-    $sentencia = $conexion->prepare('SELECT fun_softdelete_vacaciones_ajustes(:id_ajuste) AS anulado');
-    $sentencia->execute([':id_ajuste' => $idAjuste]);
+    $sentencia = $conexion->prepare('SELECT fun_softdelete_vacaciones_ajustes(?) AS anulado');
+    $sentencia->execute([$idAjuste]);
     $anulado = filter_var($sentencia->fetchColumn(), FILTER_VALIDATE_BOOLEAN);
 
     responderJson($anulado, $anulado ? 'Ajuste anulado correctamente.' : 'No se encontró un ajuste activo con ese ID.', $anulado ? 200 : 404);

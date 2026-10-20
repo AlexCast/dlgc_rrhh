@@ -1,17 +1,22 @@
-CREATE OR REPLACE FUNCTION fun_restore_usuarios(wid_usuario t_usuarios.id_usuario%TYPE)
-RETURNS BOOLEAN AS
-$$
-BEGIN
-    UPDATE t_usuarios
-    SET fec_delete = NULL, usr_delete = NULL
-    WHERE id_usuario = wid_usuario AND fec_delete IS NOT NULL;
+DELIMITER //
 
-    IF FOUND THEN
-        RAISE NOTICE 'Usuario % restaurado correctamente.', wid_usuario;
+CREATE OR REPLACE FUNCTION fun_restore_usuarios(
+    wid_usuario VARCHAR(20)
+) RETURNS BOOLEAN
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
+    UPDATE t_usuarios
+    SET fec_delete = NULL, 
+        usr_delete = NULL
+    WHERE id_usuario = wid_usuario 
+      AND fec_delete IS NOT NULL;
+
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
-    ELSE
-        RAISE NOTICE 'No se encontró el usuario eliminado.';
-        RETURN FALSE;
     END IF;
-END;
-$$ LANGUAGE plpgsql;
+    
+    RETURN FALSE;
+END //
+
+DELIMITER ;

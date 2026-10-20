@@ -10,10 +10,10 @@ if ($conexion && $esJefe) {
     $sentenciaSubordinados = $conexion->prepare(
         'SELECT COUNT(*) AS total
          FROM t_empleados
-         WHERE id_jefe = :id_jefe
+         WHERE id_jefe = ?
            AND fec_delete IS NULL'
     );
-    $sentenciaSubordinados->execute([':id_jefe' => $_SESSION['id_usuario'] ?? null]);
+    $sentenciaSubordinados->execute([$_SESSION['id_usuario'] ?? null]);
     $tieneSubordinados = ((int) ($sentenciaSubordinados->fetch(PDO::FETCH_ASSOC)['total'] ?? 0)) > 0;
 }
 $mostrarJefe = $esJefe && $tieneSubordinados;

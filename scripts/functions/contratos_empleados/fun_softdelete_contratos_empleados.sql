@@ -1,21 +1,22 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_softdelete_contratos_empleados(
-    wid_contrato t_contratos_empleados.id_contrato%TYPE
-) RETURNS BOOLEAN AS
-$$
+    wid_contrato INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     UPDATE t_contratos_empleados
     SET fec_delete = CURRENT_TIMESTAMP,
-        usr_delete = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER)
+        usr_delete = COALESCE(@app_current_user, CURRENT_USER())
     WHERE id_contrato = wid_contrato
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
-        RAISE NOTICE 'Contrato % eliminado lógicamente.', wid_contrato;
+    IF ROW_COUNT() > 0 THEN
         RETURN TRUE;
     END IF;
 
-    RAISE NOTICE 'No se encontró contrato activo con ID %.', wid_contrato;
     RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+END //
+
+DELIMITER ;

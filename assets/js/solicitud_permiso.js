@@ -33,7 +33,7 @@ function formatearFechaISO(date) {
 function cargarFestivos(anio) {
     if (aniosFestivosCargados.has(anio)) return Promise.resolve();
 
-    return fetch('/dlgc_rrhh/app/festivos_listar.php?anio=' + encodeURIComponent(anio), {
+    return fetch('/app/festivos_listar.php?anio=' + encodeURIComponent(anio), {
         credentials: 'same-origin'
     })
         .then(response => response.json())
@@ -594,7 +594,7 @@ function handleFormSubmit(event) {
     const submitBtn = event.target.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
 
-    fetch('/dlgc_rrhh/app/solicitud_permiso.php', {
+    fetch('/app/solicitud_permiso.php', {
         method: 'POST',
         body: formData,
         credentials: 'same-origin'
@@ -657,7 +657,7 @@ function cargarBandeja(vista, historial) {
     contenedor.innerHTML = '<p class="sst-section-desc">Cargando...</p>';
 
     const query = 'vista=' + encodeURIComponent(vista) + (historial ? '&historial=1' : '');
-    fetch('/dlgc_rrhh/app/permiso_listar.php?' + query, {
+    fetch('/app/permiso_listar.php?' + query, {
         credentials: 'same-origin'
     })
         .then(response => response.json())
@@ -759,7 +759,7 @@ function resolverSolicitud(btn, contenedor, vista) {
     formData.append('metodo_descuento', metodoDescuento);
     formData.append('csrf_token', csrf);
 
-    fetch('/dlgc_rrhh/app/permiso_resolver.php', {
+    fetch('/app/permiso_resolver.php', {
         method: 'POST',
         body: formData,
         credentials: 'same-origin'

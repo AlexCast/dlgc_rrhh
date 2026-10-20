@@ -1,5 +1,9 @@
 # Guía de setup RBAC para DLGC_RRHH
 
+> **Nota:** este documento aún usa comandos `psql` (PostgreSQL). La migración a MariaDB
+> está en curso; consulta [migracion_a_mariadb.md](../migracion_a_mariadb.md) para los
+> comandos `mariadb` y el estado actual.
+
 ## Nota de seguridad: CSRF
 
 El proyecto utiliza protección CSRF mediante tokens de sesión.

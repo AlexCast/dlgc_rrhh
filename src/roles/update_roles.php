@@ -21,11 +21,8 @@ $nombre_rol = trim($_POST['nombre_rol'] ?? '');
 
 require_once __DIR__ . '/../../app/conexion.php';
 
-$sentencia = $conexion->prepare('SELECT fun_update_roles(:id_rol, :nombre_rol);');
-$sentencia->execute([
-    ':id_rol' => $id_rol,
-        ':nombre_rol' => $nombre_rol,
-]);
+$sentencia = $conexion->prepare('SELECT fun_update_roles(?, ?);');
+$sentencia->execute([$id_rol, $nombre_rol]);
 $resultado = (string) $sentencia->fetchColumn();
 
 if (stripos($resultado, 'funcion') !== false || stripos($resultado, 'correctamente') !== false || stripos($resultado, 'Esta vaina funcionó') !== false) {

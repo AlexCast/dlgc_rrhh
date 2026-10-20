@@ -103,7 +103,7 @@ function initializeReportesRrhh() {
                 mes: mesSelect ? mesSelect.value : '',
                 anio: anioSelect ? anioSelect.value : ''
             });
-            window.location.href = '/dlgc_rrhh/app/permiso_reporte.php?' + params.toString();
+            window.location.href = '/app/permiso_reporte.php?' + params.toString();
         });
     });
 }
@@ -143,7 +143,7 @@ function cargarBandeja(vista, historial) {
     contenedor.innerHTML = '<p class="sst-section-desc">Cargando...</p>';
 
     const query = 'vista=' + encodeURIComponent(vista) + (historial ? '&historial=1' : '');
-    fetch('/dlgc_rrhh/app/permiso_listar.php?' + query, {
+    fetch('/app/permiso_listar.php?' + query, {
         credentials: 'same-origin'
     })
         .then(response => response.json())
@@ -245,7 +245,7 @@ function resolverSolicitud(btn, contenedor, vista) {
     formData.append('metodo_descuento', metodoDescuento);
     formData.append('csrf_token', csrf);
 
-    fetch('/dlgc_rrhh/app/permiso_resolver.php', {
+    fetch('/app/permiso_resolver.php', {
         method: 'POST',
         body: formData,
         credentials: 'same-origin'

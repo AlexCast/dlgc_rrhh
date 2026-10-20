@@ -1,11 +1,15 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_permisos_dias_aprobados(
-    wid_permiso t_permisos_dias_aprobados.id_permiso%TYPE,
-    wid_empleado t_permisos_dias_aprobados.id_empleado%TYPE,
-    wfecha t_permisos_dias_aprobados.fecha%TYPE,
-    whoras_aprobadas t_permisos_dias_aprobados.horas_aprobadas%TYPE
-) RETURNS VARCHAR AS
-$$
+    wid_permiso INT,
+    wid_empleado VARCHAR(20),
+    wfecha DATE,
+    whoras_aprobadas DECIMAL(4,2)
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'No existe el permiso o empleado indicado.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Las horas aprobadas no cumplen las reglas de la tabla u ocurrió un error.';
+
     IF wid_permiso IS NULL OR wid_permiso <= 0 THEN
         RETURN 'El ID del permiso no es válido.';
     END IF;
@@ -35,20 +39,11 @@ BEGIN
         wid_empleado,
         wfecha,
         whoras_aprobadas,
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Día de permiso aprobado insertado correctamente.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23503' THEN
-        RETURN 'No existe el permiso o empleado indicado.';
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'Las horas aprobadas no cumplen las reglas de la tabla.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al insertar el día de permiso aprobado.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

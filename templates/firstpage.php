@@ -11,13 +11,13 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
     $sentenciaRol = $conexion->prepare(
         "SELECT c.puesto
          FROM t_contratos_empleados c
-         WHERE c.id_usuario = :id_usuario
+         WHERE c.id_usuario = ?
            AND c.fec_delete IS NULL
-         ORDER BY c.fecha_inicio_puesto DESC NULLS LAST, c.id_contrato DESC
+         ORDER BY c.fecha_inicio_puesto DESC, c.id_contrato DESC
          LIMIT 1"
     );
 
-    $sentenciaRol->execute([':id_usuario' => $idUsuarioSesion]);
+    $sentenciaRol->execute([$idUsuarioSesion]);
     $puestoContrato = $sentenciaRol->fetchColumn();
 
     if ($puestoContrato !== false && trim((string) $puestoContrato) !== '') {
@@ -27,9 +27,10 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
 
 $saldoVacaciones = null;
 if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
-    $sentenciaSaldo = $conexion->prepare('SELECT * FROM fun_calcular_saldo_vacaciones(:id_usuario)');
-    $sentenciaSaldo->execute([':id_usuario' => $idUsuarioSesion]);
+    $sentenciaSaldo = $conexion->prepare('CALL proc_calcular_saldo_vacaciones(?)');
+    $sentenciaSaldo->execute([$idUsuarioSesion]);
     $filaSaldo = $sentenciaSaldo->fetch(PDO::FETCH_ASSOC);
+    $sentenciaSaldo->closeCursor();
     if ($filaSaldo !== false) {
         $saldoVacaciones = $filaSaldo;
     }
@@ -49,10 +50,10 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '' && has_module_p
     $sentenciaSubordinados = $conexion->prepare(
         'SELECT COUNT(*) AS total
          FROM t_empleados
-         WHERE id_jefe = :id_jefe
+         WHERE id_jefe = ?
            AND fec_delete IS NULL'
     );
-    $sentenciaSubordinados->execute([':id_jefe' => $idUsuarioSesion]);
+    $sentenciaSubordinados->execute([$idUsuarioSesion]);
     $esJefeConSubordinados = ((int) ($sentenciaSubordinados->fetch(PDO::FETCH_ASSOC)['total'] ?? 0)) > 0;
 }
 $verMetricaNovedades = $esJefeConSubordinados || has_module_access(27);
@@ -110,45 +111,45 @@ function formatearDiasMetrica(float $valor): string {
 if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
     $stmtIncap = $conexion->prepare("SELECT COALESCE(SUM(
             CASE
-                WHEN sp.es_por_horas THEN EXTRACT(EPOCH FROM (sp.hora_fin - sp.hora_inicio)) / 3600 / 8
+                WHEN sp.es_por_horas THEN TIME_TO_SEC(TIMEDIFF(sp.hora_fin, sp.hora_inicio)) / 3600 / 8
                 ELSE fun_dias_habiles_rango(sp.fecha_inicio, sp.fecha_fin)
             END
         ), 0) AS dias
         FROM t_solicitudes_permisos sp
         JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
         JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
-        WHERE sp.id_empleado = :id_usuario
+        WHERE sp.id_empleado = ?
           AND sp.estado = 'APROBADO'
           AND sp.fec_delete IS NULL
-          AND tp.nombre_tipo ILIKE ANY (ARRAY['Incapacidad%', 'Consulta Médica'])
-          AND EXTRACT(YEAR FROM sp.fecha_inicio) = EXTRACT(YEAR FROM CURRENT_DATE)");
-    $stmtIncap->execute([':id_usuario' => $idUsuarioSesion]);
+          AND (tp.nombre_tipo LIKE 'Incapacidad%' OR tp.nombre_tipo LIKE 'Consulta Médica')
+          AND YEAR(sp.fecha_inicio) = YEAR(CURRENT_DATE)");
+    $stmtIncap->execute([$idUsuarioSesion]);
     $totalIncapacidadesAnio = (float) $stmtIncap->fetchColumn();
 
     $stmtProc = $conexion->prepare("SELECT COUNT(*)
         FROM t_solicitudes_permisos
-        WHERE id_empleado = :id_usuario
+        WHERE id_empleado = ?
           AND estado IN ('PENDIENTE', 'EN_REVISION')
           AND fec_delete IS NULL");
-    $stmtProc->execute([':id_usuario' => $idUsuarioSesion]);
+    $stmtProc->execute([$idUsuarioSesion]);
     $solicitudesEnProceso = (int) $stmtProc->fetchColumn();
 
     $stmtUlt = $conexion->prepare("SELECT sp.id_permiso, sp.fecha_inicio, sp.fecha_fin, sp.es_por_horas,
                sp.estado,
                CASE
-                   WHEN sp.es_por_horas THEN ROUND(EXTRACT(EPOCH FROM (sp.hora_fin - sp.hora_inicio)) / 3600, 1)
+                   WHEN sp.es_por_horas THEN ROUND(TIME_TO_SEC(TIMEDIFF(sp.hora_fin, sp.hora_inicio)) / 3600, 1)
                    ELSE fun_dias_habiles_rango(sp.fecha_inicio, sp.fecha_fin)
                END AS duracion,
-               STRING_AGG(tp.nombre_tipo, ', ' ORDER BY tp.nombre_tipo) AS tipos
+               GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ') AS tipos
         FROM t_solicitudes_permisos sp
         LEFT JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
         LEFT JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
-        WHERE sp.id_empleado = :id_usuario
+        WHERE sp.id_empleado = ?
           AND sp.fec_delete IS NULL
         GROUP BY sp.id_permiso
         ORDER BY sp.fec_insert DESC
         LIMIT 5");
-    $stmtUlt->execute([':id_usuario' => $idUsuarioSesion]);
+    $stmtUlt->execute([$idUsuarioSesion]);
     $ultimosTramites = $stmtUlt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -169,7 +170,7 @@ if ($verMetricaAfiliaciones) {
 }
 
 if ($verMetricaNovedades) {
-    $stmt = $conexion->query("SELECT COUNT(*) FROM t_solicitudes_permisos WHERE fec_insert >= CURRENT_DATE - INTERVAL '7 days' AND fec_delete IS NULL");
+    $stmt = $conexion->query("SELECT COUNT(*) FROM t_solicitudes_permisos WHERE fec_insert >= CURRENT_DATE - INTERVAL 7 DAY AND fec_delete IS NULL");
     $novedadesSemana = (int) $stmt->fetchColumn();
 }
 
@@ -177,8 +178,8 @@ if ($verTramitesEmpresa) {
     $stmtUltAdmin = $conexion->query("WITH ultimos AS (
         SELECT
             'Permiso' AS tipo_tramite,
-            STRING_AGG(DISTINCT tp.nombre_tipo, ', ' ORDER BY tp.nombre_tipo) AS detalle,
-            sp.fec_insert::date AS fecha_registro,
+            GROUP_CONCAT(DISTINCT tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ') AS detalle,
+            DATE(sp.fec_insert) AS fecha_registro,
             sp.estado
         FROM t_solicitudes_permisos sp
         JOIN t_usuarios u ON sp.id_empleado = u.id_usuario
@@ -191,8 +192,8 @@ if ($verTramitesEmpresa) {
 
         SELECT
             'Afiliación' AS tipo_tramite,
-            ('EPS: ' || e.nombre_eps || ' | ARL: ' || a.nombre_arl) AS detalle,
-            ae.fec_insert::date AS fecha_registro,
+            CONCAT('EPS: ', e.nombre_eps, ' | ARL: ', a.nombre_arl) AS detalle,
+            DATE(ae.fec_insert) AS fecha_registro,
             'Activo' AS estado
         FROM t_afiliaciones_empleados ae
         JOIN t_usuarios u ON ae.id_usuario = u.id_usuario

@@ -1,14 +1,17 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_update_sst_comite_miembro(
-    wid_miembro t_sst_comite_miembros.id_miembro%TYPE,
-    wnombre_completo t_sst_comite_miembros.nombre_completo%TYPE,
-    wcargo t_sst_comite_miembros.cargo%TYPE,
-    wtipo_comite t_sst_comite_miembros.tipo_comite%TYPE,
-    wcorreo t_sst_comite_miembros.correo%TYPE DEFAULT NULL,
-    wtelefono t_sst_comite_miembros.telefono%TYPE DEFAULT NULL,
-    worden_visualizacion t_sst_comite_miembros.orden_visualizacion%TYPE DEFAULT 0
-) RETURNS VARCHAR AS
-$$
+    wid_miembro INT,
+    wnombre_completo VARCHAR(100),
+    wcargo VARCHAR(50),
+    wtipo_comite VARCHAR(30),
+    wcorreo VARCHAR(40),
+    wtelefono VARCHAR(15),
+    worden_visualizacion INT
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'El tipo de comité no es válido o ocurrió un error al actualizar.';
+
     IF wid_miembro IS NULL OR wid_miembro <= 0 THEN
         RETURN 'El ID del miembro no es válido.';
     END IF;
@@ -32,23 +35,16 @@ BEGIN
         correo = NULLIF(TRIM(wcorreo), ''),
         telefono = NULLIF(TRIM(wtelefono), ''),
         orden_visualizacion = COALESCE(worden_visualizacion, 0),
-        usr_update = COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_miembro = wid_miembro
       AND fec_delete IS NULL;
 
-    IF FOUND THEN
+    IF ROW_COUNT() > 0 THEN
         RETURN 'Miembro del comité actualizado correctamente.';
     END IF;
 
     RETURN 'No se encontró el miembro activo para actualizar.';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23514' THEN
-        RETURN 'El tipo de comité indicado no es válido.';
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al actualizar el miembro del comité.';
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

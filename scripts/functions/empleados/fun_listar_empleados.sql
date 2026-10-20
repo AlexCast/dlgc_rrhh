@@ -1,19 +1,34 @@
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_listar_empleados(
-    wid_usuario t_empleados.id_usuario%TYPE
-) RETURNS BOOLEAN AS
-$$
-DECLARE
-    wreg_empleado t_empleados%ROWTYPE;
+    wid_usuario VARCHAR(20)
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_usuario VARCHAR(20);
+    DECLARE v_id_jefe VARCHAR(20);
+    DECLARE v_id_municipio INT;
+    DECLARE v_fecha_ingreso DATE;
+    DECLARE v_fecha_egreso DATE;
+    DECLARE v_genero VARCHAR(10);
+    DECLARE v_fecha_nacimiento DATE;
+    DECLARE v_tipo_sangre VARCHAR(5);
+    DECLARE v_estado_civil VARCHAR(20);
+    DECLARE v_direccion_casa VARCHAR(100);
+    DECLARE v_numero_celular VARCHAR(10);
+    DECLARE v_foto_perfil VARCHAR(255);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_usuario IS NULL OR wid_usuario = '' THEN
-        RAISE NOTICE 'El ID del empleado no puede ser nulo o vacío.';
         RETURN FALSE;
     END IF;
 
     SELECT
         id_usuario,
         id_jefe,
-		id_municipio,
+        id_municipio,
         fecha_ingreso,
         fecha_egreso,
         genero,
@@ -22,43 +37,30 @@ BEGIN
         estado_civil,
         direccion_casa,
         numero_celular,
-        foto_perfil,
-        usr_insert,
-        fec_insert,
-        usr_update,
-        fec_update,
-        usr_delete,
-        fec_delete
-    INTO wreg_empleado
+        foto_perfil
+    INTO 
+        v_id_usuario,
+        v_id_jefe,
+        v_id_municipio,
+        v_fecha_ingreso,
+        v_fecha_egreso,
+        v_genero,
+        v_fecha_nacimiento,
+        v_tipo_sangre,
+        v_estado_civil,
+        v_direccion_casa,
+        v_numero_celular,
+        v_foto_perfil
     FROM t_empleados
     WHERE id_usuario = wid_usuario
-      AND fec_delete IS NULL;
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'El empleado con ID % no existe o está eliminado.', wid_usuario;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Jefe: %, Municipio: %, Ingreso: %, Egreso: %, Género: %, Nacimiento: %, Sangre: %, Estado civil: %, Dirección: %, Celular: %, Foto: %',
-        wreg_empleado.id_usuario,
-        wreg_empleado.id_jefe,
-		wreg_empleado.id_municipio,
-        wreg_empleado.fecha_ingreso,
-        wreg_empleado.fecha_egreso,
-        wreg_empleado.genero,
-        wreg_empleado.fecha_nacimiento,
-        wreg_empleado.tipo_sangre,
-        wreg_empleado.estado_civil,
-        wreg_empleado.direccion_casa,
-        wreg_empleado.numero_celular,
-        wreg_empleado.foto_perfil;
-
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

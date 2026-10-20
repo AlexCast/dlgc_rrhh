@@ -16,10 +16,10 @@ $accion = $_POST['accion'] ?? '';
 
 function generarCodigo(PDO $conexion): string
 {
-    $stmtExiste = $conexion->prepare("SELECT COUNT(*) FROM t_codigos_registro WHERE codigo = :codigo");
+    $stmtExiste = $conexion->prepare("SELECT COUNT(*) FROM t_codigos_registro WHERE codigo = ?");
     do {
         $codigo = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-        $stmtExiste->execute([':codigo' => $codigo]);
+        $stmtExiste->execute([$codigo]);
         $existe = (int) $stmtExiste->fetchColumn() > 0;
     } while ($existe);
     return $codigo;
@@ -51,18 +51,14 @@ try {
 
             $conexion->prepare(
                 "UPDATE t_codigos_registro
-                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = :usr_delete
+                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = ?
                  WHERE tipo = 'TEMPORAL' AND fec_delete IS NULL"
-            )->execute([':usr_delete' => $usuarioSesion]);
+            )->execute([$usuarioSesion]);
 
             $conexion->prepare(
                 "INSERT INTO t_codigos_registro (codigo, tipo, fecha_expiracion, usr_insert, fec_insert)
-                 VALUES (:codigo, 'TEMPORAL', :expiracion, :usr_insert, CURRENT_TIMESTAMP)"
-            )->execute([
-                ':codigo' => $nuevoCodigo,
-                ':expiracion' => $expiracion,
-                ':usr_insert' => $usuarioSesion,
-            ]);
+                 VALUES (?, 'TEMPORAL', ?, ?, CURRENT_TIMESTAMP)"
+            )->execute([$nuevoCodigo, $expiracion, $usuarioSesion]);
 
             setFlash("Código temporal generado: {$nuevoCodigo}. Vence el {$expiracion}.");
             break;
@@ -75,10 +71,10 @@ try {
 
             $afectados = $conexion->prepare(
                 "UPDATE t_codigos_registro
-                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = :usr_delete
+                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = ?
                  WHERE tipo = 'TEMPORAL' AND fec_delete IS NULL"
             );
-            $afectados->execute([':usr_delete' => $usuarioSesion]);
+            $afectados->execute([$usuarioSesion]);
 
             if ($afectados->rowCount() > 0) {
                 setFlash('Código temporal cancelado correctamente.');
@@ -97,17 +93,14 @@ try {
 
             $conexion->prepare(
                 "UPDATE t_codigos_registro
-                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = :usr_delete
+                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = ?
                  WHERE tipo = 'UNICO_USO' AND usado = FALSE AND fec_delete IS NULL"
-            )->execute([':usr_delete' => $usuarioSesion]);
+            )->execute([$usuarioSesion]);
 
             $conexion->prepare(
                 "INSERT INTO t_codigos_registro (codigo, tipo, usr_insert, fec_insert)
-                 VALUES (:codigo, 'UNICO_USO', :usr_insert, CURRENT_TIMESTAMP)"
-            )->execute([
-                ':codigo' => $nuevoCodigo,
-                ':usr_insert' => $usuarioSesion,
-            ]);
+                 VALUES (?, 'UNICO_USO', ?, CURRENT_TIMESTAMP)"
+            )->execute([$nuevoCodigo, $usuarioSesion]);
 
             setFlash("Código único generado: {$nuevoCodigo}.");
             break;
@@ -120,10 +113,10 @@ try {
 
             $afectados = $conexion->prepare(
                 "UPDATE t_codigos_registro
-                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = :usr_delete
+                 SET fec_delete = CURRENT_TIMESTAMP, usr_delete = ?
                  WHERE tipo = 'UNICO_USO' AND usado = FALSE AND fec_delete IS NULL"
             );
-            $afectados->execute([':usr_delete' => $usuarioSesion]);
+            $afectados->execute([$usuarioSesion]);
 
             if ($afectados->rowCount() > 0) {
                 setFlash('Código único cancelado correctamente.');

@@ -1,34 +1,32 @@
-CREATE OR REPLACE FUNCTION fun_listar_pension(wid_pension t_pension.id_pension%TYPE) 
-RETURNS BOOLEAN AS
-$$
-DECLARE 
-    wreg_pension t_pension%ROWTYPE;
+DELIMITER //
+
+CREATE OR REPLACE FUNCTION fun_listar_pension(
+    wid_pension INT
+) RETURNS BOOLEAN
 BEGIN
+    DECLARE v_id_pension INT;
+    DECLARE v_nombre_pension VARCHAR(50);
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN FALSE;
+
     IF wid_pension IS NULL OR wid_pension <= 0 THEN
-        RAISE NOTICE 'El ID de la entidad de Pensión no puede ser nulo o menor/igual a 0.';
         RETURN FALSE;
     END IF;
 
     SELECT id_pension, nombre_pension
-    INTO wreg_pension
+    INTO v_id_pension, v_nombre_pension
     FROM t_pension
-        WHERE id_pension = wid_pension
-            AND fec_delete IS NULL;
+    WHERE id_pension = wid_pension
+      AND fec_delete IS NULL
+    LIMIT 1;
 
-    IF NOT FOUND THEN
-        RAISE NOTICE 'La entidad de Pensión con ID % no existe.', wid_pension;
+    IF v_not_found THEN
         RETURN FALSE;
     END IF;
 
-    RAISE NOTICE 'ID: %, Nombre: %',
-        wreg_pension.id_pension,
-        wreg_pension.nombre_pension;
     RETURN TRUE;
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN FALSE;
-END;
-$$
-LANGUAGE PLPGSQL;
+DELIMITER ;

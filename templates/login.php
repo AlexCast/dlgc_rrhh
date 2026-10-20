@@ -22,6 +22,9 @@ $registerData = $_SESSION['register_form_data'] ?? [];
     <link rel="stylesheet" href="/assets/css/recover_password.css">
     <link rel="stylesheet" href="/assets/css/cookie-banner.css">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
+<?php if ($turnstileSiteKey !== ''): ?>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+<?php endif; ?>
 </head>
 <body>
 <canvas id="interactive-grid" aria-hidden="true"></canvas>

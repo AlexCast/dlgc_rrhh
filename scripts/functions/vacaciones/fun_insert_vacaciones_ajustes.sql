@@ -1,29 +1,32 @@
--- Registra un ajuste manual de saldo de vacaciones (reconoce días ya disfrutados históricamente
--- que no quedaron como solicitud en el sistema, p. ej. al migrar a producción). Por ley el
--- empleado causa exactamente 15 días por ciclo: el ajuste SOLO puede restar (dias_ajuste < 0),
--- nunca sumar, y no puede dejar el saldo disponible por debajo de 0 (no se pueden restar más
--- días de los que realmente quedan disponibles en el ciclo vigente). Ledger append-only: para
--- corregir un ajuste mal cargado se anula con fun_softdelete_vacaciones_ajustes y se inserta uno
--- nuevo, nunca se edita el valor existente.
--- wfecha_ajuste ancla el ajuste al ciclo aniversario vigente en esa fecha (vacaciones no
--- acumulables): deja de contar automáticamente cuando ese ciclo se reinicia. Debe caer dentro
--- del ciclo vigente del empleado (fun_calcular_saldo_vacaciones); si no, quedaría "huérfano"
--- en un ciclo que nunca se vuelve a mostrar.
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_vacaciones_ajustes(
-    wid_empleado t_vacaciones_ajustes.id_empleado%TYPE,
-    wdias_ajuste t_vacaciones_ajustes.dias_ajuste%TYPE,
-    wmotivo t_vacaciones_ajustes.motivo%TYPE,
-    wfecha_ajuste t_vacaciones_ajustes.fecha_ajuste%TYPE DEFAULT CURRENT_DATE
-) RETURNS VARCHAR AS
-$$
-DECLARE
-    vperiodo_inicio DATE;
-    vperiodo_fin DATE;
-    vsaldo_disponible NUMERIC;
+    wid_empleado VARCHAR(20),
+    wdias_ajuste DECIMAL(5,2),
+    wmotivo VARCHAR(255),
+    wfecha_ajuste DATE
+) RETURNS VARCHAR(255)
 BEGIN
-    IF wid_empleado IS NULL OR NOT EXISTS (
-        SELECT 1 FROM t_empleados WHERE id_usuario = wid_empleado AND fec_delete IS NULL
-    ) THEN
+    DECLARE vfecha_ingreso DATE;
+    DECLARE vfecha_egreso DATE;
+    DECLARE vfecha_corte DATE;
+    DECLARE vanios_servicio INT;
+    DECLARE vperiodo_inicio DATE;
+    DECLARE vperiodo_fin DATE;
+    DECLARE vsaldo_disponible DECIMAL(10,2);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Ocurrió un error al registrar el ajuste.';
+
+    IF wid_empleado IS NULL OR wid_empleado = '' THEN
+        RETURN 'El empleado indicado no existe o está inactivo.';
+    END IF;
+
+    SELECT fecha_ingreso, fecha_egreso
+    INTO vfecha_ingreso, vfecha_egreso
+    FROM t_empleados
+    WHERE id_usuario = wid_empleado AND fec_delete IS NULL LIMIT 1;
+
+    IF vfecha_ingreso IS NULL THEN
         RETURN 'El empleado indicado no existe o está inactivo.';
     END IF;
 
@@ -35,21 +38,27 @@ BEGIN
         RETURN 'El motivo del ajuste debe tener al menos 5 caracteres.';
     END IF;
 
-    wfecha_ajuste := COALESCE(wfecha_ajuste, CURRENT_DATE);
+    SET wfecha_ajuste = COALESCE(wfecha_ajuste, CURRENT_DATE);
 
-    SELECT periodo_inicio, periodo_fin, saldo_disponible INTO vperiodo_inicio, vperiodo_fin, vsaldo_disponible
-    FROM fun_calcular_saldo_vacaciones(wid_empleado);
+    SET vfecha_corte = LEAST(COALESCE(vfecha_egreso, CURRENT_DATE), CURRENT_DATE);
+    SET vanios_servicio = GREATEST(0, TIMESTAMPDIFF(YEAR, vfecha_ingreso, vfecha_corte));
 
-    IF vperiodo_inicio IS NULL THEN
+    IF vanios_servicio < 1 THEN
         RETURN 'El empleado aún no cumple su primer año de servicio; no tiene un ciclo de vacaciones vigente.';
     END IF;
 
+    SET vperiodo_inicio = DATE_ADD(vfecha_ingreso, INTERVAL vanios_servicio YEAR);
+    SET vperiodo_fin = DATE_SUB(DATE_ADD(vperiodo_inicio, INTERVAL 1 YEAR), INTERVAL 1 DAY);
+
     IF wfecha_ajuste < vperiodo_inicio OR wfecha_ajuste > vperiodo_fin THEN
-        RETURN format('La fecha del ajuste debe estar dentro del ciclo vigente (%s a %s).', vperiodo_inicio, vperiodo_fin);
+        RETURN CONCAT('La fecha del ajuste debe estar dentro del ciclo vigente (', vperiodo_inicio, ' a ', vperiodo_fin, ').');
     END IF;
 
+    -- Utilizamos la función escalar de apoyo creada arriba
+    SET vsaldo_disponible = fun_get_saldo_vacaciones(wid_empleado);
+
     IF ABS(wdias_ajuste) > vsaldo_disponible THEN
-        RETURN format('No puedes restar %s días: el saldo disponible actual es de solo %s días.', ABS(wdias_ajuste), vsaldo_disponible);
+        RETURN CONCAT('No puedes restar ', ABS(wdias_ajuste), ' días: el saldo disponible actual es de solo ', vsaldo_disponible, ' días.');
     END IF;
 
     INSERT INTO t_vacaciones_ajustes (
@@ -65,17 +74,11 @@ BEGIN
         wdias_ajuste,
         TRIM(wmotivo),
         wfecha_ajuste,
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'Ajuste de vacaciones registrado correctamente.';
+END //
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error: %', SQLERRM;
-        RETURN 'Ocurrió un error al registrar el ajuste.';
-END;
-$$
-LANGUAGE PLPGSQL;
-
+DELIMITER ;

@@ -1,19 +1,21 @@
--- La contraseña (wcontrasena) debe llegar ya hasheada desde la aplicación
--- (PHP password_hash), esta función solo la persiste, nunca la calcula.
+DELIMITER //
+
 CREATE OR REPLACE FUNCTION fun_insert_usuarios(
-    wid_usuario t_usuarios.id_usuario%TYPE,
-    wid_rol t_usuarios.id_rol%TYPE,
-    wusername t_usuarios.username%TYPE,
-    wtipo_documento t_usuarios.tipo_documento%TYPE,
-    wprimer_nombre t_usuarios.primer_nombre%TYPE,
-    wprimer_apellido t_usuarios.primer_apellido%TYPE,
-    wcorreo t_usuarios.correo%TYPE,
-    wcontrasena t_usuarios.contrasena%TYPE,
-    wsegundo_nombre t_usuarios.segundo_nombre%TYPE DEFAULT NULL,
-    wsegundo_apellido t_usuarios.segundo_apellido%TYPE DEFAULT NULL
-) RETURNS VARCHAR AS 
-$$
+    wid_usuario VARCHAR(20),
+    wid_rol INT,
+    wusername VARCHAR(30),
+    wtipo_documento VARCHAR(20),
+    wprimer_nombre VARCHAR(30),
+    wprimer_apellido VARCHAR(30),
+    wcorreo VARCHAR(40),
+    wcontrasena VARCHAR(255),
+    wsegundo_nombre VARCHAR(30),
+    wsegundo_apellido VARCHAR(30)
+) RETURNS VARCHAR(255)
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLSTATE '23000' RETURN 'El documento, usuario o correo ya están registrados.';
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Error inesperado al crear el usuario.';
+
     IF wid_usuario IS NULL OR wid_usuario = '' THEN
         RETURN 'El id_usuario no puede ser nulo o vacío.';
     END IF;
@@ -55,17 +57,11 @@ BEGIN
         wsegundo_apellido,
         wcorreo,
         wcontrasena,
-        COALESCE(NULLIF(current_setting('app.current_user', true), ''), CURRENT_USER),
+        COALESCE(@app_current_user, CURRENT_USER()),
         CURRENT_TIMESTAMP
     );
 
     RETURN 'OK';
+END //
 
-EXCEPTION
-    WHEN SQLSTATE '23505' THEN
-        RETURN 'El documento, usuario o correo ya están registrados.';
-    WHEN OTHERS THEN
-        RETURN 'Error inesperado al crear el usuario: ' || SQLERRM;
-END;
-$$ 
-LANGUAGE PLPGSQL;
+DELIMITER ;

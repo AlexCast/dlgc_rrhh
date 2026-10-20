@@ -42,10 +42,10 @@ try {
     $sentencia = $conexion->prepare(
         'SELECT fecha, descripcion, tipo_festivo FROM t_dias_festivos
          WHERE fec_delete IS NULL
-           AND EXTRACT(YEAR FROM fecha) IN (:anio, :anio_siguiente)
+           AND YEAR(fecha) IN (?, ?)
          ORDER BY fecha'
     );
-    $sentencia->execute([':anio' => $anio, ':anio_siguiente' => $anio + 1]);
+    $sentencia->execute([$anio, $anio + 1]);
     $festivos = $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
     responderJson(true, 'Festivos obtenidos correctamente.', 200, ['festivos' => $festivos]);
