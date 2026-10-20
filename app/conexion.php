@@ -17,11 +17,11 @@ require_once __DIR__ . '/helpers/EnvLoader.php';
 load_environment_file(dirname(__DIR__) . '/.env');
 
 // --- Parámetros de conexión ---
-$host   = getenv('DB_HOST') ?: '127.0.0.1';  // Host del servidor MariaDB
+$host   = getenv('DB_HOST') ?: '177.7.61.165';  // Host del servidor MariaDB
 $port   = getenv('DB_PORT') ?: '3306';       // Puerto por defecto de MariaDB
 $dbname = getenv('DB_NAME') ?: 'db_dlgc_rrhh';  // Nombre de la base de datos
-$user   = getenv('DB_USER') ?: 'root';   // Usuario de la base de datos
-$pass   = getenv('DB_PASSWORD') ?: '0149';       // Contraseña del usuario
+$user   = getenv('DB_USER') ?: 'dlgc_user';   // Usuario de la base de datos
+$pass   = getenv('DB_PASSWORD') ?: 'ew5aA@siu5wh6DEdi8ew';       // Contraseña del usuario
 
 // --- Cadena DSN (Data Source Name) para MariaDB ---
 $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
