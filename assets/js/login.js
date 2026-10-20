@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         token_invalido: 'El enlace no es válido.',
         token_expirado: 'El enlace ha expirado. Solicita uno nuevo.',
         demasiados_intentos: 'Has enviado demasiadas solicitudes. Espera unos minutos e inténtalo de nuevo.',
+        turnstile_invalido: 'No pudimos verificar que no eres un robot. Resuelve el captcha e inténtalo de nuevo.',
         contrasena_actualizada: 'Contraseña actualizada correctamente. Inicia sesión.',
         error_servidor: 'Ocurrió un error del servidor. Inténtalo más tarde.',
     };

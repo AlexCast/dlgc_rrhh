@@ -9,4 +9,15 @@
 return [
     'site_key'   => 'TU_SITE_KEY',
     'secret_key' => 'TU_SECRET_KEY',
+    // Hostnames aprobados: la respuesta de siteverify debe traer uno de estos.
+    // En producción deja SOLO el dominio real, sin localhost ni 127.0.0.1.
+    'expected_hostnames' => [
+        'TU_DOMINIO',
+        'localhost',
+        '127.0.0.1',
+    ],
 ];
+
+// Alternativas por entorno, sin secretos en el repositorio:
+//   TURNSTILE_SECRET     reemplaza a secret_key.
+//   TURNSTILE_HOSTNAMES  lista separada por comas; reemplaza a expected_hostnames.

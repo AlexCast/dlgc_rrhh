@@ -601,11 +601,11 @@ CREATE INDEX idx_recuperacion_usuario ON t_recuperacion_contrasena(id_usuario);
 CREATE INDEX idx_verificacion_token ON t_verificacion_correo(token_hash);
 CREATE INDEX idx_verificacion_registro ON t_verificacion_correo(id_registro_pendiente);
 
--- Tabla de rate limiting para envío de correos
+-- Tabla de rate limiting (envío de correos e intentos de login)
 CREATE TABLE IF NOT EXISTS t_intentos_correo (
     id_intento INT AUTO_INCREMENT,
     id_usuario VARCHAR(20) NOT NULL,
-    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('verificacion', 'recuperacion')),
+    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('verificacion', 'recuperacion', 'login')),
     contador INT NOT NULL DEFAULT 1,
     ultimo_intento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     usr_insert VARCHAR(255) NOT NULL DEFAULT 'sistema',

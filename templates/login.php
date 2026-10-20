@@ -115,6 +115,10 @@ $registerData = $_SESSION['register_form_data'] ?? [];
                         <button type="button" class="forgot-link" id="forgot-link">¿Olvidaste tu contraseña?</button>
                     </div>
 
+                    <?php if ($turnstileSiteKey !== ''): ?>
+                        <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="login"></div>
+                    <?php endif; ?>
+
                     <button type="submit" class="btn btn-primary full-width">Iniciar Sesión</button>
                 </form>
 
@@ -128,7 +132,9 @@ $registerData = $_SESSION['register_form_data'] ?? [];
                             <span id="access-code-help" class="help-text">Solicita este código de 4 dígitos al área de RRHH.</span>
                         </div>
 
-                        <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
+                        <?php if ($turnstileSiteKey !== ''): ?>
+                            <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="register"></div>
+                        <?php endif; ?>
 
                         <button type="submit" class="btn btn-dark full-width" formnovalidate>Continuar</button>
                     </div>

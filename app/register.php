@@ -79,7 +79,7 @@ $esValidacionCodigo = $codigoIngresado !== '' && empty(trim($_POST['username'] ?
 
 if ($esValidacionCodigo) {
     // Verificación anti-bot (Cloudflare Turnstile), ubicada bajo el campo de código.
-    if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null)) {
+    if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null, 'register')) {
         redirigirRegistro([
             'tab' => 'register',
             'status' => 'error',

@@ -598,6 +598,9 @@ body.dark-theme .auth-feedback.success {
 .btn:hover { transform: translateY(-2px); }
 .full-width { width: 100%; margin-top: 8px; }
 
+/* Widget de Cloudflare Turnstile (login y registro) */
+.cf-turnstile { margin: 4px 0 12px; }
+
 .btn-primary { background-color: var(--primary-color); color: #fff; }
 .btn-primary:hover { background-color: var(--primary-hover); }
 

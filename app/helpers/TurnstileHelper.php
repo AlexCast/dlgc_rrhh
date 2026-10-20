@@ -23,22 +23,76 @@ class TurnstileHelper
         return self::$config;
     }
 
-    public static function siteKey(): string
+    /**
+     * Lee una variable de entorno (getenv o SetEnv de Apache) y la normaliza.
+     */
+    private static function env(string $nombre): string
     {
-        return (string) (self::config()['site_key'] ?? '');
+        $valor = getenv($nombre);
+        if (!is_string($valor) || trim($valor) === '') {
+            $valor = $_SERVER[$nombre] ?? '';
+        }
+
+        return is_string($valor) ? trim($valor) : '';
+    }
+
+    private static function secretKey(): string
+    {
+        $desdeEntorno = self::env('TURNSTILE_SECRET');
+        if ($desdeEntorno !== '') {
+            return $desdeEntorno;
+        }
+
+        return trim((string) (self::config()['secret_key'] ?? ''));
     }
 
     /**
-     * Verifica el token enviado por el widget de Turnstile contra la API de Cloudflare.
+     * Hostnames que siteverify debe devolver para aceptar el token.
+     * En producción solo debe contener el dominio real (sin localhost).
+     *
+     * @return string[]
+     */
+    private static function expectedHostnames(): array
+    {
+        $desdeEntorno = self::env('TURNSTILE_HOSTNAMES');
+        $configurados = $desdeEntorno !== ''
+            ? explode(',', $desdeEntorno)
+            : (array) (self::config()['expected_hostnames'] ?? []);
+
+        $normalizados = [];
+        foreach ($configurados as $hostname) {
+            $hostname = strtolower(trim((string) $hostname));
+            if ($hostname !== '') {
+                $normalizados[] = $hostname;
+            }
+        }
+
+        return array_values(array_unique($normalizados));
+    }
+
+    public static function siteKey(): string
+    {
+        return trim((string) (self::config()['site_key'] ?? ''));
+    }
+
+    /**
+     * Verifica el token contra la API de Cloudflare exigiendo success === true,
+     * la acción esperada y un hostname aprobado. Falla cerrado ante cualquier
+     * anomalía (sin token, sin secreto, timeout, HTTP no-200, JSON inválido).
      *
      * Usa el wrapper de streams de PHP en lugar de cURL para no depender de la
      * extensión php_curl (no siempre cargada en Apache/Windows).
      */
-    public static function verify(?string $token): bool
+    public static function verify(?string $token, string $expectedAction): bool
     {
-        $secretKey = (string) (self::config()['secret_key'] ?? '');
+        if (!is_string($token) || trim($token) === '' || strlen($token) > 4096) {
+            return false;
+        }
 
-        if ($secretKey === '' || !is_string($token) || $token === '') {
+        $secretKey = self::secretKey();
+
+        if ($secretKey === '') {
+            error_log('Turnstile: falta secret_key en la configuración o en TURNSTILE_SECRET.');
             return false;
         }
 
@@ -65,8 +119,49 @@ class TurnstileHelper
             return false;
         }
 
+        $estadoHttp = 0;
+        foreach ($http_response_header ?? [] as $cabecera) {
+            if (preg_match('#^HTTP/\S+\s+(\d{3})#', $cabecera, $coincidencia) === 1) {
+                $estadoHttp = (int) $coincidencia[1];
+            }
+        }
+
+        if ($estadoHttp !== 200) {
+            error_log('Turnstile: siteverify respondió HTTP ' . $estadoHttp . '.');
+            return false;
+        }
+
         $resultado = json_decode($respuesta, true);
 
-        return is_array($resultado) && ($resultado['success'] ?? false) === true;
+        if (!is_array($resultado)) {
+            error_log('Turnstile: la respuesta de siteverify no es JSON válido.');
+            return false;
+        }
+
+        if (($resultado['success'] ?? false) !== true) {
+            $errores = array_map('strval', (array) ($resultado['error-codes'] ?? []));
+            error_log('Turnstile: token rechazado (' . implode(', ', $errores) . ').');
+            return false;
+        }
+
+        $accionRecibida = (string) ($resultado['action'] ?? '');
+        if ($expectedAction !== '' && !hash_equals($expectedAction, $accionRecibida)) {
+            error_log('Turnstile: acción no coincide (esperada=' . $expectedAction . ', recibida=' . $accionRecibida . ').');
+            return false;
+        }
+
+        $hostnamesPermitidos = self::expectedHostnames();
+        if ($hostnamesPermitidos === []) {
+            error_log('Turnstile: expected_hostnames no está configurado.');
+            return false;
+        }
+
+        $hostnameRecibido = strtolower((string) ($resultado['hostname'] ?? ''));
+        if ($hostnameRecibido === '' || !in_array($hostnameRecibido, $hostnamesPermitidos, true)) {
+            error_log('Turnstile: hostname no aprobado (' . $hostnameRecibido . ').');
+            return false;
+        }
+
+        return true;
     }
 }

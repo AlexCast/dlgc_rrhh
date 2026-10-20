@@ -14,6 +14,7 @@ require_once __DIR__ . '/helpers/InputSanitizer.php';
 require_once __DIR__ . '/helpers/SessionUserLoader.php';
 require_once __DIR__ . '/helpers/RememberMeHelper.php';
 require_once __DIR__ . '/helpers/RateLimiter.php';
+require_once __DIR__ . '/helpers/TurnstileHelper.php';
 
 $urlLogin = '/templates/login.php';
 
@@ -34,6 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Validate CSRF token for login.
 csrf_validate();
+
+// --- 0. Verificación anti-bot (Cloudflare Turnstile) antes de tocar credenciales ---
+if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null, 'login')) {
+    redirigirLogin([
+        'tab'    => 'login',
+        'status' => 'error',
+        'code'   => 'turnstile_invalido',
+        'user'   => InputSanitizer::loginIdentifier($_POST['user'] ?? ''),
+    ]);
+}
 
 // --- 1. Recepción y normalización de credenciales enviadas por POST ---
 $userInput  = InputSanitizer::loginIdentifier($_POST['user'] ?? '');
@@ -64,9 +75,16 @@ try {
     $sentencia->closeCursor();
 
     // --- 2b. Rate limiting de intentos fallidos (solo si la cuenta existe). ---
+    // Un fallo del rate limiter no debe ocultar el resultado real del login.
+    $rateLimiter  = null;
+    $rateCheck    = ['permitido' => true, 'minutos' => null];
     if ($usuario) {
-        $rateLimiter = new RateLimiter($conexion);
-        $rateCheck = $rateLimiter->verificar((string) $usuario['id_usuario'], 'login');
+        try {
+            $rateLimiter = new RateLimiter($conexion);
+            $rateCheck = $rateLimiter->verificar((string) $usuario['id_usuario'], 'login');
+        } catch (PDOException $e) {
+            error_log('Error al verificar el rate limit de login: ' . $e->getMessage());
+        }
 
         if (!$rateCheck['permitido']) {
             error_log(sprintf(
@@ -86,8 +104,12 @@ try {
 
     // --- 3. Verificación del hash de la contraseña ---
     if (!$usuario || !password_verify($contrasena, $usuario['contrasena'])) {
-        if ($usuario) {
-            $rateLimiter->registrar((string) $usuario['id_usuario'], 'login');
+        if ($usuario && $rateLimiter !== null) {
+            try {
+                $rateLimiter->registrar((string) $usuario['id_usuario'], 'login');
+            } catch (PDOException $e) {
+                error_log('Error al registrar el intento fallido de login: ' . $e->getMessage());
+            }
         }
         error_log(sprintf(
             'Intento de login fallido: usuario=%s ip=%s cuenta_existe=%s',

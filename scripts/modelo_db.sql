@@ -628,7 +628,7 @@ CREATE INDEX idx_verificacion_registro ON t_verificacion_correo(id_registro_pend
 CREATE TABLE IF NOT EXISTS t_intentos_correo (
     id_intento SERIAL PRIMARY KEY,
     id_usuario VARCHAR(20) NOT NULL,
-    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('verificacion', 'recuperacion')),
+    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('verificacion', 'recuperacion', 'login')),
     contador INT NOT NULL DEFAULT 1,
     ultimo_intento TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     usr_insert VARCHAR NOT NULL DEFAULT 'sistema',

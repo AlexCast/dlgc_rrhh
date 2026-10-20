@@ -1,7 +1,7 @@
 <?php
 /**
  * RateLimiter.php
- * Limita el envío repetido de correos por usuario y tipo.
+ * Limita intentos repetidos por usuario y tipo ('login', 'verificacion', 'recuperacion').
  *
  * Reglas:
  * - Máximo 3 intentos por ventana de 15 minutos.
@@ -34,10 +34,12 @@ class RateLimiter
      */
     public function verificar(string $idUsuario, string $tipo): array
     {
-        $limite = new DateTime("-{$this->ventanaMinutos} minutes");
-
+        // La antigüedad del intento se calcula en SQL para usar la misma zona
+        // horaria que CURRENT_TIMESTAMP y no depender de date.timezone de PHP.
         $sentencia = $this->conexion->prepare(
-            "SELECT contador, ultimo_intento
+            "SELECT contador,
+                    (ultimo_intento < (CURRENT_TIMESTAMP - INTERVAL {$this->ventanaMinutos} MINUTE)) AS ventana_expirada,
+                    TIMESTAMPDIFF(MINUTE, ultimo_intento, CURRENT_TIMESTAMP) AS minutos_transcurridos
              FROM t_intentos_correo
              WHERE id_usuario = ?
                AND tipo = ?
@@ -50,15 +52,13 @@ class RateLimiter
             return ['permitido' => true, 'minutos' => null];
         }
 
-        $ultimo = new DateTime($intento['ultimo_intento']);
-
-        if ($ultimo < $limite) {
+        if ((int) $intento['ventana_expirada'] === 1) {
             // Ventana expirada: reiniciar contador implícitamente.
             return ['permitido' => true, 'minutos' => null];
         }
 
         if ((int) $intento['contador'] >= $this->maxIntentos) {
-            $minutosRestantes = $this->ventanaMinutos - (int) (time() - $ultimo->getTimestamp()) / 60;
+            $minutosRestantes = $this->ventanaMinutos - (int) $intento['minutos_transcurridos'];
             if ($minutosRestantes < 1) {
                 $minutosRestantes = 1;
             }
