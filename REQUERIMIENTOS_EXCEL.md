@@ -158,7 +158,7 @@
 | GEN-RNF-015 | El sistema no debe implementar capa de caché; las consultas se ejecutan directamente contra PostgreSQL. | ☐ | ☐ | ☐ | Revisión de app/ y src/ |
 | GEN-RNF-016 | El código debe seguir la convención de nombres por dominio (listar_, forma_, insertar_, editar_, update_, eliminar_, restore_). | ☐ | ☐ | ☐ | src/ |
 | GEN-RNF-017 | Los archivos PHP sensibles (guards, endpoints) deben declarar `strict_types=1`. | ☐ | ☐ | ☐ | app/auth_guard.php, src/comunicados, src/sst |
-| GEN-RNF-018 | Los secretos deben residir en archivos de configuración excluidos del control de versiones, versionando solo plantillas `.example`. | ☐ | ☐ | ☐ | config/*.example; credenciales BD hardcodeadas (ADI) |
+| GEN-RNF-018 | Los secretos deben residir en archivos de configuración excluidos del control de versiones, versionando solo plantillas `.example`. | ☐ | ☐ | ☐ | config/*.example; .env.example (credenciales BD vía .env) |
 | GEN-RNF-019 | La interfaz debe cumplir accesibilidad básica: `aria-current` en menú activo, `role="alert"` en banners, `aria-label` en botones de cierre. | ☐ | ☐ | ☐ | sidebar_*.php, app/alert_helper.php |
 | GEN-RNF-020 | El sistema debe proveer scripts para aplicar masivamente tokens CSRF y guards a los CRUDs. | ☐ | ☐ | ☐ | scripts/add_csrf_tokens.py, apply_src_guards.py |
 

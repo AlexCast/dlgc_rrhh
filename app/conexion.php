@@ -4,8 +4,9 @@
  * Archivo de conexión segura a la base de datos MariaDB utilizando PDO.
  *
  * Buenas prácticas aplicadas:
- * - Credenciales en variables (idealmente deberían venir de variables de entorno,
- *   no de un archivo versionado en el repositorio).
+ * - Las credenciales se leen exclusivamente de .env (fuera de control de versiones).
+ *   Si falta una variable obligatoria se registra en el log y se corta la ejecución
+ *   con un mensaje genérico, en lugar de conectarse con valores por defecto.
  * - PDO::ERRMODE_EXCEPTION para que cualquier error de SQL lance una excepción
  *   en lugar de fallar silenciosamente.
  * - PDO::FETCH_ASSOC como modo de recuperación por defecto (arreglos asociativos).
@@ -16,12 +17,28 @@
 require_once __DIR__ . '/helpers/EnvLoader.php';
 load_environment_file(dirname(__DIR__) . '/.env');
 
-// --- Parámetros de conexión ---
-$host   = getenv('DB_HOST') ?: '177.7.61.165';  // Host del servidor MariaDB
-$port   = getenv('DB_PORT') ?: '3306';       // Puerto por defecto de MariaDB
-$dbname = getenv('DB_NAME') ?: 'db_dlgc_rrhh';  // Nombre de la base de datos
-$user   = getenv('DB_USER') ?: 'dlgc_user';   // Usuario de la base de datos
-$pass   = getenv('DB_PASSWORD') ?: 'ew5aA@siu5wh6DEdi8ew';       // Contraseña del usuario
+// --- Parámetros de conexión (obligatorios en .env) ---
+// Se usa una closure para no declarar funciones globales desde un archivo incluido.
+$leerVariableObligatoria = static function (string $nombre): string {
+    $valor = getenv($nombre);
+
+    if ($valor === false || trim($valor) === '') {
+        error_log("Configuración de base de datos incompleta: falta {$nombre} en .env");
+        http_response_code(500);
+        die('No se pudo establecer conexión con la base de datos. Intente más tarde.');
+    }
+
+    return trim($valor);
+};
+
+$host   = $leerVariableObligatoria('DB_HOST');   // Host del servidor MariaDB
+$dbname = $leerVariableObligatoria('DB_NAME');   // Nombre de la base de datos
+$user   = $leerVariableObligatoria('DB_USER');   // Usuario de la base de datos
+$pass   = $leerVariableObligatoria('DB_PASSWORD'); // Contraseña del usuario
+
+// El puerto no es un secreto: si no se define se asume el de MariaDB.
+$port = getenv('DB_PORT');
+$port = ($port === false || trim($port) === '') ? '3306' : trim($port);
 
 // --- Cadena DSN (Data Source Name) para MariaDB ---
 $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";

@@ -82,7 +82,15 @@ Get-Content -Raw 'scripts\inserts\seed_admin_rbac.sql' | & $exe -h 127.0.0.1 -P 
 - [app/conexion.php](app/conexion.php): DSN cambiado a
   `mysql:host=...;port=...;dbname=...;charset=utf8mb4`. Se mantiene
   `ATTR_EMULATE_PREPARES = false` y `SET @app_current_user = ?` para auditoría.
-- [.env](.env) y [.env.example](.env.example): `DB_PORT=3306`, `DB_USER=root`.
+- [.env](.env) (no versionado) y [.env.example](.env.example) (plantilla versionada):
+  `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`. `conexion.php` ya no define
+  credenciales por defecto: si falta una variable obligatoria, registra su nombre en
+  `error_log()` y devuelve el mensaje genérico en lugar de intentar conectarse.
+
+> En el servidor el `.env` debe vivir en la raíz del proyecto y ser legible por el usuario
+> de Apache (`chown www-data:www-data .env && chmod 640 .env`). `EnvLoader` no emite avisos
+> si no puede leerlo, y tampoco sobrescribe variables `DB_*` que ya existan en el entorno
+> del proceso.
 
 ### Login y sesión
 
