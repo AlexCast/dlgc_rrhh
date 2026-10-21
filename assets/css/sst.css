@@ -55,9 +55,11 @@
 }
 
 .sst-card {
-    background: var(--bg-card);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 1.25rem;
     display: flex;
     align-items: flex-start;
@@ -107,9 +109,11 @@
     text-align: center;
     padding: 2rem;
     color: var(--text-muted);
-    background: var(--bg-card);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px dashed var(--border-color);
-    border-radius: 12px;
+    border-radius: 16px;
 }
 
 /* Formulario del buzón */
@@ -182,10 +186,18 @@
 }
 
 .sst-queja-card {
-    background: var(--bg-card);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 1rem;
+}
+
+body.dark-theme .sst-card,
+body.dark-theme .sst-empty,
+body.dark-theme .sst-queja-card {
+    background: rgba(19, 27, 21, 0.78);
 }
 
 .sst-queja-header {

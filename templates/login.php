@@ -256,11 +256,15 @@ $registerData = $_SESSION['register_form_data'] ?? [];
         </div>
     </main>
 
-    <footer class="auth-footer">
-        <div class="auth-footer__inner">
-            <?php require_once __DIR__ . '/partials/legal_footer_links.php'; ?>
-            <p class="auth-footer__copy">© <?php echo date('Y'); ?> Distribuciones La Gran Cacharrería.</p>
-            <p class="auth-footer__ia-note">Desarrollo asistido por herramientas de inteligencia artificial.</p>
+    <footer class="landing-footer">
+        <div class="landing-footer__inner">
+            <p class="landing-footer__copy">© <?php echo date('Y'); ?> Distribuciones La Gran Cacharrería. Todos los derechos reservados.</p>
+            <nav class="landing-footer__links" aria-label="Enlaces legales">
+                <a href="/templates/legal/aviso_legal.php">Aviso Legal</a>
+                <a href="/templates/legal/privacidad.php">Privacidad</a>
+                <a href="/templates/legal/terminos.php">Términos</a>
+            </nav>
+            <p class="landing-footer__ia-note">Desarrollo asistido por herramientas de inteligencia artificial.</p>
         </div>
     </footer>
 

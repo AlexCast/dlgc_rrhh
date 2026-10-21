@@ -79,11 +79,18 @@ body.dark-theme .forma-comunicados-app {
 
 /* Tarjeta del formulario */
 .fc-card {
-    background: var(--mnt-surface);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: var(--fc-border);
     border-radius: var(--fc-radius);
-    box-shadow: var(--fc-shadow);
+    box-shadow: 0 10px 30px rgba(13, 19, 15, 0.05);
     overflow: hidden;
+}
+
+body.dark-theme .fc-card {
+    background: rgba(19, 27, 21, 0.78);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     animation: fcFadeInUp 0.55s ease;
 }
 

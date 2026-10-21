@@ -164,6 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', ajustarAlturaContenedor);
     ajustarAlturaContenedor();
 
+    // El contenedor usa altura fija + overflow hidden para animar el cambio de pestaña.
+    // Recalculamos cuando el contenido crece (p. ej. al renderizarse el widget Turnstile)
+    // para que el botón de envío no quede recortado.
+    if (formsContainer && typeof ResizeObserver !== 'undefined') {
+        const resizeObserver = new ResizeObserver(ajustarAlturaContenedor);
+        forms.forEach(f => {
+            resizeObserver.observe(f);
+            f.querySelectorAll('.register-step').forEach(step => resizeObserver.observe(step));
+        });
+    }
+
     document.querySelectorAll('[data-password-toggle]').forEach(toggle => {
         const input = document.getElementById(toggle.dataset.passwordToggle);
         if (!input) {

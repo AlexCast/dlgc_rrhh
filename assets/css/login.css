@@ -192,6 +192,61 @@ textarea:focus-visible {
 }
 
 /* =========================================
+   Footer de la landing (mismo estilo que index.html)
+   ========================================= */
+.landing-footer {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-top: 1px solid var(--border-color);
+    padding: 32px 24px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    backdrop-filter: blur(4px);
+}
+
+body.dark-theme .landing-footer {
+    background-color: rgba(19, 27, 21, 0.7);
+}
+
+.landing-footer__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.landing-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+}
+
+.landing-footer__links a {
+    color: var(--text-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.landing-footer__links a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.landing-footer__copy {
+    font-weight: 600;
+}
+
+.landing-footer__ia-note {
+    font-size: 0.75rem;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* =========================================
    Navegación Flotante Redondeada (Island Header)
    ========================================= */
 
@@ -363,7 +418,7 @@ a.back-btn:link {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 100px 24px 24px;
     position: relative;
     z-index: 1;
 }
@@ -614,7 +669,35 @@ body.dark-theme .auth-feedback.success {
     animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+    .navbar-wrapper {
+        top: 10px;
+        padding: 0 12px;
+    }
+
+    .navbar {
+        padding: 8px 10px 8px 14px;
+        border-radius: 16px;
+        gap: 12px;
+    }
+
+    .logo img {
+        height: 32px;
+    }
+
+    .nav-actions {
+        gap: 8px;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .auth-wrapper {
+        padding-top: 84px;
+    }
+
     .auth-header-inner {
         gap: 12px;
         align-items: center;
@@ -629,8 +712,8 @@ body.dark-theme .auth-feedback.success {
     }
 
     .back-btn {
-        width: 40px;
-        height: 40px;
+        width: 38px;
+        height: 38px;
         padding: 0;
         justify-content: center;
     }
