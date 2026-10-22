@@ -10,7 +10,7 @@
  * cookie técnica dlgc_cookie_consent para que el backend también la conozca.
  */
 ?>
-<link rel="stylesheet" href="/assets/css/cookie-banner.css">
+<link rel="stylesheet" href="/assets/css/cookie-banner.css?v=<?php echo filemtime(__DIR__ . '/../../assets/css/cookie-banner.css'); ?>">
 <div id="cookie-banner" class="cookie-banner" role="dialog" aria-live="polite" aria-label="Preferencias de cookies" hidden>
     <div class="cookie-banner__content">
         <div class="cookie-banner__text">
@@ -32,4 +32,4 @@
         </div>
     </div>
 </div>
-<script src="/assets/js/cookie-banner.js"></script>
+<script src="/assets/js/cookie-banner.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/cookie-banner.js'); ?>"></script>

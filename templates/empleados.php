@@ -31,8 +31,8 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Directorio de Empleados | DLGC</title>
-    <link rel="stylesheet" href="/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/assets/css/empleados.css">
+    <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/empleados.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/empleados.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body>
@@ -185,8 +185,8 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         </div>
     </div>
 
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/firstpage.js"></script>
-    <script src="/assets/js/empleados.js"></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
+    <script src="/assets/js/empleados.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/empleados.js'); ?>"></script>
 </body>
 </html>

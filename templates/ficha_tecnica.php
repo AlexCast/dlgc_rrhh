@@ -149,8 +149,8 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ficha Técnica del Empleado | DLGC</title>
-    <link rel="stylesheet" href="/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/assets/css/ficha_tecnica.css">
+    <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/ficha_tecnica.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/ficha_tecnica.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body>
@@ -343,8 +343,8 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
         </main>
     </div>
 
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/firstpage.js"></script>
-    <script src="/assets/js/ficha_tecnica.js"></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
+    <script src="/assets/js/ficha_tecnica.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/ficha_tecnica.js'); ?>"></script>
 </body>
 </html>

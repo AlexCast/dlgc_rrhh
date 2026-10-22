@@ -42,3 +42,13 @@ ErrorDocument 404 /templates/not_found.php
     # challenges.cloudflare.com es requerido por el widget de Cloudflare Turnstile (script, iframe y XHR).
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
 </IfModule>
+
+# ==============================================================================
+# CACHÉ DE ESTÁTICOS
+# Los .css/.js se revalidan en cada carga para que un deploy se vea al instante.
+# ==============================================================================
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>

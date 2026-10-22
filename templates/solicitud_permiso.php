@@ -26,9 +26,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitar Permiso o Vacaciones | DLGC</title>
-    <link rel="stylesheet" href="/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/assets/css/sst.css">
-    <link rel="stylesheet" href="/assets/css/solicitud_permiso.css">
+    <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/sst.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/sst.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/solicitud_permiso.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/solicitud_permiso.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body
@@ -275,8 +275,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
         </main>
     </div>
 
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/firstpage.js"></script>
-    <script src="/assets/js/solicitud_permiso.js"></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
+    <script src="/assets/js/solicitud_permiso.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/solicitud_permiso.js'); ?>"></script>
 </body>
 </html>

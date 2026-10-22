@@ -60,8 +60,8 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Códigos de Registro | DLGC</title>
-    <link rel="stylesheet" href="/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/assets/css/codigos_registro.css">
+    <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/codigos_registro.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/codigos_registro.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body>
@@ -238,8 +238,8 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
 
     <div id="codes-toast" class="codes-toast" role="status" aria-live="polite">Código copiado</div>
 
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/firstpage.js"></script>
-    <script src="/assets/js/codigos_registro.js"></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
+    <script src="/assets/js/codigos_registro.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/codigos_registro.js'); ?>"></script>
 </body>
 </html>

@@ -6,9 +6,9 @@
     <title>DLGC | Comunicados</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
     <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/assets/css/src.css">
-    <link rel="stylesheet" href="/assets/css/comunicados.css">
-    <link rel="stylesheet" href="/assets/css/forma_comunicados.css">
+    <link rel="stylesheet" href="/assets/css/src.css?v=<?php echo filemtime(__DIR__ . '/../../assets/css/src.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/comunicados.css?v=<?php echo filemtime(__DIR__ . '/../../assets/css/comunicados.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/forma_comunicados.css?v=<?php echo filemtime(__DIR__ . '/../../assets/css/forma_comunicados.css'); ?>">
     <style>
         /* Puente de variables para reutilizar comunicados.css dentro del SRC.
            Se define en body (no en :root) para que respete el tema oscuro. */
@@ -29,9 +29,9 @@
             --primary-color: var(--mnt-primary);
         }
     </style>
-    <script src="/assets/js/src.js" defer></script>
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/alert-banner.js" defer></script>
+    <script src="/assets/js/src.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/src.js'); ?>" defer></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/alert-banner.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/alert-banner.js'); ?>" defer></script>
 </head>
 <body>
     <header class="header-container">

@@ -113,9 +113,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comunicados | DLGC</title>
-    <link rel="stylesheet" href="/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/assets/css/comunicados.css">
-    <link rel="stylesheet" href="/assets/css/comunicados_templates.css">
+    <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/comunicados.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/comunicados.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/comunicados_templates.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/comunicados_templates.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body>
@@ -320,7 +320,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     </div>
 
     <!-- Scripts -->
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/comunicados.js"></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/comunicados.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/comunicados.js'); ?>"></script>
 </body>
 </html>

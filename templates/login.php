@@ -18,9 +18,9 @@ $registerData = $_SESSION['register_form_data'] ?? [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso | Portal DLGC</title>
-    <link rel="stylesheet" href="/assets/css/login.css">
-    <link rel="stylesheet" href="/assets/css/recover_password.css">
-    <link rel="stylesheet" href="/assets/css/cookie-banner.css">
+    <link rel="stylesheet" href="/assets/css/login.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/login.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/recover_password.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/recover_password.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/cookie-banner.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/cookie-banner.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 <?php if ($turnstileSiteKey !== ''): ?>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
@@ -270,8 +270,8 @@ $registerData = $_SESSION['register_form_data'] ?? [];
 
     <?php require_once __DIR__ . '/partials/cookie_banner.php'; ?>
 
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/login.js"></script>
-    <script src="/assets/js/script.js"></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/login.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/login.js'); ?>"></script>
+    <script src="/assets/js/script.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/script.js'); ?>"></script>
 </body>
 </html>

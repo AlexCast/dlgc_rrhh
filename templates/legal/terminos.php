@@ -124,6 +124,6 @@ require_once __DIR__ . '/../partials/legal_header.php';
     </div>
 </footer>
 
-<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/theme.js'); ?>"></script>
 </body>
 </html>

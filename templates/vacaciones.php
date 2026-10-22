@@ -17,8 +17,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Vacaciones | DLGC</title>
-    <link rel="stylesheet" href="/assets/css/firstpage.css">
-    <link rel="stylesheet" href="/assets/css/vacaciones.css">
+    <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/vacaciones.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/vacaciones.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body
@@ -150,9 +150,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
         </main>
     </div>
 
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/firstpage.js"></script>
-    <script src="/assets/js/vacaciones_saldo.js"></script>
+    <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
+    <script src="/assets/js/vacaciones_saldo.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/vacaciones_saldo.js'); ?>"></script>
 </body>
 </html>
 

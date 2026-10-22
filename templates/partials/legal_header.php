@@ -29,7 +29,7 @@ if (isset($allowedOrigins[$from])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') . ' | DLGC' : 'Documento Legal | DLGC'; ?></title>
-    <link rel="stylesheet" href="/assets/css/legal-pages.css">
+    <link rel="stylesheet" href="/assets/css/legal-pages.css?v=<?php echo filemtime(__DIR__ . '/../../assets/css/legal-pages.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body>
