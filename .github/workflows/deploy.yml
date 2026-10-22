@@ -25,3 +25,14 @@ jobs:
             git pull origin master
             sudo chown -R www-data:www-data /var/www/html/dlgc_rrhh
             sudo chmod -R 775 /var/www/html/dlgc_rrhh
+
+            # Sincronizar funciones y procedimientos almacenados de MariaDB (CREATE OR REPLACE = idempotente)
+            set -a
+            . /var/www/html/dlgc_rrhh/.env
+            set +a
+            export MYSQL_PWD="${DB_PASSWORD:-}"
+            MYSQL_BIN="$(command -v mariadb || command -v mysql)"
+            find /var/www/html/dlgc_rrhh/scripts/functions -type f \( -name 'fun_*.sql' -o -name 'proc_*.sql' \) | sort | while read -r f; do
+              "$MYSQL_BIN" -h "${DB_HOST:-127.0.0.1}" -P "${DB_PORT:-3306}" -u "${DB_USER:-dlgc_user}" "${DB_NAME:-db_dlgc_rrhh}" < "$f" || { echo "ERROR aplicando $f"; exit 1; }
+            done
+            unset MYSQL_PWD
