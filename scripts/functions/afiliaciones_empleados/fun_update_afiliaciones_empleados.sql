@@ -12,14 +12,14 @@ BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION RETURN 'Esta vaina se totió.. Y no fue de la risa.. Déjeme trabajar';
 
     UPDATE t_afiliaciones_empleados
-    SET id_cesantia = wid_cesantia,
+    SET id_eps = wid_eps,
+        id_arl = wid_arl,
+        id_caja = wid_caja,
+        id_pension = wid_pension,
+        id_cesantia = wid_cesantia,
         usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
     WHERE id_usuario = wid_usuario
-      AND id_eps = wid_eps
-      AND id_arl = wid_arl
-      AND id_caja = wid_caja
-      AND id_pension = wid_pension
       AND fec_delete IS NULL;
             
     IF ROW_COUNT() > 0 THEN

@@ -13,9 +13,9 @@ if (!isset($_POST['id_usuario'])) {
     exit();
 }
 
-$id_usuario = (int) $_POST['id_usuario'];
+$id_usuario = trim((string) $_POST['id_usuario']);
 
-if ($id_usuario <= 0) {
+if ($id_usuario === '') {
     header('Location: listar_afiliaciones_empleados.php?error=id');
     exit();
 }

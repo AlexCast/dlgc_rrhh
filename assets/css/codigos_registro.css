@@ -41,7 +41,7 @@ body.dark-theme {
 /* Aviso flotante: no desplaza el contenido y se cierra solo */
 .codes-flash {
     position: fixed;
-    top: 104px;
+    bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1200;
@@ -57,20 +57,32 @@ body.dark-theme {
     color: var(--text-main);
     font-weight: 500;
     font-size: 0.9rem;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
     animation: codesFlashIn 0.3s ease forwards;
 }
 
 .codes-flash.success {
-    background-color: var(--status-approved-bg);
-    border-color: rgba(4, 120, 87, 0.25);
-    color: var(--status-approved-text);
+    background-color: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
 }
 
 .codes-flash.error {
-    background-color: var(--status-danger-bg);
-    border-color: rgba(220, 38, 38, 0.25);
-    color: var(--status-danger-text);
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+body.dark-theme .codes-flash.success {
+    background-color: #12291d;
+    border-color: rgba(52, 211, 153, 0.45);
+    color: #6ee7b7;
+}
+
+body.dark-theme .codes-flash.error {
+    background-color: #2a1515;
+    border-color: rgba(252, 165, 165, 0.45);
+    color: #fca5a5;
 }
 
 .codes-flash.is-hiding {
@@ -102,13 +114,13 @@ body.dark-theme {
 }
 
 @keyframes codesFlashIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+    from { opacity: 0; transform: translateX(-50%) translateY(16px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 @keyframes codesFlashOut {
     from { opacity: 1; transform: translateX(-50%) translateY(0); }
-    to { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+    to { opacity: 0; transform: translateX(-50%) translateY(16px); }
 }
 
 .codes-card {
@@ -331,7 +343,7 @@ body.dark-theme {
 
 .codes-toast {
     position: fixed;
-    bottom: 24px;
+    bottom: 84px;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
     background: var(--text-main);
@@ -396,7 +408,7 @@ body.dark-theme .codes-toast {
     }
 
     .codes-flash {
-        top: 80px;
+        bottom: 20px;
     }
 
     .codes-panel {
