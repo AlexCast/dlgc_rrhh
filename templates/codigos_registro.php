@@ -53,6 +53,9 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
 
 $puedeGenerar = has_module_permission(23, 'crear');
 $puedeCancelar = has_module_permission(23, 'eliminar');
+
+$tabActiva = ($_GET['tab'] ?? '') === 'temporal' ? 'temporal' : 'unico';
+$esTabUnico = $tabActiva === 'unico';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -65,6 +68,13 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body>
+    <?php if ($flashMensaje !== null): ?>
+        <div class="codes-flash <?php echo $flashTipo === 'error' ? 'error' : 'success'; ?>" role="status" data-auto-dismiss="4500">
+            <span class="codes-flash-text"><?php echo htmlspecialchars($flashMensaje, ENT_QUOTES, 'UTF-8'); ?></span>
+            <button type="button" class="codes-flash-close" aria-label="Cerrar aviso">&times;</button>
+        </div>
+    <?php endif; ?>
+
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar" aria-label="Menú principal">
             <div class="sidebar-top">
@@ -118,33 +128,20 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
 
             <div class="dashboard-body fade-in-up codes-page-body">
 
-                <?php if ($flashMensaje !== null): ?>
-                    <div class="codes-alert <?php echo $flashTipo === 'error' ? 'error' : 'success'; ?>" role="status">
-                        <?php echo htmlspecialchars($flashMensaje, ENT_QUOTES, 'UTF-8'); ?>
-                    </div>
-                <?php endif; ?>
-
-                <section class="codes-welcome" aria-labelledby="codes-title">
-                    <div class="welcome-text">
-                        <h2 id="codes-title">Control de registros de cuentas</h2>
-                        <p>Genera o cancela el código que permitirá a nuevas personas activar su cuenta en el portal.</p>
-                    </div>
-                </section>
-
                 <div class="codes-card">
                     <div class="codes-tabs" role="tablist" aria-label="Tipo de código de registro">
-                        <button class="codes-tab active" type="button" role="tab" aria-selected="true" aria-controls="panel-unico" id="tab-unico">
+                        <button class="codes-tab <?php echo $esTabUnico ? 'active' : ''; ?>" type="button" role="tab" aria-selected="<?php echo $esTabUnico ? 'true' : 'false'; ?>" aria-controls="panel-unico" id="tab-unico">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                             Único de un solo uso
                         </button>
-                        <button class="codes-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-temporal" id="tab-temporal">
+                        <button class="codes-tab <?php echo $esTabUnico ? '' : 'active'; ?>" type="button" role="tab" aria-selected="<?php echo $esTabUnico ? 'false' : 'true'; ?>" aria-controls="panel-temporal" id="tab-temporal">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                             Temporal
                         </button>
                     </div>
 
                     <div class="codes-panels">
-                        <div id="panel-unico" class="codes-panel active" role="tabpanel" aria-labelledby="tab-unico">
+                        <div id="panel-unico" class="codes-panel <?php echo $esTabUnico ? 'active' : ''; ?>" role="tabpanel" aria-labelledby="tab-unico" aria-hidden="<?php echo $esTabUnico ? 'false' : 'true'; ?>">
                             <div class="codes-panel-intro">
                                 <h3 class="codes-panel-title">Código Único</h3>
                                 <p class="codes-panel-desc">Una persona lo usa para registrarse y el sistema genera automáticamente el siguiente.</p>
@@ -182,7 +179,7 @@ $puedeCancelar = has_module_permission(23, 'eliminar');
                             </div>
                         </div>
 
-                        <div id="panel-temporal" class="codes-panel" role="tabpanel" aria-labelledby="tab-temporal" aria-hidden="true">
+                        <div id="panel-temporal" class="codes-panel <?php echo $esTabUnico ? '' : 'active'; ?>" role="tabpanel" aria-labelledby="tab-temporal" aria-hidden="<?php echo $esTabUnico ? 'true' : 'false'; ?>">
                             <div class="codes-panel-intro">
                                 <h3 class="codes-panel-title">Código Temporal</h3>
                                 <p class="codes-panel-desc">Un mismo código compartido que vence automáticamente en la fecha configurada.</p>

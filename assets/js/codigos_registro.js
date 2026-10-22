@@ -1,4 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Aviso flotante temporal
+    document.querySelectorAll('.codes-flash[data-auto-dismiss]').forEach(flash => {
+        const closeBtn = flash.querySelector('.codes-flash-close');
+
+        const dismiss = () => {
+            if (flash.classList.contains('is-hiding')) return;
+            flash.classList.add('is-hiding');
+            setTimeout(() => flash.remove(), 300);
+        };
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', dismiss);
+        }
+
+        const delay = parseInt(flash.getAttribute('data-auto-dismiss'), 10);
+        setTimeout(dismiss, Number.isNaN(delay) ? 4500 : delay);
+    });
+
     // Pestañas
     const tabs = document.querySelectorAll('.codes-tab');
     const panels = document.querySelectorAll('.codes-panel');
@@ -22,6 +40,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
+
+    // En escritorio ambos paneles están visibles a la vez
+    const vistaAmplia = window.matchMedia('(min-width: 1200px)');
+
+    const sincronizarPanelesVisibles = () => {
+        panels.forEach(p => {
+            const visible = vistaAmplia.matches || p.classList.contains('active');
+            p.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        });
+    };
+
+    vistaAmplia.addEventListener('change', sincronizarPanelesVisibles);
+    sincronizarPanelesVisibles();
 
     // Copiar al portapapeles
     const toast = document.getElementById('codes-toast');

@@ -60,9 +60,7 @@ try {
                  VALUES (?, 'TEMPORAL', ?, ?, CURRENT_TIMESTAMP)"
             )->execute([$nuevoCodigo, $expiracion, $usuarioSesion]);
 
-            setFlash("Código temporal generado: {$nuevoCodigo}. Vence el {$expiracion}.");
             break;
-
         case 'cancelar_temporal':
             if (!has_module_permission($moduleId, 'eliminar')) {
                 setFlash('No tienes permiso para cancelar códigos temporales.', 'error');
@@ -102,7 +100,6 @@ try {
                  VALUES (?, 'UNICO_USO', ?, CURRENT_TIMESTAMP)"
             )->execute([$nuevoCodigo, $usuarioSesion]);
 
-            setFlash("Código único generado: {$nuevoCodigo}.");
             break;
 
         case 'cancelar_unico':
@@ -133,5 +130,7 @@ try {
     setFlash('Ocurrió un error al procesar la acción.', 'error');
 }
 
-header('Location: /templates/codigos_registro.php');
+$tabDestino = str_ends_with($accion, '_temporal') ? 'temporal' : 'unico';
+
+header('Location: /templates/codigos_registro.php?tab=' . $tabDestino);
 exit;
