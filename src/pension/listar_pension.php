@@ -136,6 +136,7 @@ $pensionEliminadas = array_filter($pensionRegistros, function ($pension) {
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text"><strong>Nombre:</strong> <?php echo htmlspecialchars((string) $pension->nombre_pension, ENT_QUOTES, 'UTF-8'); ?></p>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>

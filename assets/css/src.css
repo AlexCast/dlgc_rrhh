@@ -93,6 +93,85 @@ a {
     color: inherit;
 }
 
+/* Escala tipográfica proporcional a la pantalla */
+h1,
+h2,
+h3 {
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+h1 {
+    font-size: clamp(1.3rem, 1.05rem + 1.1vw, 2rem);
+    margin: 0 0 10px;
+}
+
+h2 {
+    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+}
+
+h3 {
+    font-size: clamp(1rem, 0.95rem + 0.4vw, 1.25rem);
+}
+
+/* Título con acción informativa al lado */
+.page-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.page-title-row h1 {
+    margin: 0;
+}
+
+.info-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid var(--mnt-border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--mnt-text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--mnt-transition);
+}
+
+.info-toggle:hover,
+.info-toggle[aria-expanded="true"] {
+    border-color: var(--mnt-primary);
+    color: var(--mnt-primary);
+    background: rgba(59, 168, 106, 0.12);
+}
+
+.info-popover {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid var(--mnt-border);
+    border-radius: var(--mnt-radius-sm);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--mnt-text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.info-popover[hidden] {
+    display: none;
+}
+
+body.dark-theme .info-popover {
+    background: rgba(19, 27, 21, 0.8);
+}
+
 .header-container {
     position: sticky;
     top: 16px;
@@ -296,6 +375,34 @@ body.dark-theme .card {
 
 .table-hover tbody tr:hover {
     background: rgba(59, 168, 106, 0.06);
+}
+
+/* Columna de acciones fija al hacer scroll horizontal */
+.table th:last-child,
+.table td:last-child:not([colspan]) {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: var(--mnt-table-bg);
+    box-shadow: -8px 0 12px -8px rgba(13, 19, 15, 0.18);
+}
+
+.table-primary th:last-child {
+    z-index: 3;
+    background: linear-gradient(135deg, #3ba86a 0%, #2f8f57 100%);
+}
+
+.table-hover tbody tr:hover td:last-child:not([colspan]) {
+    background: #f3faf6;
+}
+
+body.dark-theme .table th:last-child,
+body.dark-theme .table td:last-child:not([colspan]) {
+    box-shadow: -8px 0 12px -8px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-theme .table-hover tbody tr:hover td:last-child:not([colspan]) {
+    background: #16231a;
 }
 
 .text-center {
@@ -1050,7 +1157,7 @@ body.dark-theme .btn-save {
         width: auto;
     }
 
-    .desktop-view {
+    .desktop-view:has(~ .mobile-view) {
         display: none;
     }
 
@@ -1287,3 +1394,184 @@ body.dark-theme .bg-secondary {
     color: #d1d5db;
 }
 
+
+/* =========================================
+   Tablas y tarjetas en móvil (listados de src/)
+   ========================================= */
+@media (max-width: 900px) {
+    .mobile-view .row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 0;
+    }
+
+    .mobile-view .col-12 {
+        width: 100%;
+        padding: 0;
+    }
+
+    .mobile-view .mb-3 {
+        margin-bottom: 0;
+    }
+
+    .mobile-view .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--mnt-border);
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(13, 19, 15, 0.05);
+        overflow: hidden;
+    }
+
+    body.dark-theme .mobile-view .card {
+        background: rgba(19, 27, 21, 0.8);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    }
+
+    .mobile-view .card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 16px;
+        background: transparent;
+        background-image: none;
+        color: var(--mnt-text);
+        border-bottom: 1px solid var(--mnt-border);
+    }
+
+    .mobile-view .card-header h5 {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--mnt-text);
+        overflow-wrap: anywhere;
+    }
+
+    .mobile-view .card-header > div {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 6px;
+    }
+
+    .mobile-view .card-header .btn,
+    .mobile-view .card-header .btn-sm {
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 0.76rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .mobile-view .card-header form {
+        margin: 0;
+    }
+
+    .mobile-view .card-body {
+        padding: 4px 16px 12px;
+    }
+
+    .mobile-view .card-text {
+        display: grid;
+        grid-template-columns: minmax(88px, 38%) minmax(0, 1fr);
+        gap: 10px;
+        margin: 0;
+        padding: 8px 0;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        color: var(--mnt-text);
+        border-bottom: 1px dashed var(--mnt-border);
+    }
+
+    .mobile-view .card-text:last-child {
+        border-bottom: 0;
+    }
+
+    .mobile-view .card-text strong {
+        font-size: 0.74rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--mnt-text-muted);
+    }
+
+    /* El título de la tarjeta ya muestra el dato en los módulos de un solo campo */
+    .mobile-view .card-body > .card-text:only-child {
+        display: none;
+    }
+
+    .mobile-view .list-group-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        font-size: 0.85rem;
+        border-bottom: 1px dashed var(--mnt-border);
+    }
+
+    .mobile-view .list-group-item:last-child {
+        border-bottom: 0;
+    }
+
+    .mobile-view .list-group-item strong {
+        font-size: 0.74rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--mnt-text-muted);
+    }
+
+    .mobile-view .list-group-item span {
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    /* Tablas que no tienen versión en tarjetas (roles, módulos, usuarios...) */
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table th,
+    .table td {
+        padding: 10px 8px;
+        font-size: 0.82rem;
+    }
+}
+
+/* Tarjetas de un solo campo: se oculta el cuerpo vacío para alturas uniformes */
+@media (max-width: 900px) {
+    .mobile-view .card-body:has(> .card-text:only-child) {
+        display: none;
+    }
+
+    .mobile-view .card:has(> .card-body > .card-text:only-child) .card-header {
+        border-bottom: 0;
+    }
+}
+
+/* Varios listados en pantallas medianas */
+@media (min-width: 600px) and (max-width: 900px) {
+    .mobile-view .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 14px;
+    }
+}
+
+/* Navegadores sin :has(): se mantiene el comportamiento anterior */
+@supports not selector(:has(*)) {
+    @media (max-width: 900px) {
+        .desktop-view {
+            display: none;
+        }
+    }
+}

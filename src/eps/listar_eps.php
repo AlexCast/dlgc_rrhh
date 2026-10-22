@@ -136,6 +136,7 @@ $epsEliminadas = array_filter($epsRegistros, function ($eps) {
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text"><strong>Nombre:</strong> <?php echo htmlspecialchars((string) $eps->nombre_eps, ENT_QUOTES, 'UTF-8'); ?></p>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>

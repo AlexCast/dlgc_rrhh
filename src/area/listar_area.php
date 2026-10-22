@@ -136,6 +136,7 @@ $areaEliminadas = array_filter($areaRegistros, function ($area) {
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text"><strong>Nombre:</strong> <?php echo htmlspecialchars((string) $area->nombre_area, ENT_QUOTES, 'UTF-8'); ?></p>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>

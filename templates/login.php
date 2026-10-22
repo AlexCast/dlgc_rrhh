@@ -258,7 +258,7 @@ $registerData = $_SESSION['register_form_data'] ?? [];
 
     <footer class="landing-footer">
         <div class="landing-footer__inner">
-            <p class="landing-footer__copy">© <?php echo date('Y'); ?> Distribuciones La Gran Cacharrería. Todos los derechos reservados.</p>
+            <p class="landing-footer__copy">© 2026 - <?php echo date('Y'); ?> Distribuciones La Gran Cacharrería. Todos los derechos reservados.</p>
             <nav class="landing-footer__links" aria-label="Enlaces legales">
                 <a href="/templates/legal/aviso_legal.php">Aviso Legal</a>
                 <a href="/templates/legal/privacidad.php">Privacidad</a>

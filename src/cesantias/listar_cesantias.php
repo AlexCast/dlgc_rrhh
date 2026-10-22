@@ -136,6 +136,7 @@ $cesantiaEliminadas = array_filter($cesantiaRegistros, function ($cesantia) {
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text"><strong>Nombre:</strong> <?php echo htmlspecialchars((string) $cesantia->nombre_cesantia, ENT_QUOTES, 'UTF-8'); ?></p>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>

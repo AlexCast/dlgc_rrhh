@@ -136,6 +136,7 @@ $bancoEliminadas = array_filter($bancoRegistros, function ($banco) {
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text"><strong>Nombre:</strong> <?php echo htmlspecialchars((string) $banco->nombre_banco, ENT_QUOTES, 'UTF-8'); ?></p>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>

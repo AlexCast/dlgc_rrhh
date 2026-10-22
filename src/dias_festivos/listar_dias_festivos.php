@@ -27,8 +27,15 @@ $festivoEliminados = array_filter($festivoRegistros, function ($f) {
 <main class="main-container">
     <div class="row">
         <div class="col-12">
-            <h1>Días Festivos</h1>
-            <p>Los festivos <strong>Nacional</strong> se calculan automáticamente para Colombia (Ley Emiliani) y no son editables. Los festivos <strong>Empresa</strong> los administra RRHH y sí pueden marcarse para descontar del sueldo.</p>
+            <div class="page-title-row">
+                <h1>Días Festivos</h1>
+                <button type="button" class="info-toggle" id="festivos-info-toggle" aria-expanded="false" aria-controls="festivos-info" aria-label="Información sobre los días festivos" title="Información">
+                    <i class="fas fa-circle-info" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="info-popover" id="festivos-info" hidden>
+                <p>Los festivos <strong>Nacional</strong> se calculan automáticamente para Colombia (Ley Emiliani) y no son editables. Los festivos <strong>Empresa</strong> los administra RRHH y sí pueden marcarse para descontar del sueldo.</p>
+            </div>
 
             <div class="d-flex gap-3 mb-4">
                 <span class="badge bg-primary p-2">Activos: <?php echo count($festivoActivos); ?></span>
@@ -173,5 +180,59 @@ $festivoEliminados = array_filter($festivoRegistros, function ($f) {
         </div>
     </div>
 </main>
+
+<script>
+(function () {
+    var toggle = document.getElementById('festivos-info-toggle');
+    var panel = document.getElementById('festivos-info');
+    if (!toggle || !panel) {
+        return;
+    }
+
+    var pressTimer = null;
+    var longPressed = false;
+
+    var setOpen = function (open) {
+        panel.hidden = !open;
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    toggle.addEventListener('click', function () {
+        if (longPressed) {
+            longPressed = false;
+            return;
+        }
+        setOpen(panel.hidden);
+    });
+
+    toggle.addEventListener('pointerdown', function () {
+        clearTimeout(pressTimer);
+        longPressed = false;
+        pressTimer = setTimeout(function () {
+            longPressed = true;
+            setOpen(true);
+        }, 400);
+    });
+
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (evt) {
+        toggle.addEventListener(evt, function () {
+            clearTimeout(pressTimer);
+        });
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!panel.hidden && !panel.contains(event.target) && !toggle.contains(event.target)) {
+            setOpen(false);
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !panel.hidden) {
+            setOpen(false);
+            toggle.focus();
+        }
+    });
+})();
+</script>
 
 <?php include_once 'pie_dias_festivos.php'; ?>
