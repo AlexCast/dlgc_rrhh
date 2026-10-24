@@ -73,4 +73,52 @@ class Mailer
             return false;
         }
     }
+
+    /**
+     * Envía un correo masivo usando BCC (un único envío SMTP, sin revelar
+     * las direcciones entre destinatarios).
+     *
+     * @param array<int, array{email:string, name:string}> $recipients Destinatarios.
+     * @param string $subject Asunto.
+     * @param string $body    Cuerpo HTML.
+     * @param string $altBody Cuerpo plano alternativo.
+     *
+     * @return int Número de destinatarios notificados (0 si falló o no había destinatarios).
+     */
+    public function sendBulk(array $recipients, string $subject, string $body, string $altBody = ''): int
+    {
+        $recipients = array_values(array_filter($recipients, static function (array $recipient): bool {
+            return !empty(trim((string) ($recipient['email'] ?? '')));
+        }));
+
+        if ($recipients === []) {
+            return 0;
+        }
+
+        try {
+            $this->mail->clearAddresses();
+            $this->mail->clearBCCs();
+
+            foreach ($recipients as $recipient) {
+                $this->mail->addBCC(
+                    trim((string) $recipient['email']),
+                    trim((string) ($recipient['name'] ?? ''))
+                );
+            }
+
+            $this->mail->isHTML(true);
+            $this->mail->Subject = $subject;
+            $this->mail->Body    = $body;
+            $this->mail->AltBody = $altBody ?: strip_tags($body);
+
+            if (!$this->mail->send()) {
+                return 0;
+            }
+
+            return count($recipients);
+        } catch (Exception $e) {
+            error_log('Error enviando correo masivo: ' . $this->mail->ErrorInfo);
+            return 0;
+        }
+    }
 }

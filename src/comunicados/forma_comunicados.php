@@ -62,6 +62,25 @@ $autorNombre = htmlspecialchars($_SESSION['nombre_completo'] ?? 'Usuario', ENT_Q
                             </div>
                         </div>
 
+                        <div class="fc-field fc-notify-field">
+                            <label for="enviar_correo" class="fc-checkbox">
+                                <input
+                                    type="checkbox"
+                                    name="enviar_correo"
+                                    id="enviar_correo"
+                                    value="1"
+                                    checked
+                                >
+                                <span class="fc-checkbox-box" aria-hidden="true">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <span class="fc-checkbox-text">
+                                    <strong>Enviar por correo</strong>
+                                    <small>Notificar a todos los empleados al publicar este comunicado.</small>
+                                </span>
+                            </label>
+                        </div>
+
                         <div class="fc-field">
                             <label for="contenido" id="contenido-label" class="fc-label">
                                 <i class="fas fa-pen-nib"></i> Contenido

@@ -180,6 +180,73 @@ body.dark-theme .fc-card {
     cursor: pointer;
 }
 
+/* Checkbox de envío por correo */
+.fc-notify-field {
+    margin-bottom: 22px;
+}
+
+.fc-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.fc-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.fc-checkbox-box {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    border: 2px solid var(--mnt-border);
+    background: var(--mnt-input-bg);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
+    margin-top: 1px;
+}
+
+.fc-checkbox input:checked + .fc-checkbox-box {
+    background: var(--mnt-primary);
+    border-color: var(--mnt-primary);
+}
+
+.fc-checkbox input:focus-visible + .fc-checkbox-box {
+    box-shadow: 0 0 0 4px rgba(59, 168, 106, 0.18);
+}
+
+.fc-checkbox input:not(:checked) + .fc-checkbox-box i {
+    opacity: 0;
+    transform: scale(0.6);
+}
+
+.fc-checkbox-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.fc-checkbox-text strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--mnt-text);
+}
+
+.fc-checkbox-text small {
+    font-size: 0.82rem;
+    color: var(--mnt-text-muted);
+}
+
 /* Toolbar del editor */
 .fc-toolbar {
     display: flex;
