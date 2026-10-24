@@ -12,13 +12,15 @@ if (!isset($_POST['id_festivo'], $_POST['fecha'], $_POST['descripcion'])) {
     exit();
 }
 
-$id_festivo = (int) $_POST['id_festivo'];
-$fecha = trim((string) $_POST['fecha']);
-$descripcion = trim((string) $_POST['descripcion']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$id_festivo = InputSanitizer::intValue($_POST['id_festivo'] ?? null, 1);
+$fecha = InputSanitizer::date($_POST['fecha'] ?? null);
+$descripcion = InputSanitizer::boundedText($_POST['descripcion'] ?? null, 100);
 $descuentaSalario = isset($_POST['descuenta_salario']) ? 'true' : 'false';
 
-if ($id_festivo <= 0) {
-    header('Location: listar_dias_festivos.php?error=id');
+if ($id_festivo === null || $fecha === null || $descripcion === null) {
+    header('Location: listar_dias_festivos.php?error=datos');
     exit();
 }
 

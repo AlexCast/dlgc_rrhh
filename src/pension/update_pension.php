@@ -16,8 +16,15 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
 $id_pension = (int) $_POST['id_pension'];
-$nombre_pension = trim((string) $_POST['nombre_pension']);
+$nombre_pension = InputSanitizer::boundedText($_POST['nombre_pension'] ?? null, 50);
+
+if ($nombre_pension === null) {
+    header('Location: listar_pension.php?error=datos');
+    exit();
+}
 
 if ($id_pension <= 0) {
     header('Location: listar_pension.php?error=id');

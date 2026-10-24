@@ -59,7 +59,7 @@ $operaciones = $conexion->query("
                                         <?php
                                             $etiquetaUsuario = ($u->nombre_usuario ?? $u->username ?? $u->id_usuario) . ' (' . $u->username . ')';
                                         ?>
-                                        <option data-id="<?php echo (int) $u->id_usuario; ?>"
+                                        <option data-id="<?php echo htmlspecialchars((string) $u->id_usuario, ENT_QUOTES, 'UTF-8'); ?>"
                                                 value="<?php echo htmlspecialchars((string) $etiquetaUsuario, ENT_QUOTES, 'UTF-8'); ?>">
                                         </option>
                                     <?php endforeach; ?>

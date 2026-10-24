@@ -16,8 +16,15 @@ if (
     exit();
 }
 
-$id_modulo = htmlspecialchars(trim($_POST['id_modulo'] ?? ''));
-$nombre_modulo = trim($_POST['nombre_modulo'] ?? '');
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$id_modulo = InputSanitizer::intValue($_POST['id_modulo'] ?? null, 1);
+$nombre_modulo = InputSanitizer::boundedText($_POST['nombre_modulo'] ?? null, 30);
+
+if ($id_modulo === null || $nombre_modulo === null) {
+    header('Location: listar_modulos.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

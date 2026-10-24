@@ -16,8 +16,15 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
 $id_banco = (int) $_POST['id_banco'];
-$nombre_banco = trim((string) $_POST['nombre_banco']);
+$nombre_banco = InputSanitizer::boundedText($_POST['nombre_banco'] ?? null, 50);
+
+if ($nombre_banco === null) {
+    header('Location: listar_banco.php?error=datos');
+    exit();
+}
 
 if ($id_banco <= 0) {
     header('Location: listar_banco.php?error=id');

@@ -15,7 +15,14 @@ if (
     exit();
 }
 
-$nombre_pension = trim((string) $_POST['nombre_pension']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$nombre_pension = InputSanitizer::boundedText($_POST['nombre_pension'] ?? null, 50);
+
+if ($nombre_pension === null) {
+    header('Location: forma_pension.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

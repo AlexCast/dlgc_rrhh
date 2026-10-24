@@ -16,8 +16,15 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
 $id_area = (int) $_POST['id_area'];
-$nombre_area = trim((string) $_POST['nombre_area']);
+$nombre_area = InputSanitizer::boundedText($_POST['nombre_area'] ?? null, 30);
+
+if ($nombre_area === null) {
+    header('Location: listar_area.php?error=datos');
+    exit();
+}
 
 if ($id_area <= 0) {
     header('Location: listar_area.php?error=id');

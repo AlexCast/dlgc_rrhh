@@ -108,6 +108,9 @@ if (!$registro) {
                                         class="form-control"
                                         required
                                         maxlength="20"
+                                        inputmode="numeric"
+                                        pattern="[0-9]{1,20}"
+                                        title="Solo números (máximo 20 dígitos)."
                                         value="<?php echo htmlspecialchars((string) $registro->num_cuenta, ENT_QUOTES, 'UTF-8'); ?>"
                                         placeholder="Ej: 1234567890"
                                     >
@@ -124,6 +127,7 @@ if (!$registro) {
                                     <input
                                         type="number"
                                         step="0.01"
+                                        min="0"
                                         name="salario"
                                         id="salario"
                                         class="form-control"

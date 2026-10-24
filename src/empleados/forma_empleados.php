@@ -269,6 +269,9 @@ $municipiosRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
                                         class="form-control"
                                         required
                                         maxlength="10"
+                                        inputmode="numeric"
+                                        pattern="[0-9]{10}"
+                                        title="Debe contener exactamente 10 dígitos."
                                         placeholder="Ej: 3001234567"
                                     >
                                 </div>

@@ -13,10 +13,12 @@ if (!isset($_POST['id_rol']) || !isset($_POST['id_operacion'])) {
     exit();
 }
 
-$id_rol = (int) $_POST['id_rol'];
-$id_operacion = (int) $_POST['id_operacion'];
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 
-if ($id_rol <= 0 || $id_operacion <= 0) {
+$id_rol = InputSanitizer::intValue($_POST['id_rol'] ?? null, 1);
+$id_operacion = InputSanitizer::intValue($_POST['id_operacion'] ?? null, 1);
+
+if ($id_rol === null || $id_operacion === null) {
     header('Location: forma_roles_operaciones.php?error=ids');
     exit();
 }

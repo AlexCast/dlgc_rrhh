@@ -15,7 +15,14 @@ if (
     exit();
 }
 
-$nombre_area = trim((string) $_POST['nombre_area']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$nombre_area = InputSanitizer::boundedText($_POST['nombre_area'] ?? null, 30);
+
+if ($nombre_area === null) {
+    header('Location: forma_area.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

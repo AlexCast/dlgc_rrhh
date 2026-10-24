@@ -20,15 +20,17 @@ if (
     exit();
 }
 
-$id_usuario = trim((string) $_POST['id_usuario']);
-$id_eps = (int) $_POST['id_eps'];
-$id_arl = (int) $_POST['id_arl'];
-$id_caja = (int) $_POST['id_caja'];
-$id_pension = (int) $_POST['id_pension'];
-$id_cesantia = (int) $_POST['id_cesantia'];
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 
-if (empty($id_usuario)) {
-    header('Location: listar_afiliaciones_empleados.php?error=id');
+$id_usuario = InputSanitizer::boundedText($_POST['id_usuario'] ?? null, 20);
+$id_eps = InputSanitizer::intValue($_POST['id_eps'] ?? null, 1);
+$id_arl = InputSanitizer::intValue($_POST['id_arl'] ?? null, 1);
+$id_caja = InputSanitizer::intValue($_POST['id_caja'] ?? null, 1);
+$id_pension = InputSanitizer::intValue($_POST['id_pension'] ?? null, 1);
+$id_cesantia = InputSanitizer::intValue($_POST['id_cesantia'] ?? null, 1);
+
+if ($id_usuario === null || $id_eps === null || $id_arl === null || $id_caja === null || $id_pension === null || $id_cesantia === null) {
+    header('Location: listar_afiliaciones_empleados.php?error=datos');
     exit();
 }
 

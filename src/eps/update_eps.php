@@ -16,8 +16,15 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
 $id_eps = (int) $_POST['id_eps'];
-$nombre_eps = trim((string) $_POST['nombre_eps']);
+$nombre_eps = InputSanitizer::boundedText($_POST['nombre_eps'] ?? null, 50);
+
+if ($nombre_eps === null) {
+    header('Location: listar_eps.php?error=datos');
+    exit();
+}
 
 if ($id_eps <= 0) {
     header('Location: listar_eps.php?error=id');

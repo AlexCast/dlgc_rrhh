@@ -16,8 +16,15 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
 $id_cesantia = (int) $_POST['id_cesantia'];
-$nombre_cesantia = trim((string) $_POST['nombre_cesantia']);
+$nombre_cesantia = InputSanitizer::boundedText($_POST['nombre_cesantia'] ?? null, 50);
+
+if ($nombre_cesantia === null) {
+    header('Location: listar_cesantias.php?error=datos');
+    exit();
+}
 
 if ($id_cesantia <= 0) {
     header('Location: listar_cesantias.php?error=id');

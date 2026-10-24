@@ -34,7 +34,7 @@ require_once __DIR__ . '/../../app/conexion.php';
                                         id="nombre_area"
                                         class="form-control"
                                         required
-                                        maxlength="50"
+                                        maxlength="30"
                                         placeholder="Ej: Área de Salud"
                                     >
                                 </div>

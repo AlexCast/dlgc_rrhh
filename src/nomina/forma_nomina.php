@@ -87,6 +87,9 @@ $bancosRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
                                         class="form-control"
                                         required
                                         maxlength="20"
+                                        inputmode="numeric"
+                                        pattern="[0-9]{1,20}"
+                                        title="Solo números (máximo 20 dígitos)."
                                         placeholder="Ej: 1234567890"
                                     >
                                 </div>
@@ -102,6 +105,7 @@ $bancosRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
                                     <input
                                         type="number"
                                         step="0.01"
+                                        min="0"
                                         name="salario"
                                         id="salario"
                                         class="form-control"

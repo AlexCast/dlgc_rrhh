@@ -86,7 +86,7 @@ render_alert_banner();
                         <div class="col-md-6">
                             <div class="field-wrap">
                                 <label for="telefono" class="form-label">Teléfono</label>
-                                <input type="text" name="telefono" id="telefono" class="form-control" maxlength="15" value="<?php echo htmlspecialchars((string) ($registro->telefono ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="text" name="telefono" id="telefono" class="form-control" maxlength="15" inputmode="tel" pattern="\+?[0-9()\- ]{7,15}" title="Teléfono con dígitos; guiones, paréntesis y '+' permitidos." value="<?php echo htmlspecialchars((string) ($registro->telefono ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                             </div>
                         </div>
 

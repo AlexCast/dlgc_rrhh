@@ -20,13 +20,20 @@ if (
     exit();
 }
 
-$id_usuario = trim((string) $_POST['id_usuario']);
-$id_area = (int) $_POST['id_area'];
-$puesto = trim((string) $_POST['puesto']);
-$fecha_inicio_puesto = trim((string) $_POST['fecha_inicio_puesto']);
-$fecha_fin_puesto = !empty(trim((string) $_POST['fecha_fin_puesto'])) ? trim((string) $_POST['fecha_fin_puesto']) : null;
-$tipo_contrato = trim((string) $_POST['tipo_contrato']);
-$direccion_oficina = trim((string) $_POST['direccion_oficina']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$id_usuario = InputSanitizer::boundedText($_POST['id_usuario'] ?? null, 20);
+$id_area = InputSanitizer::intValue($_POST['id_area'] ?? null, 1);
+$puesto = InputSanitizer::boundedText($_POST['puesto'] ?? null, 50);
+$fecha_inicio_puesto = InputSanitizer::date($_POST['fecha_inicio_puesto'] ?? null);
+$fecha_fin_puesto = InputSanitizer::date($_POST['fecha_fin_puesto'] ?? null);
+$tipo_contrato = InputSanitizer::whitelist($_POST['tipo_contrato'] ?? null, ['FIJO', 'INDEFINIDO', 'PRACTICAS']);
+$direccion_oficina = InputSanitizer::boundedText($_POST['direccion_oficina'] ?? null, 100);
+
+if ($id_usuario === null || $id_area === null || $puesto === null || $fecha_inicio_puesto === null || $tipo_contrato === null || $direccion_oficina === null) {
+    header('Location: forma_contratos_empleados.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

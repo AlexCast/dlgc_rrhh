@@ -23,26 +23,23 @@ if (
     exit();
 }
 
-$id_usuario = trim((string) $_POST['id_usuario']);
-$id_jefe = !empty(trim((string) $_POST['id_jefe'])) ? trim((string) $_POST['id_jefe']) : null;
-$id_municipio = (int) trim((string) $_POST['id_municipio']);
-$fecha_ingreso = trim((string) $_POST['fecha_ingreso']);
-$fecha_egreso = !empty(trim((string) $_POST['fecha_egreso'])) ? trim((string) $_POST['fecha_egreso']) : null;
-$genero = trim((string) $_POST['genero']);
-$fecha_nacimiento = trim((string) $_POST['fecha_nacimiento']);
-$tipo_sangre = trim((string) $_POST['tipo_sangre']);
-$estado_civil = trim((string) $_POST['estado_civil']);
-$direccion_casa = trim((string) $_POST['direccion_casa']);
-$numero_celular = trim((string) $_POST['numero_celular']);
-$foto_perfil = !empty(trim((string) $_POST['foto_perfil'])) ? trim((string) $_POST['foto_perfil']) : null;
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 
-if ($id_usuario === '') {
-    header('Location: listar_empleados.php?error=id');
-    exit();
-}
+$id_usuario = InputSanitizer::boundedText($_POST['id_usuario'] ?? null, 20);
+$id_jefe = InputSanitizer::boundedText($_POST['id_jefe'] ?? null, 20);
+$id_municipio = InputSanitizer::intValue($_POST['id_municipio'] ?? null, 1);
+$fecha_ingreso = InputSanitizer::date($_POST['fecha_ingreso'] ?? null);
+$fecha_egreso = InputSanitizer::date($_POST['fecha_egreso'] ?? null);
+$genero = InputSanitizer::whitelist($_POST['genero'] ?? null, ['MASCULINO', 'FEMENINO', 'OTRO']);
+$fecha_nacimiento = InputSanitizer::date($_POST['fecha_nacimiento'] ?? null);
+$tipo_sangre = InputSanitizer::whitelist($_POST['tipo_sangre'] ?? null, ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']);
+$estado_civil = InputSanitizer::whitelist($_POST['estado_civil'] ?? null, ['SOLTERO(A)', 'CASADO(A)', 'DIVORCIADO(A)', 'VIUDO(A)', 'UNION LIBRE', 'SEPARADO(A)']);
+$direccion_casa = InputSanitizer::boundedText($_POST['direccion_casa'] ?? null, 100);
+$numero_celular = InputSanitizer::digits($_POST['numero_celular'] ?? null, 10);
+$foto_perfil = InputSanitizer::boundedText($_POST['foto_perfil'] ?? null, 255);
 
-if ($id_municipio <= 0) {
-    header('Location: listar_empleados.php?error=municipio');
+if ($id_usuario === null || $id_municipio === null || $fecha_ingreso === null || $genero === null || $fecha_nacimiento === null || $tipo_sangre === null || $estado_civil === null || $direccion_casa === null || $numero_celular === null) {
+    header('Location: listar_empleados.php?error=datos');
     exit();
 }
 

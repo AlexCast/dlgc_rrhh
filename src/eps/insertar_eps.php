@@ -15,7 +15,14 @@ if (
     exit();
 }
 
-$nombre_eps = trim((string) $_POST['nombre_eps']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$nombre_eps = InputSanitizer::boundedText($_POST['nombre_eps'] ?? null, 50);
+
+if ($nombre_eps === null) {
+    header('Location: forma_eps.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

@@ -17,9 +17,16 @@ if (
     exit();
 }
 
-$id_operacion = (int) trim($_POST['id_operacion'] ?? 0);
-$id_modulo = trim($_POST['id_modulo'] ?? '');
-$nombre_operacion = trim($_POST['nombre_operacion'] ?? '');
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$id_operacion = InputSanitizer::intValue($_POST['id_operacion'] ?? null, 1);
+$id_modulo = InputSanitizer::intValue($_POST['id_modulo'] ?? null, 1);
+$nombre_operacion = InputSanitizer::boundedText($_POST['nombre_operacion'] ?? null, 50);
+
+if ($id_operacion === null || $id_modulo === null || $nombre_operacion === null) {
+    header('Location: forma_operaciones.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

@@ -12,9 +12,16 @@ if (!isset($_POST['fecha'], $_POST['descripcion'])) {
     exit();
 }
 
-$fecha = trim((string) $_POST['fecha']);
-$descripcion = trim((string) $_POST['descripcion']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$fecha = InputSanitizer::date($_POST['fecha'] ?? null);
+$descripcion = InputSanitizer::boundedText($_POST['descripcion'] ?? null, 100);
 $descuentaSalario = isset($_POST['descuenta_salario']) ? 'true' : 'false';
+
+if ($fecha === null || $descripcion === null) {
+    header('Location: forma_dias_festivos.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

@@ -16,8 +16,15 @@ if (
     exit();
 }
 
-$id_rol = htmlspecialchars(trim($_POST['id_rol'] ?? ''));
-$nombre_rol = trim($_POST['nombre_rol'] ?? '');
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$id_rol = InputSanitizer::intValue($_POST['id_rol'] ?? null, 1);
+$nombre_rol = InputSanitizer::boundedText($_POST['nombre_rol'] ?? null, 50);
+
+if ($id_rol === null || $nombre_rol === null) {
+    header('Location: listar_roles.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

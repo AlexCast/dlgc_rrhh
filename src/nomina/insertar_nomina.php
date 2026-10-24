@@ -18,10 +18,17 @@ if (
     exit();
 }
 
-$id_usuario = trim((string) $_POST['id_usuario']);
-$id_banco = (int) $_POST['id_banco'];
-$num_cuenta = trim((string) $_POST['num_cuenta']);
-$salario = trim((string) $_POST['salario']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$id_usuario = InputSanitizer::boundedText($_POST['id_usuario'] ?? null, 20);
+$id_banco = InputSanitizer::intValue($_POST['id_banco'] ?? null, 1);
+$num_cuenta = InputSanitizer::digits($_POST['num_cuenta'] ?? null, 20);
+$salario = InputSanitizer::decimalString($_POST['salario'] ?? null, 0.0);
+
+if ($id_usuario === null || $id_banco === null || $num_cuenta === null || $salario === null) {
+    header('Location: forma_nomina.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

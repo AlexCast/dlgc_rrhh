@@ -15,7 +15,14 @@ if (
     exit();
 }
 
-$nombre_arl = trim((string) $_POST['nombre_arl']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$nombre_arl = InputSanitizer::boundedText($_POST['nombre_arl'] ?? null, 50);
+
+if ($nombre_arl === null) {
+    header('Location: forma_arl.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

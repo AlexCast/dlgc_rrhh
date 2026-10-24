@@ -20,12 +20,13 @@ if (
 }
 
 require_once __DIR__ . '/../../app/helpers/HtmlSanitizer.php';
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 
-$titulo = trim((string) $_POST['titulo']);
+$titulo = InputSanitizer::boundedText($_POST['titulo'] ?? null, 100);
 $contenido = trim(HtmlSanitizer::clean((string) $_POST['contenido']));
-$categoria = trim((string) $_POST['categoria']);
+$categoria = InputSanitizer::whitelist($_POST['categoria'] ?? null, ['GENERAL', 'URGENTE', 'EVENTO', 'INFORMACION', 'INSTITUCIONAL']);
 
-if ($titulo === '' || strip_tags($contenido) === '' || $categoria === '') {
+if ($titulo === null || strip_tags($contenido) === '' || $categoria === null) {
     header('Location: forma_comunicados.php?error=datos');
     exit();
 }

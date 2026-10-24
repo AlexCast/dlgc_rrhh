@@ -16,8 +16,15 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
 $id_arl = (int) $_POST['id_arl'];
-$nombre_arl = trim((string) $_POST['nombre_arl']);
+$nombre_arl = InputSanitizer::boundedText($_POST['nombre_arl'] ?? null, 50);
+
+if ($nombre_arl === null) {
+    header('Location: listar_arl.php?error=datos');
+    exit();
+}
 
 if ($id_arl <= 0) {
     header('Location: listar_arl.php?error=id');

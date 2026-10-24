@@ -76,6 +76,29 @@ assertTrue('password: rechaza corta', !$validacionCorta['valid'], $fallos, $tota
 $validacionNoCoinciden = InputSanitizer::validatePassword('MiP@ssw0rd!Ñ', 'OtraPass123', $fallos, $total);
 assertTrue('password: rechaza si no coinciden', !$validacionNoCoinciden['valid'], $fallos, $total);
 
+// --- NUEVOS VALIDADORES (src/ CRUDs) ---
+assertEq('digits: acepta solo digitos', '3001234567', InputSanitizer::digits('3001234567', 10), $fallos, $total);
+assertTrue('digits: rechaza letras', InputSanitizer::digits('300abc', 10) === null, $fallos, $total);
+assertTrue('digits: rechaza array', InputSanitizer::digits(['x'], 10) === null, $fallos, $total);
+assertEq('intValue: entero valido', 42, InputSanitizer::intValue('42', 1), $fallos, $total);
+assertTrue('intValue: rechaza basura', InputSanitizer::intValue('42abc', 1) === null, $fallos, $total);
+assertTrue('intValue: rechaza negativo con min 1', InputSanitizer::intValue('-1', 1) === null, $fallos, $total);
+assertEq('decimalString: normaliza 2 decimales', '1500.50', InputSanitizer::decimalString('1500.5', 0.0), $fallos, $total);
+assertTrue('decimalString: rechaza negativo', InputSanitizer::decimalString('-5', 0.0) === null, $fallos, $total);
+assertEq('date: fecha valida', '2026-10-23', InputSanitizer::date('2026-10-23'), $fallos, $total);
+assertTrue('date: rechaza fecha invalida', InputSanitizer::date('2026-13-99') === null, $fallos, $total);
+assertEq('whitelist: valor permitido', 'FIJO', InputSanitizer::whitelist('FIJO', ['FIJO', 'INDEFINIDO']), $fallos, $total);
+assertTrue('whitelist: rechaza valor externo', InputSanitizer::whitelist('OTRO', ['FIJO', 'INDEFINIDO']) === null, $fallos, $total);
+assertEq('boundedText: dentro del maximo', 'hola', InputSanitizer::boundedText('hola', 10), $fallos, $total);
+assertTrue('boundedText: rechaza exceder maximo', InputSanitizer::boundedText(str_repeat('a', 11), 10) === null, $fallos, $total);
+assertEq('letters: nombres con tildes', 'MARÍA JOSÉ', InputSanitizer::letters('maría josé', 30), $fallos, $total);
+assertTrue('letters: rechaza digitos', InputSanitizer::letters('juan123', 30) === null, $fallos, $total);
+assertEq('document: CC valido', '1000123456', InputSanitizer::document('CC', '1000123456'), $fallos, $total);
+assertTrue('document: CC invalido', InputSanitizer::document('CC', '1000') === null, $fallos, $total);
+assertEq('document: PPT normaliza mayusculas', 'ABC-123', InputSanitizer::document('PPT', 'abc-123'), $fallos, $total);
+assertEq('telefono: acepta formato', '300 123-4567', InputSanitizer::telefono('300 123-4567'), $fallos, $total);
+assertTrue('telefono: rechaza letras', InputSanitizer::telefono('abc') === null, $fallos, $total);
+
 // --- RESUMEN ---
 echo "\n--- RESUMEN ---\n";
 echo "Total pruebas: {$total}\n";

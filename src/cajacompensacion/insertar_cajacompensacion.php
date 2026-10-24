@@ -15,7 +15,14 @@ if (
     exit();
 }
 
-$nombre_caja = trim((string) $_POST['nombre_caja']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$nombre_caja = InputSanitizer::boundedText($_POST['nombre_caja'] ?? null, 50);
+
+if ($nombre_caja === null) {
+    header('Location: forma_cajacompensacion.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

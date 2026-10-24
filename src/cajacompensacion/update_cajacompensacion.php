@@ -16,8 +16,15 @@ if (
     exit();
 }
 
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
 $id_caja = (int) $_POST['id_caja'];
-$nombre_caja = trim((string) $_POST['nombre_caja']);
+$nombre_caja = InputSanitizer::boundedText($_POST['nombre_caja'] ?? null, 50);
+
+if ($nombre_caja === null) {
+    header('Location: listar_cajacompensacion.php?error=datos');
+    exit();
+}
 
 if ($id_caja <= 0) {
     header('Location: listar_cajacompensacion.php?error=id');

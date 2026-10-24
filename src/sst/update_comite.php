@@ -20,15 +20,17 @@ if (
     exit();
 }
 
-$idMiembro = (int) trim($_POST['id_miembro']);
-$nombreCompleto = trim((string) $_POST['nombre_completo']);
-$cargo = trim((string) $_POST['cargo']);
-$tipoComite = trim((string) $_POST['tipo_comite']);
-$correo = trim((string) ($_POST['correo'] ?? ''));
-$telefono = trim((string) ($_POST['telefono'] ?? ''));
-$orden = filter_input(INPUT_POST, 'orden_visualizacion', FILTER_VALIDATE_INT);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 
-if ($idMiembro <= 0 || $nombreCompleto === '' || $cargo === '' || $tipoComite === '') {
+$idMiembro = InputSanitizer::intValue($_POST['id_miembro'] ?? null, 1);
+$nombreCompleto = InputSanitizer::boundedText($_POST['nombre_completo'] ?? null, 100);
+$cargo = InputSanitizer::boundedText($_POST['cargo'] ?? null, 50);
+$tipoComite = InputSanitizer::whitelist($_POST['tipo_comite'] ?? null, ['COPASST', 'COMITE_CONVIVENCIA']);
+$correo = InputSanitizer::email((string) ($_POST['correo'] ?? ''));
+$telefono = InputSanitizer::telefono($_POST['telefono'] ?? '') ?? '';
+$orden = InputSanitizer::intValue($_POST['orden_visualizacion'] ?? null, 0) ?? 0;
+
+if ($idMiembro === null || $nombreCompleto === null || $cargo === null || $tipoComite === null) {
     header('Location: listar_comite.php?error=datos');
     exit();
 }

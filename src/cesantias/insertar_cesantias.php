@@ -15,7 +15,14 @@ if (
     exit();
 }
 
-$nombre_cesantia = trim((string) $_POST['nombre_cesantia']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$nombre_cesantia = InputSanitizer::boundedText($_POST['nombre_cesantia'] ?? null, 50);
+
+if ($nombre_cesantia === null) {
+    header('Location: forma_cesantias.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

@@ -18,12 +18,14 @@ if (
     exit();
 }
 
-$id_rol_actual = (int) $_POST['id_rol_actual'];
-$id_operacion_actual = (int) $_POST['id_operacion_actual'];
-$id_rol_nuevo = (int) $_POST['id_rol_nuevo'];
-$id_operacion_nueva = (int) $_POST['id_operacion_nueva'];
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 
-if ($id_rol_actual <= 0 || $id_operacion_actual <= 0 || $id_rol_nuevo <= 0 || $id_operacion_nueva <= 0) {
+$id_rol_actual = InputSanitizer::intValue($_POST['id_rol_actual'] ?? null, 1);
+$id_operacion_actual = InputSanitizer::intValue($_POST['id_operacion_actual'] ?? null, 1);
+$id_rol_nuevo = InputSanitizer::intValue($_POST['id_rol_nuevo'] ?? null, 1);
+$id_operacion_nueva = InputSanitizer::intValue($_POST['id_operacion_nueva'] ?? null, 1);
+
+if ($id_rol_actual === null || $id_operacion_actual === null || $id_rol_nuevo === null || $id_operacion_nueva === null) {
     header('Location: listar_roles_operaciones.php?error=ids');
     exit();
 }

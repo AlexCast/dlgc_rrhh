@@ -62,7 +62,7 @@ if (!$registro) {
                                         id="nombre_area"
                                         class="form-control"
                                         required
-                                        maxlength="50"
+                                        maxlength="30"
                                         value="<?php echo htmlspecialchars((string) $registro->nombre_area, ENT_QUOTES, 'UTF-8'); ?>"
                                         placeholder="Ej: Área de Recursos Humanos"
                                     >

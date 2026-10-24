@@ -15,7 +15,14 @@ if (
     exit();
 }
 
-$nombre_banco = trim((string) $_POST['nombre_banco']);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$nombre_banco = InputSanitizer::boundedText($_POST['nombre_banco'] ?? null, 50);
+
+if ($nombre_banco === null) {
+    header('Location: forma_banco.php?error=datos');
+    exit();
+}
 
 require_once __DIR__ . '/../../app/conexion.php';
 

@@ -291,6 +291,9 @@ if (!$registro) {
                                         class="form-control"
                                         required
                                         maxlength="10"
+                                        inputmode="numeric"
+                                        pattern="[0-9]{10}"
+                                        title="Debe contener exactamente 10 dígitos."
                                         value="<?php echo htmlspecialchars((string) $registro->numero_celular, ENT_QUOTES, 'UTF-8'); ?>"
                                         placeholder="Ej: 3001234567"
                                     >

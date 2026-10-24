@@ -22,19 +22,25 @@ if (
     exit();
 }
 
-$id_usuario = htmlspecialchars(trim($_POST['id_usuario'] ?? ''));
-$id_rol = trim($_POST['id_rol'] ?? '');
-$username = trim($_POST['username'] ?? '');
-$tipo_documento = trim($_POST['tipo_documento'] ?? '');
-$primer_nombre = trim($_POST['primer_nombre'] ?? '');
-$segundo_nombre = trim($_POST['segundo_nombre'] ?? '');
-$primer_apellido = trim($_POST['primer_apellido'] ?? '');
-$segundo_apellido = trim($_POST['segundo_apellido'] ?? '');
-$correo = trim($_POST['correo'] ?? '');
-$contrasena = trim($_POST['contrasena'] ?? '');
-if ($contrasena !== '') {
-    $contrasena = password_hash($contrasena, PASSWORD_DEFAULT);
+require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
+
+$tipo_documento = InputSanitizer::whitelist($_POST['tipo_documento'] ?? null, ['CC', 'PPT', 'CE']);
+$id_usuario = InputSanitizer::document($tipo_documento, $_POST['id_usuario'] ?? null);
+$id_rol = InputSanitizer::intValue($_POST['id_rol'] ?? null, 1);
+$username = InputSanitizer::username((string) ($_POST['username'] ?? ''));
+$primer_nombre = InputSanitizer::letters($_POST['primer_nombre'] ?? null, 30);
+$segundo_nombre = InputSanitizer::letters($_POST['segundo_nombre'] ?? null, 30);
+$primer_apellido = InputSanitizer::letters($_POST['primer_apellido'] ?? null, 30);
+$segundo_apellido = InputSanitizer::letters($_POST['segundo_apellido'] ?? null, 30);
+$correo = InputSanitizer::email((string) ($_POST['correo'] ?? ''));
+$contrasenaRaw = (string) ($_POST['contrasena'] ?? '');
+
+if ($tipo_documento === null || $id_usuario === null || $id_rol === null || $username === '' || !InputSanitizer::validateUsername($username) || $primer_nombre === null || $primer_apellido === null || !InputSanitizer::validateEmail($correo) || strlen($correo) > 40) {
+    header('Location: listar_usuarios.php?error=datos');
+    exit();
 }
+
+$contrasena = $contrasenaRaw !== '' ? password_hash($contrasenaRaw, PASSWORD_DEFAULT) : '';
 
 require_once __DIR__ . '/../../app/conexion.php';
 

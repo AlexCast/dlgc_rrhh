@@ -43,6 +43,9 @@ $t_roles_registros = $sentencia->fetchAll(PDO::FETCH_OBJ);
                                         id="id_usuario"
                                         class="form-control"
                                          required maxlength="20"
+                                         autocapitalize="characters"
+                                         pattern="[0-9]{10}|[A-Za-z0-9\-]{5,20}"
+                                         title="CC: 10 dígitos. PPT/CE: 5-20 caracteres alfanuméricos (guiones permitidos)."
                                     >
                                 </div>
                             </div>
@@ -74,6 +77,9 @@ $t_roles_registros = $sentencia->fetchAll(PDO::FETCH_OBJ);
                                         id="username"
                                         class="form-control"
                                          required maxlength="30"
+                                         autocapitalize="off"
+                                         pattern="^[a-z][a-z0-9_.-]{2,29}$"
+                                         title="Debe comenzar con letra minúscula. Solo minúsculas, números, puntos, guiones y guiones bajos."
                                     >
                                 </div>
                             </div>

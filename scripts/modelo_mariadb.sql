@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS t_departamentos (
     id_departamento INT AUTO_INCREMENT,
     departamento VARCHAR(255) NOT NULL DEFAULT '',
     PRIMARY KEY (id_departamento)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_modulos (
     id_modulo           INT NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS t_modulos (
     usr_delete          VARCHAR(255),
     fec_delete          DATETIME,
     PRIMARY KEY (id_modulo)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Esta tabla identifica las áreas de la empresa, y permite asociar a los empleados con un área específica. Esto es útil para la gestión de recursos humanos y para asignar responsabilidades dentro de la organización.
 CREATE TABLE IF NOT EXISTS t_areas (
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS t_areas (
     usr_delete          VARCHAR(255),
     fec_delete          DATETIME,
     PRIMARY KEY (id_area)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_bancos (
     id_banco              INT AUTO_INCREMENT,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS t_bancos (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_banco)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_eps (
     id_eps                INT AUTO_INCREMENT,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS t_eps (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_eps)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_arl (
     id_arl                INT AUTO_INCREMENT,
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS t_arl (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_arl)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_caja_compensacion (
     id_caja               INT AUTO_INCREMENT,
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS t_caja_compensacion (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_caja)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_pension (
     id_pension            INT AUTO_INCREMENT,
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS t_pension (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_pension)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_cesantias (
     id_cesantia           INT AUTO_INCREMENT,
@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS t_cesantias (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_cesantia)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_operaciones (
     id_operacion          INT NOT NULL,
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS t_operaciones (
     fec_delete            DATETIME,
     PRIMARY KEY (id_operacion),
     FOREIGN KEY (id_modulo) REFERENCES t_modulos(id_modulo)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_roles (
     id_rol                INT NOT NULL,
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS t_roles (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_rol)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_roles_operaciones (
     id_rol                INT NOT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS t_roles_operaciones (
     PRIMARY KEY (id_rol, id_operacion),
     FOREIGN KEY (id_rol) REFERENCES t_roles(id_rol),
     FOREIGN KEY (id_operacion) REFERENCES t_operaciones(id_operacion)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_usuarios (
     id_usuario       VARCHAR(20) NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS t_usuarios (
         ),
     PRIMARY KEY (id_usuario),
     FOREIGN KEY (id_rol) REFERENCES t_roles(id_rol)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_usuarios_operaciones (
     id_usuario        VARCHAR(20) NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS t_usuarios_operaciones (
     PRIMARY KEY (id_usuario, id_operacion),
     FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario),
     FOREIGN KEY (id_operacion) REFERENCES t_operaciones(id_operacion)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_municipios (
     id_municipio INT AUTO_INCREMENT,
@@ -230,7 +230,7 @@ CREATE TABLE IF NOT EXISTS t_municipios (
     PRIMARY KEY (id_municipio),
     CONSTRAINT fk_t_municipios_t_departamentos
     FOREIGN KEY (departamento_id) REFERENCES t_departamentos(id_departamento)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_empleados (
     id_usuario        VARCHAR(20) NOT NULL,
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS t_empleados (
     FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario),
     FOREIGN KEY (id_jefe) REFERENCES t_empleados(id_usuario),
     FOREIGN KEY (id_municipio) REFERENCES t_municipios(id_municipio)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_t_empleados_id_jefe ON t_empleados(id_jefe);
 
@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS t_contratos_empleados (
     PRIMARY KEY (id_contrato),
     FOREIGN KEY (id_usuario) REFERENCES t_empleados(id_usuario),
     FOREIGN KEY (id_area) REFERENCES t_areas(id_area)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_nomina (
     id_nomina             INT AUTO_INCREMENT,
@@ -294,7 +294,7 @@ CREATE TABLE IF NOT EXISTS t_nomina (
     PRIMARY KEY (id_nomina),
     FOREIGN KEY (id_usuario) REFERENCES t_empleados(id_usuario),
     FOREIGN KEY (id_banco) REFERENCES t_bancos(id_banco)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_afiliaciones_empleados (
     id_usuario           VARCHAR(20) NOT NULL,
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS t_afiliaciones_empleados (
     FOREIGN KEY (id_caja) REFERENCES t_caja_compensacion(id_caja),
     FOREIGN KEY (id_pension) REFERENCES t_pension(id_pension),
     FOREIGN KEY (id_cesantia) REFERENCES t_cesantias(id_cesantia)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Tabla de configuración para los días festivos
 -- tipo_festivo distingue festivos oficiales (NACIONAL) de los declarados por la empresa (EMPRESA).
@@ -334,7 +334,7 @@ CREATE TABLE IF NOT EXISTS t_dias_festivos (
     usr_delete          VARCHAR(255),
     fec_delete          DATETIME,
     PRIMARY KEY (id_festivo)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Excepciones puntuales por empleado a la regla general de un festivo (caso excepcional: sí/no descontar).
 CREATE TABLE IF NOT EXISTS t_dias_festivos_excepciones (
@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS t_dias_festivos_excepciones (
     CONSTRAINT uq_festivo_excepcion_empleado UNIQUE (id_festivo, id_empleado),
     FOREIGN KEY (id_festivo) REFERENCES t_dias_festivos(id_festivo),
     FOREIGN KEY (id_empleado) REFERENCES t_empleados(id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Tabla maestra para administrar las categorías de permisos.
 -- requiere_evidencia habilita/deshabilita el campo de adjuntos en el formulario para ese tipo.
@@ -375,7 +375,7 @@ CREATE TABLE IF NOT EXISTS t_tipos_permisos (
         (descuenta_tiempo = 0 AND porcentaje_descuento IS NULL) OR
         (descuenta_tiempo = 1 AND porcentaje_descuento IS NOT NULL)
     )
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Tabla principal transaccional para las solicitudes
 CREATE TABLE IF NOT EXISTS t_solicitudes_permisos (
@@ -403,7 +403,7 @@ CREATE TABLE IF NOT EXISTS t_solicitudes_permisos (
         OR
         (es_por_horas = 0 AND hora_inicio IS NULL AND hora_fin IS NULL)
     )
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Tabla puente: motivos múltiples por solicitud (N:M entre solicitudes y tipos de permiso).
 CREATE TABLE IF NOT EXISTS t_solicitudes_permisos_motivos (
@@ -419,7 +419,7 @@ CREATE TABLE IF NOT EXISTS t_solicitudes_permisos_motivos (
     PRIMARY KEY (id_permiso, id_tipo_permiso),
     FOREIGN KEY (id_permiso) REFERENCES t_solicitudes_permisos(id_permiso),
     FOREIGN KEY (id_tipo_permiso) REFERENCES t_tipos_permisos(id_tipo_permiso)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Doble aprobación por solicitud
 CREATE TABLE IF NOT EXISTS t_permisos_aprobaciones (
@@ -440,7 +440,7 @@ CREATE TABLE IF NOT EXISTS t_permisos_aprobaciones (
     CONSTRAINT uq_permiso_nivel_aprobacion UNIQUE (id_permiso, nivel_aprobacion),
     FOREIGN KEY (id_permiso) REFERENCES t_solicitudes_permisos(id_permiso),
     FOREIGN KEY (id_aprobador) REFERENCES t_usuarios(id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_permisos_aprobaciones_aprobador ON t_permisos_aprobaciones(id_aprobador, estado);
 
@@ -462,7 +462,7 @@ CREATE TABLE IF NOT EXISTS t_permisos_evidencias (
     fec_delete              DATETIME,
     PRIMARY KEY (id_evidencia),
     FOREIGN KEY (id_permiso) REFERENCES t_solicitudes_permisos(id_permiso)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_permisos_evidencias_permiso ON t_permisos_evidencias(id_permiso);
 
@@ -482,7 +482,7 @@ CREATE TABLE IF NOT EXISTS t_permisos_dias_aprobados (
     PRIMARY KEY (id_dia_permiso),
     FOREIGN KEY (id_permiso) REFERENCES t_solicitudes_permisos(id_permiso),
     FOREIGN KEY (id_empleado) REFERENCES t_empleados(id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_comunicados (
     id_comunicado        INT AUTO_INCREMENT,
@@ -496,7 +496,7 @@ CREATE TABLE IF NOT EXISTS t_comunicados (
     usr_delete           VARCHAR(255),
     fec_delete           DATETIME,
     PRIMARY KEY (id_comunicado)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Tabla auxiliar para tracking de comunicados vistos por usuario
 CREATE TABLE IF NOT EXISTS t_comunicados_vistos (
@@ -510,7 +510,7 @@ CREATE TABLE IF NOT EXISTS t_comunicados_vistos (
     FOREIGN KEY (id_comunicado) REFERENCES t_comunicados(id_comunicado),
     FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario),
     CONSTRAINT uq_comunicado_usuario UNIQUE (id_comunicado, id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_comunicados_vistos_usuario ON t_comunicados_vistos (id_usuario);
 CREATE INDEX idx_comunicados_vistos_comunicado ON t_comunicados_vistos (id_comunicado);
@@ -530,7 +530,7 @@ CREATE TABLE IF NOT EXISTS t_recuperacion_contrasena (
     fec_delete DATETIME,
     PRIMARY KEY (id_recuperacion),
     FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Ledger de ajustes manuales de saldo de vacaciones
 CREATE TABLE IF NOT EXISTS t_vacaciones_ajustes (
@@ -547,7 +547,7 @@ CREATE TABLE IF NOT EXISTS t_vacaciones_ajustes (
     fec_delete          DATETIME,
     PRIMARY KEY (id_ajuste),
     FOREIGN KEY (id_empleado) REFERENCES t_empleados(id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_vacaciones_ajustes_empleado ON t_vacaciones_ajustes (id_empleado);
 CREATE INDEX idx_permisos_empleado ON t_solicitudes_permisos (id_empleado);
@@ -575,7 +575,7 @@ CREATE TABLE IF NOT EXISTS t_registros_pendientes (
     usr_delete VARCHAR(255),
     fec_delete DATETIME,
     PRIMARY KEY (id_registro_pendiente)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_registros_pendientes_expiracion ON t_registros_pendientes(fecha_expiracion);
 
@@ -594,7 +594,7 @@ CREATE TABLE IF NOT EXISTS t_verificacion_correo (
     fec_delete DATETIME,
     PRIMARY KEY (id_verificacion),
     CONSTRAINT fk_verificacion_pendiente FOREIGN KEY (id_registro_pendiente) REFERENCES t_registros_pendientes(id_registro_pendiente) ON DELETE CASCADE
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_recuperacion_token ON t_recuperacion_contrasena(token_hash);
 CREATE INDEX idx_recuperacion_usuario ON t_recuperacion_contrasena(id_usuario);
@@ -614,7 +614,7 @@ CREATE TABLE IF NOT EXISTS t_intentos_correo (
     fec_update DATETIME,
     PRIMARY KEY (id_intento),
     CONSTRAINT uq_intentos_usuario_tipo UNIQUE (id_usuario, tipo)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_intentos_usuario_tipo ON t_intentos_correo(id_usuario, tipo);
 CREATE INDEX idx_intentos_ultimo ON t_intentos_correo(ultimo_intento);
@@ -634,7 +634,7 @@ CREATE TABLE IF NOT EXISTS t_remember_tokens (
     fec_delete DATETIME,
     PRIMARY KEY (id),
     FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- En MariaDB los índices con WHERE (parciales) no existen, se debe crear el índice completo:
 CREATE INDEX idx_remember_tokens_usuario ON t_remember_tokens(id_usuario);
@@ -653,7 +653,7 @@ CREATE TABLE IF NOT EXISTS t_codigos_registro (
     usr_delete         VARCHAR(255),
     fec_delete         DATETIME,
     PRIMARY KEY (id_codigo)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_codigos_registro_codigo ON t_codigos_registro(codigo);
 CREATE INDEX idx_codigos_registro_tipo ON t_codigos_registro(tipo);
@@ -674,7 +674,7 @@ CREATE TABLE IF NOT EXISTS t_sst_comite_miembros (
     usr_delete          VARCHAR(255),
     fec_delete          DATETIME,
     PRIMARY KEY (id_miembro)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_sst_comite_tipo_orden ON t_sst_comite_miembros(tipo_comite, orden_visualizacion);
 
@@ -700,7 +700,7 @@ CREATE TABLE IF NOT EXISTS t_sst_buzon_quejas (
     FOREIGN KEY (id_usuario) REFERENCES t_usuarios(id_usuario),
     FOREIGN KEY (id_encargado) REFERENCES t_usuarios(id_usuario),
     FOREIGN KEY (cancelado_por) REFERENCES t_usuarios(id_usuario)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE INDEX idx_sst_quejas_usuario ON t_sst_buzon_quejas(id_usuario, fec_insert DESC);
 CREATE INDEX idx_sst_quejas_estado ON t_sst_buzon_quejas(estado, fec_insert DESC);
