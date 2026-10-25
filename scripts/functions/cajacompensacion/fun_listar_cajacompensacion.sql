@@ -1,6 +1,6 @@
 DELIMITER //
 
-CREATE OR REPLACE FUNCTION fun_listar_caja(
+CREATE OR REPLACE FUNCTION fun_listar_cajacompensacion(
     wid_caja INT
 ) RETURNS BOOLEAN
 BEGIN

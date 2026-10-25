@@ -17,7 +17,7 @@ require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 $id_festivo = InputSanitizer::intValue($_POST['id_festivo'] ?? null, 1);
 $fecha = InputSanitizer::date($_POST['fecha'] ?? null);
 $descripcion = InputSanitizer::boundedText($_POST['descripcion'] ?? null, 100);
-$descuentaSalario = isset($_POST['descuenta_salario']) ? 'true' : 'false';
+$descuentaSalario = isset($_POST['descuenta_salario']) ? 1 : 0;
 
 if ($id_festivo === null || $fecha === null || $descripcion === null) {
     header('Location: listar_dias_festivos.php?error=datos');

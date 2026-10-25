@@ -16,7 +16,7 @@ require_once __DIR__ . '/../../app/helpers/InputSanitizer.php';
 
 $fecha = InputSanitizer::date($_POST['fecha'] ?? null);
 $descripcion = InputSanitizer::boundedText($_POST['descripcion'] ?? null, 100);
-$descuentaSalario = isset($_POST['descuenta_salario']) ? 'true' : 'false';
+$descuentaSalario = isset($_POST['descuenta_salario']) ? 1 : 0;
 
 if ($fecha === null || $descripcion === null) {
     header('Location: forma_dias_festivos.php?error=datos');

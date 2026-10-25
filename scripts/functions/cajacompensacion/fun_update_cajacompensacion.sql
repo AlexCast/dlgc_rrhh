@@ -1,6 +1,6 @@
 DELIMITER //
 
-CREATE OR REPLACE FUNCTION fun_update_caja(
+CREATE OR REPLACE FUNCTION fun_update_cajacompensacion(
     wid_caja INT,
     wnombre_caja VARCHAR(50)
 ) RETURNS VARCHAR(255)

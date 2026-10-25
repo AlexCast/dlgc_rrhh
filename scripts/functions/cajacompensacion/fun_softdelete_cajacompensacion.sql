@@ -1,6 +1,6 @@
 DELIMITER //
 
-CREATE OR REPLACE FUNCTION fun_softdelete_caja(
+CREATE OR REPLACE FUNCTION fun_softdelete_cajacompensacion(
     wid_caja INT
 ) RETURNS BOOLEAN
 BEGIN
