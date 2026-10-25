@@ -113,7 +113,7 @@
 
 | ID | Requerimiento | SÍ | NO | ADI | Evidencia / Observaciones |
 |----|---------------|----|----|-----|---------------------------|
-| GEN-RF-055 | El envío de correos debe realizarse con PHPMailer 7.x vía SMTP con STARTTLS (puerto 587). | ☐ | ☐ | ☐ | app/helpers/Mailer.php, composer.json |
+| GEN-RF-055 | El envío de correos debe realizarse vía APIs REST multi-proveedor (Brevo, Resend, MailerSend) con conmutación por fallo. | ☐ | ☐ | ☐ | app/helpers/Mailer.php, app/mail/ |
 | GEN-RF-056 | La generación de reportes Excel debe realizarse con PhpSpreadsheet. | ☐ | ☐ | ☐ | app/permiso_reporte.php, app/vacaciones_reporte.php |
 | GEN-RF-057 | La generación de reportes PDF debe realizarse con Dompdf. | ☐ | ☐ | ☐ | app/permiso_reporte.php, app/vacaciones_reporte.php |
 | GEN-RF-058 | La protección anti-bot debe integrar Cloudflare Turnstile con verificación server-side. | ☐ | ☐ | ☐ | app/helpers/TurnstileHelper.php |

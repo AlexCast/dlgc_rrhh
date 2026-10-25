@@ -1,16 +1,23 @@
 <?php
 /**
- * Configuración de correo SMTP.
- * Copia este archivo como mail_config.php y completa tus credenciales reales.
- * mail_config.php está ignorado por Git para proteger la información sensible.
+ * Configuración de correo (OBSOLETA).
+ *
+ * Desde la migración a la arquitectura multi-proveedor basada en APIs REST
+ * (app/mail/), la configuración de correo YA NO se lee desde este archivo.
+ * Todas las credenciales se leen exclusivamente desde .env:
+ *
+ *   MAIL_FROM_ADDRESS   -> correo del remitente
+ *   MAIL_FROM_NAME      -> nombre del remitente
+ *   BREVO_API_KEY       -> proveedor principal (prioridad 1)
+ *   RESEND_API_KEY      -> respaldo 1 (prioridad 2)
+ *   MAILERSEND_API_KEY  -> respaldo 2 (prioridad 3)
+ *   MAILER_TIMEOUT      -> timeout de cURL en segundos (opcional)
+ *   MAIL_LOG_PATH       -> ruta del log de fallover (opcional)
+ *
+ * Usa .env.example como plantilla. Este archivo se conserva únicamente por
+ * compatibilidad documental; mail_config.php sigue ignorado por Git.
  */
 
 return [
-    'host'       => 'smtp.gmail.com',
-    'port'       => 587,
-    'encryption' => 'tls',
-    'username'   => 'tucorreo@gmail.com',
-    'password'   => 'TU_CONTRASENA_DE_APLICACION',
-    'from_email' => 'tucorreo@gmail.com',
-    'from_name'  => 'Portal DLGC RRHH',
+    'deprecated' => true,
 ];

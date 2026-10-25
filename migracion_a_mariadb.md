@@ -260,7 +260,7 @@ En `C:\php\php.ini` se habilitaron las extensiones que requiere la app:
 - `mbstring` — `InputSanitizer` y validaciones de texto.
 - `curl` — Turnstile y almacenamiento de evidencias.
 - `fileinfo` — validación MIME de evidencias.
-- `gd`, `intl`, `openssl`, `zip` — PhpSpreadsheet, dompdf y PHPMailer.
+- `gd`, `intl`, `openssl`, `zip` — PhpSpreadsheet y dompdf.
 
 **Reiniciar Apache** después de cualquier cambio en `php.ini` para que cargue las
 extensiones. Requiere PowerShell como administrador:
@@ -443,7 +443,7 @@ creado en la sección 5.
    - **Esperado:** redirige al login con `code=registro_pendiente_verificacion`.
    - **Verificación en BD:** debe existir la fila en `t_registros_pendientes` y su token en
      `t_verificacion_correo`.
-5. Verificar el correo con el enlace recibido. Si el SMTP no está configurado, usar un token
+5. Verificar el correo con el enlace recibido. Si el correo no está configurado, usar un token
    manual:
    ```sql
    SELECT id_registro_pendiente FROM t_registros_pendientes ORDER BY id_registro_pendiente DESC LIMIT 1;
