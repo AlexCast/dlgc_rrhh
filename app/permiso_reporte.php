@@ -46,8 +46,10 @@ if ($idEmpleado !== '') {
     $parametros[] = $idEmpleado;
 }
 
-// Vista 'nomina': solo lo que efectivamente genera descuento. Vista 'rrhh': todos los permisos aprobados.
-$filtroDescuentoPermisos = $vista === 'nomina' ? " AND sp.metodo_descuento IS NOT NULL AND sp.metodo_descuento <> 'N/A'" : '';
+// Vista 'nomina': solo lo que Nómina debe descontar — permisos NO remunerados (descuento de sueldo)
+// y días cargados a vacaciones (descuento del saldo de días, que siguen siendo remunerados).
+// Los permisos remunerados ('DINERO') no generan ningún descuento y se omiten.
+$filtroDescuentoPermisos = $vista === 'nomina' ? " AND sp.metodo_descuento IN ('N/A', 'VACACIONES')" : '';
 $filtroDescuentoFestivos = $vista === 'nomina' ? ' AND df.descuenta_salario = TRUE' : '';
 
 $sentenciaPermisos = $conexion->prepare(
@@ -55,10 +57,13 @@ $sentenciaPermisos = $conexion->prepare(
             u.primer_nombre, u.primer_apellido,
             sp.fecha_inicio, sp.fecha_fin, sp.es_por_horas, sp.hora_inicio, sp.hora_fin,
             sp.metodo_descuento, sp.estado,
-            (SELECT GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ')
-               FROM t_solicitudes_permisos_motivos spm
-               INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
-              WHERE spm.id_permiso = sp.id_permiso AND spm.fec_delete IS NULL) AS motivos,
+            COALESCE(
+                (SELECT GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ')
+                   FROM t_solicitudes_permisos_motivos spm
+                   INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
+                  WHERE spm.id_permiso = sp.id_permiso AND spm.fec_delete IS NULL),
+                CASE WHEN sp.metodo_descuento = 'VACACIONES' THEN 'Vacaciones' END
+            ) AS motivos,
             (SELECT MAX(tp.porcentaje_descuento)
                FROM t_solicitudes_permisos_motivos spm
                INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
@@ -105,10 +110,10 @@ $titulo = $tituloBase . ' ' . sprintf('%02d/%04d', $mes, $anio) . ($idEmpleado !
 function etiquetaMetodoDescuento(?string $metodo): string
 {
     return match ($metodo) {
-        'DINERO' => 'Sí',
-        'VACACIONES' => 'Vacaciones',
-        'N/A' => 'No',
-        default => 'Pendiente por definir',
+        'DINERO'      => 'Remunerado',
+        'VACACIONES'  => 'Vacaciones (remuneradas)',
+        'N/A'         => 'No remunerado',
+        default       => 'Pendiente por definir',
     };
 }
 
@@ -343,8 +348,8 @@ function generarPdf(string $titulo, array $permisosDias, array $permisosHoras, a
     }
 
     $notaPermisos = $vista === 'nomina'
-        ? 'Solo se listan permisos y festivos que generan un descuento real de sueldo o vacaciones.'
-        : 'Informe completo de RRHH: incluye todos los permisos aprobados y todos los días festivos del periodo, se descuenten o no.';
+        ? 'Se listan los permisos no remunerados (descuento de sueldo) y los días cargados a vacaciones. Las vacaciones son remuneradas: el sueldo se paga normal y se descuentan días del saldo de vacaciones.'
+        : 'Informe completo de RRHH: incluye todos los permisos aprobados (remunerados, no remunerados y vacaciones) y todos los días festivos del periodo.';
     $tituloSeccionDias = $vista === 'nomina' ? 'Permisos por Días con descuento' : 'Permisos por Días (todos)';
     $tituloSeccionHoras = $vista === 'nomina' ? 'Permisos por Horas con descuento' : 'Permisos por Horas (todos)';
     $sinDiasTexto = $vista === 'nomina' ? 'Sin permisos por días con descuento aprobados en el periodo.' : 'Sin permisos por días aprobados en el periodo.';

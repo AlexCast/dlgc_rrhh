@@ -120,9 +120,9 @@ const ETIQUETAS_ESTADO = {
 };
 
 const ETIQUETAS_METODO_DESCUENTO = {
-    DINERO: 'Sí',
-    VACACIONES: 'Vacaciones',
-    'N/A': 'No remunerado'
+    DINERO: 'Remunerado (se paga normal)',
+    VACACIONES: 'Vacaciones (remuneradas)',
+    'N/A': 'No remunerado (se descuenta del sueldo)'
 };
 
 function claseEstado(estado) {
@@ -182,32 +182,33 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
         const puedeResolverRrhh = !historial && vista === 'rrhh' && sol.estado_rrhh === 'PENDIENTE';
         const metodoDescuentoTexto = sol.metodo_descuento ? (ETIQUETAS_METODO_DESCUENTO[sol.metodo_descuento] || sol.metodo_descuento) : 'Pendiente por definir (RRHH)';
         const esVacaciones = sol.metodo_descuento === 'VACACIONES';
+        const tituloTramite = esVacaciones ? 'Vacaciones' : (sol.motivos || 'Sin motivo registrado');
 
         card.innerHTML = `
             <div class="sst-queja-header">
                 <span class="sst-queja-type">Solicitud #${sol.id_permiso} · ${sol.empleado_nombre || ''} ${sol.empleado_apellido || ''}</span>
                 <span class="sst-queja-status ${claseEstado(sol.estado)}">${ETIQUETAS_ESTADO[sol.estado] || sol.estado}</span>
             </div>
-            <p class="sst-queja-subject">${sol.motivos || 'Sin motivo registrado'}</p>
+            <p class="sst-queja-subject">${tituloTramite}</p>
             <div class="sst-form-meta">
                 <span>Fechas: ${rango}</span>
                 <span>Evidencias adjuntas: ${sol.total_evidencias}</span>
                 <span>Nivel Jefe: ${ETIQUETAS_ESTADO[sol.estado_jefe] || sol.estado_jefe || '—'}</span>
                 <span>Nivel RRHH: ${ETIQUETAS_ESTADO[sol.estado_rrhh] || sol.estado_rrhh || '—'}</span>
-                <span>Descuento: ${esVacaciones ? 'Vacaciones (descuenta saldo)' : metodoDescuentoTexto}</span>
+                <span>${esVacaciones ? 'Reconocimiento: Vacaciones (remuneradas)' : 'Reconocimiento: ' + metodoDescuentoTexto}</span>
             </div>
             ${puedeResolverRrhh ? (esVacaciones ? `
             <div class="perm-field">
-                <label>Descuento</label>
-                <p class="perm-field-hint">Vacaciones: se descontarán del saldo del empleado al aprobar.</p>
+                <label>Reconocimiento</label>
+                <p class="perm-field-hint">Vacaciones remuneradas: el sueldo se paga normal y se descuentan los días del saldo de vacaciones.</p>
             </div>` : `
             <div class="perm-field">
-                <label>¿El permiso es remunerado?</label>
+                <label>¿Cómo se reconoce este permiso?</label>
                 <select class="metodo-descuento-select" data-id="${sol.id_permiso}">
                     <option value="">-- Selecciona una opción --</option>
-                    <option value="DINERO">Sí</option>
-                    <option value="VACACIONES">Vacaciones</option>
-                    <option value="NO">No</option>
+                    <option value="DINERO">Remunerado (se paga normal)</option>
+                    <option value="VACACIONES">Con cargo a vacaciones (remunerado)</option>
+                    <option value="NO">No remunerado (se descuenta del sueldo)</option>
                 </select>
             </div>`) : ''}
             ${(puedeResolverJefe || puedeResolverRrhh) ? `
@@ -247,7 +248,7 @@ function resolverSolicitud(btn, contenedor, vista) {
             const metodoSelect = contenedor.querySelector(`.metodo-descuento-select[data-id="${idPermiso}"]`);
             metodoDescuento = metodoSelect ? metodoSelect.value : '';
             if (!metodoDescuento) {
-                alert('Selecciona si el permiso es remunerado (Sí, Vacaciones o No) antes de aprobar.');
+                alert('Selecciona cómo se reconoce el permiso antes de aprobar.');
                 return;
             }
         }

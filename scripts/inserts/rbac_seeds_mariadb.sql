@@ -348,7 +348,6 @@ FROM (
     UNION ALL SELECT 'Otro Motivo', FALSE, 'seed', CURRENT_TIMESTAMP
     UNION ALL SELECT 'Consulta Médica', FALSE, 'seed', CURRENT_TIMESTAMP
     UNION ALL SELECT 'Fuerza Mayor', FALSE, 'seed', CURRENT_TIMESTAMP
-    UNION ALL SELECT 'Vacaciones', FALSE, 'seed', CURRENT_TIMESTAMP
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM t_tipos_permisos x WHERE x.nombre_tipo = t.nombre_tipo

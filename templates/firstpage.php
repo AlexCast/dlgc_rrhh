@@ -140,7 +140,10 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
                    WHEN sp.es_por_horas THEN ROUND(TIME_TO_SEC(TIMEDIFF(sp.hora_fin, sp.hora_inicio)) / 3600, 1)
                    ELSE fun_dias_habiles_rango(sp.fecha_inicio, sp.fecha_fin)
                END AS duracion,
-               GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ') AS tipos
+               CASE
+                   WHEN sp.metodo_descuento = 'VACACIONES' THEN 'Vacaciones'
+                   ELSE GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ')
+               END AS tipos
         FROM t_solicitudes_permisos sp
         LEFT JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
         LEFT JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
@@ -178,7 +181,10 @@ if ($verTramitesEmpresa) {
     $stmtUltAdmin = $conexion->query("WITH ultimos AS (
         SELECT
             'Permiso' AS tipo_tramite,
-            GROUP_CONCAT(DISTINCT tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ') AS detalle,
+            CASE
+                WHEN sp.metodo_descuento = 'VACACIONES' THEN 'Vacaciones'
+                ELSE GROUP_CONCAT(DISTINCT tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ')
+            END AS detalle,
             DATE(sp.fec_insert) AS fecha_registro,
             sp.estado
         FROM t_solicitudes_permisos sp
@@ -186,7 +192,7 @@ if ($verTramitesEmpresa) {
         LEFT JOIN t_solicitudes_permisos_motivos spm ON sp.id_permiso = spm.id_permiso
         LEFT JOIN t_tipos_permisos tp ON spm.id_tipo_permiso = tp.id_tipo_permiso
         WHERE sp.fec_delete IS NULL
-        GROUP BY sp.id_permiso, sp.fec_insert, sp.estado
+        GROUP BY sp.id_permiso, sp.metodo_descuento, sp.fec_insert, sp.estado
 
         UNION ALL
 

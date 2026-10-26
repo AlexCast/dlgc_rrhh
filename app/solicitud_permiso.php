@@ -68,12 +68,10 @@ if ($fechaInicio === '' || $fechaFin === '') {
 
 $esVacaciones = $tipoSolicitud === 'vacaciones';
 if ($esVacaciones) {
-    if ($idTipoPermiso <= 0) {
-        $errores[] = 'El motivo de vacaciones no es válido.';
-    } else {
-        $idsTiposPermiso = [$idTipoPermiso];
-        $detallesMotivo  = ['Vacaciones'];
-    }
+    // Las vacaciones no usan catálogo de motivos: son un concepto aparte, identificado
+    // por metodo_descuento = 'VACACIONES' (remuneradas y con cargo al saldo de vacaciones).
+    $idsTiposPermiso = [];
+    $detallesMotivo  = [];
 } elseif (empty($idsTiposPermiso)) {
     $errores[] = 'Debes seleccionar al menos un motivo.';
 }
@@ -83,8 +81,8 @@ if (!empty($errores)) {
 }
 
 $esPorHoras = ($tipoSolicitud === 'horas');
-// El método de descuento lo define RRHH al aprobar. Para vacaciones queda predefinido
-// como VACACIONES para que, al aprobarse, se descuenten del saldo del empleado.
+// Las vacaciones en Colombia son remuneradas (pagas) y se descuentan del saldo de días
+// de vacaciones, no del sueldo. Por eso se marcan con metodo_descuento = 'VACACIONES'.
 $metodoDescuento = $esVacaciones ? 'VACACIONES' : null;
 
 try {
@@ -131,20 +129,23 @@ try {
         }
     }
 
-    // --- Validar tipos de permiso y si requieren evidencia ---
-    $placeholders = implode(',', array_fill(0, count($idsTiposPermiso), '?'));
-    $sentenciaTipos = $conexion->prepare(
-        "SELECT id_tipo_permiso, requiere_evidencia FROM t_tipos_permisos
-         WHERE id_tipo_permiso IN ({$placeholders}) AND fec_delete IS NULL"
-    );
-    $sentenciaTipos->execute($idsTiposPermiso);
-    $tiposEncontrados = $sentenciaTipos->fetchAll(PDO::FETCH_KEY_PAIR); // id => requiere_evidencia
+    // --- Validar tipos de permiso y si requieren evidencia (solo aplica a permisos) ---
+    $requiereEvidencia = false;
+    if (!empty($idsTiposPermiso)) {
+        $placeholders = implode(',', array_fill(0, count($idsTiposPermiso), '?'));
+        $sentenciaTipos = $conexion->prepare(
+            "SELECT id_tipo_permiso, requiere_evidencia FROM t_tipos_permisos
+             WHERE id_tipo_permiso IN ({$placeholders}) AND fec_delete IS NULL"
+        );
+        $sentenciaTipos->execute($idsTiposPermiso);
+        $tiposEncontrados = $sentenciaTipos->fetchAll(PDO::FETCH_KEY_PAIR); // id => requiere_evidencia
 
-    if (count($tiposEncontrados) !== count(array_unique($idsTiposPermiso))) {
-        responderJson(false, 'Uno o más motivos seleccionados no son válidos.', 400);
+        if (count($tiposEncontrados) !== count(array_unique($idsTiposPermiso))) {
+            responderJson(false, 'Uno o más motivos seleccionados no son válidos.', 400);
+        }
+
+        $requiereEvidencia = in_array(true, array_map('boolval', $tiposEncontrados), true);
     }
-
-    $requiereEvidencia = in_array(true, array_map('boolval', $tiposEncontrados), true);
 
     // --- Validación y subida de evidencias (antes de crear la solicitud) ---
     $archivosSubidos = []; // [{storage_key, url_publica, nombre_original, mime_type, tamano_bytes}]
@@ -239,7 +240,7 @@ try {
         }
     }
 
-    notificarSolicitudCreada($conexion, $idPermiso, $filaJefe);
+    notificarSolicitudCreada($conexion, $idPermiso, $filaJefe, $esVacaciones);
 
     responderJson(true, 'Solicitud enviada correctamente.', 200, ['id_permiso' => $idPermiso]);
 
@@ -255,12 +256,13 @@ try {
  * Notifica por correo al jefe directo y a todos los usuarios con permiso VER del módulo 27
  * (bandeja RRHH). Nunca debe tumbar la respuesta de éxito si el envío falla.
  */
-function notificarSolicitudCreada(PDO $conexion, int $idPermiso, array $filaJefe): void
+function notificarSolicitudCreada(PDO $conexion, int $idPermiso, array $filaJefe, bool $esVacaciones = false): void
 {
     try {
         $nombreEmpleado = trim(($filaJefe['nombre_empleado'] ?? '') . ' ' . ($filaJefe['apellido_empleado'] ?? ''));
         $mailer = new Mailer();
-        $subject = "Nueva solicitud de permiso #{$idPermiso} para tu revisión";
+        $tipoSolicitudTexto = $esVacaciones ? 'solicitud de vacaciones' : 'solicitud de permiso';
+        $subject = "Nueva {$tipoSolicitudTexto} #{$idPermiso} para tu revisión";
 
         $nombreEmpleadoHtml = htmlspecialchars($nombreEmpleado, ENT_QUOTES, 'UTF-8');
 
@@ -295,7 +297,7 @@ function notificarSolicitudCreada(PDO $conexion, int $idPermiso, array $filaJefe
                         <div class="content">
                             <p>Hola,</p>
                             <p><span class="badge">Solicitud #%d</span></p>
-                            <p><strong>%s</strong> ha radicado una solicitud de permiso y está pendiente de tu aprobación.</p>
+                            <p><strong>%s</strong> ha radicado una %s y está pendiente de tu aprobación.</p>
                             <p class="notice">Ingresa al portal DLGC RRHH para revisarla y dar respuesta a la brevedad.</p>
                             <p>Saludos,<br><strong>Portal DLGC RRHH</strong></p>
                         </div>
@@ -307,10 +309,11 @@ function notificarSolicitudCreada(PDO $conexion, int $idPermiso, array $filaJefe
             </body>
             </html>',
             $idPermiso,
-            $nombreEmpleadoHtml
+            $nombreEmpleadoHtml,
+            $tipoSolicitudTexto
         );
         $altBody = "Portal DLGC RRHH\n\n"
-                 . "{$nombreEmpleado} ha radicado la solicitud de permiso #{$idPermiso}, pendiente de tu aprobación.\n\n"
+                 . "{$nombreEmpleado} ha radicado la {$tipoSolicitudTexto} #{$idPermiso}, pendiente de tu aprobación.\n\n"
                  . "Ingresa al portal DLGC RRHH para revisarla.\n\n"
                  . "Distribuciones La Gran Cacharrería";
 

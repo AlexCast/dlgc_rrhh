@@ -64,8 +64,10 @@ proc_main: BEGIN
         END IF;
     END IF;
 
-    SET num_motivos = JSON_LENGTH(wtipos_permiso);
-    IF num_motivos IS NULL OR num_motivos = 0 THEN
+    -- Las vacaciones no requieren motivo: se identifican por metodo_descuento = 'VACACIONES'.
+    -- Cualquier otra solicitud sí debe traer al menos un motivo.
+    SET num_motivos = COALESCE(JSON_LENGTH(wtipos_permiso), 0);
+    IF num_motivos = 0 AND UPPER(TRIM(COALESCE(wmetodo_descuento, ''))) <> 'VACACIONES' THEN
         SELECT FALSE AS exito, 'Debes seleccionar al menos un motivo.' AS mensaje, NULL AS id_permiso;
         LEAVE proc_main;
     END IF;

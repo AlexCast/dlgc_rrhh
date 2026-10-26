@@ -10,25 +10,21 @@ $puedeCrear = has_module_permission(3, 'crear');
 $tiposPermiso = [];
 $puedeVacaciones = false;
 $saldoVacaciones = 0.0;
-$idTipoVacaciones = null;
 
 if ($conexion) {
+    // El catálogo de motivos es exclusivo de los permisos; las vacaciones son una
+    // solicitud aparte (radio propio) y no deben aparecer como "motivo".
     $sentenciaTipos = $conexion->query(
         'SELECT id_tipo_permiso, nombre_tipo, requiere_evidencia
          FROM t_tipos_permisos
          WHERE fec_delete IS NULL
+           AND LOWER(TRIM(nombre_tipo)) <> \'vacaciones\'
          ORDER BY nombre_tipo'
     );
     $tiposPermiso = $sentenciaTipos->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($tiposPermiso as $tipo) {
-        if (mb_strtolower(trim((string) $tipo['nombre_tipo'])) === 'vacaciones') {
-            $idTipoVacaciones = (int) $tipo['id_tipo_permiso'];
-            break;
-        }
-    }
-
-    // Elegibilidad de vacaciones: mínimo 1 año de servicio (misma regla que proc_calcular_saldo_vacaciones).
+    // Elegibilidad de vacaciones: mínimo 1 año de servicio y saldo disponible
+    // (misma regla de aniversario que proc_calcular_saldo_vacaciones).
     $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
     if (is_string($idUsuarioSesion) && $idUsuarioSesion !== '') {
         $sentenciaEmpleado = $conexion->prepare(
@@ -56,7 +52,7 @@ if ($conexion) {
             $sentenciaSaldo->execute([$idUsuarioSesion]);
             $saldoVacaciones = (float) ($sentenciaSaldo->fetch(PDO::FETCH_ASSOC)['saldo'] ?? 0);
 
-            $puedeVacaciones = $aniosServicio >= 1 && $idTipoVacaciones !== null && $saldoVacaciones > 0;
+            $puedeVacaciones = $aniosServicio >= 1 && $saldoVacaciones > 0;
         }
     }
 }
@@ -78,7 +74,6 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     data-puede-crear="<?php echo $puedeCrear ? '1' : '0'; ?>"
     data-puede-vacaciones="<?php echo $puedeVacaciones ? '1' : '0'; ?>"
     data-saldo-vacaciones="<?php echo number_format($saldoVacaciones, 1, '.', ''); ?>"
-    data-id-tipo-vacaciones="<?php echo $idTipoVacaciones !== null ? $idTipoVacaciones : ''; ?>"
     data-csrf="<?php echo $csrfToken; ?>"
 >
 
@@ -171,11 +166,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                 </div>
                                 <?php if ($puedeVacaciones): ?>
                                 <p class="perm-field-hint" id="vacaciones-hint" style="display: none;">
-                                    Saldo disponible: <strong><?php echo number_format($saldoVacaciones, 1, '.', ''); ?></strong> día(s). Las vacaciones aprobadas se descontarán de tu saldo.
+                                    Saldo disponible: <strong><?php echo number_format($saldoVacaciones, 1, '.', ''); ?></strong> día(s) hábil(es).
+                                    Las vacaciones son <strong>remuneradas</strong> (seguirás recibiendo tu sueldo) y se descuentan de este saldo de días, no de tu sueldo.
                                 </p>
-                                <?php endif; ?>
-                                <?php if ($idTipoVacaciones !== null): ?>
-                                <input type="hidden" id="id_tipo_vacaciones" name="id_tipo_vacaciones" value="<?php echo $idTipoVacaciones; ?>">
                                 <?php endif; ?>
                             </div>
 
