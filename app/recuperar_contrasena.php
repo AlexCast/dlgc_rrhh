@@ -165,6 +165,9 @@ try {
             <div class="wrapper">
                 <div class="card">
                     <div class="header">
+                        <div class="logo-badge" style="display: inline-block; background-color: #ffffff; border-radius: 18px; padding: 12px 20px; margin-bottom: 14px; line-height: 0;">
+                            <img src="https://lagrancacharreria.tech/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería" style="display: block; width: auto; height: 64px; border: 0;">
+                        </div>
                         <h1>Portal DLGC RRHH</h1>
                     </div>
                     <div class="content">

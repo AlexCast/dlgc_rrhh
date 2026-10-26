@@ -131,6 +131,9 @@ function notificarEncargadosSst(PDO $conexion, string $idUsuario, string $tipoPe
                 <div style="width: 100%%; padding: 40px 16px;">
                     <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; border: 2px solid #3ba86a; box-shadow: 0 12px 30px rgba(59, 168, 106, 0.12); overflow: hidden;">
                         <div style="background-color: #3ba86a; padding: 24px; text-align: center;">
+                            <div style="display: inline-block; background-color: #ffffff; border-radius: 18px; padding: 12px 20px; margin-bottom: 14px; line-height: 0;">
+                                <img src="https://lagrancacharreria.tech/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería" style="display: block; width: auto; height: 64px; border: 0;">
+                            </div>
                             <h1 style="color: #ffffff; margin: 0; font-size: 1.25rem; font-weight: 700;">Portal DLGC RRHH</h1>
                         </div>
                         <div style="padding: 32px;">
