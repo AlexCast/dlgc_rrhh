@@ -170,7 +170,8 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
         const card = document.createElement('div');
         card.className = 'sst-queja-card';
 
-        const rango = sol.es_por_horas === true || sol.es_por_horas === 't'
+        const esPorHoras = sol.es_por_horas === 1 || sol.es_por_horas === '1' || sol.es_por_horas === true || sol.es_por_horas === 't';
+        const rango = esPorHoras
             ? `${sol.fecha_inicio} (${sol.hora_inicio || ''} - ${sol.hora_fin || ''})`
             : `${sol.fecha_inicio} a ${sol.fecha_fin}`;
 

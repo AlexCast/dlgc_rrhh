@@ -17,7 +17,7 @@ BEGIN
     END IF;
 
     IF whoras_aprobadas IS NULL OR whoras_aprobadas <= 0 OR whoras_aprobadas > 24 THEN
-        RETURN 'Las horas aprobadas deben estar entre 0 y 24.';
+        RETURN 'Las horas aprobadas deben ser mayores que 0 y no superar 24.';
     END IF;
 
     UPDATE t_permisos_dias_aprobados

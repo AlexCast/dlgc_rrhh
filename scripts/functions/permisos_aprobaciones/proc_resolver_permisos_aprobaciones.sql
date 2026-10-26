@@ -137,9 +137,9 @@ proc_main: BEGIN
         fec_update = CURRENT_TIMESTAMP
     WHERE id_aprobacion = v_id_aprobacion;
 
-    -- Recalcular el estado consolidado de la solicitud
-    SELECT estado INTO v_estado_jefe FROM t_permisos_aprobaciones WHERE id_permiso = wid_permiso AND nivel_aprobacion = 'JEFE';
-    SELECT estado INTO v_estado_rrhh FROM t_permisos_aprobaciones WHERE id_permiso = wid_permiso AND nivel_aprobacion = 'RRHH';
+    -- Recalcular el estado consolidado de la solicitud (solo aprobaciones activas)
+    SELECT estado INTO v_estado_jefe FROM t_permisos_aprobaciones WHERE id_permiso = wid_permiso AND nivel_aprobacion = 'JEFE' AND fec_delete IS NULL;
+    SELECT estado INTO v_estado_rrhh FROM t_permisos_aprobaciones WHERE id_permiso = wid_permiso AND nivel_aprobacion = 'RRHH' AND fec_delete IS NULL;
 
     SET v_estado_final = CASE
         WHEN v_estado_jefe = 'RECHAZADO' OR v_estado_rrhh = 'RECHAZADO' THEN 'RECHAZADO'

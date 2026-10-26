@@ -208,7 +208,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                         <option value="">Selecciona un motivo</option>
                                         <?php foreach ($tiposPermiso as $tipo): ?>
                                         <option value="<?php echo (int) $tipo['id_tipo_permiso']; ?>"
-                                                data-requiere-evidencia="<?php echo $tipo['requiere_evidencia'] === 't' || $tipo['requiere_evidencia'] === true ? '1' : '0'; ?>">
+                                                data-requiere-evidencia="<?php echo $tipo['requiere_evidencia'] == 1 || $tipo['requiere_evidencia'] === '1' || $tipo['requiere_evidencia'] === 't' || $tipo['requiere_evidencia'] === true ? '1' : '0'; ?>">
                                             <?php echo htmlspecialchars($tipo['nombre_tipo']); ?>
                                         </option>
                                         <?php endforeach; ?>
