@@ -56,7 +56,7 @@ $detallesMotivo  = [$detalleMotivo];
 
 $errores = [];
 
-if (!in_array($tipoSolicitud, ['dias', 'horas'], true)) {
+if (!in_array($tipoSolicitud, ['dias', 'horas', 'vacaciones'], true)) {
     $errores[] = 'El tipo de solicitud es obligatorio.';
 }
 if ($fechaInicio === '' || $fechaFin === '') {
@@ -65,7 +65,16 @@ if ($fechaInicio === '' || $fechaFin === '') {
     // Un permiso por horas es de un único día; fecha_inicio y fecha_fin deben coincidir.
     $errores[] = 'El permiso por horas debe corresponder a un único día.';
 }
-if (empty($idsTiposPermiso)) {
+
+$esVacaciones = $tipoSolicitud === 'vacaciones';
+if ($esVacaciones) {
+    if ($idTipoPermiso <= 0) {
+        $errores[] = 'El motivo de vacaciones no es válido.';
+    } else {
+        $idsTiposPermiso = [$idTipoPermiso];
+        $detallesMotivo  = ['Vacaciones'];
+    }
+} elseif (empty($idsTiposPermiso)) {
     $errores[] = 'Debes seleccionar al menos un motivo.';
 }
 
@@ -74,8 +83,9 @@ if (!empty($errores)) {
 }
 
 $esPorHoras = ($tipoSolicitud === 'horas');
-// El método de descuento (remunerado o no) lo define RRHH al aprobar, no el empleado.
-$metodoDescuento = null;
+// El método de descuento lo define RRHH al aprobar. Para vacaciones queda predefinido
+// como VACACIONES para que, al aprobarse, se descuenten del saldo del empleado.
+$metodoDescuento = $esVacaciones ? 'VACACIONES' : null;
 
 try {
     // --- Jefe directo (foto al momento de radicar) ---
@@ -97,6 +107,28 @@ try {
     $idJefeResponsable = $filaJefe['id_jefe'] ?? null;
     if (!is_string($idJefeResponsable) || trim($idJefeResponsable) === '') {
         responderJson(false, 'No tienes un jefe directo asignado. Contacta a RRHH antes de continuar.', 400);
+    }
+
+    // --- Reglas específicas de vacaciones: elegibilidad (≥ 1 año) y saldo suficiente ---
+    if ($esVacaciones) {
+        $sentenciaSaldo = $conexion->prepare('SELECT fun_get_saldo_vacaciones(?) AS saldo');
+        $sentenciaSaldo->execute([$idEmpleado]);
+        $saldoVacaciones = (float) ($sentenciaSaldo->fetch(PDO::FETCH_ASSOC)['saldo'] ?? 0);
+
+        if ($saldoVacaciones <= 0) {
+            responderJson(false, 'Aún no tienes vacaciones disponibles (debes cumplir al menos un año de servicio).', 400);
+        }
+
+        $sentenciaDias = $conexion->prepare('SELECT fun_dias_habiles_rango(?, ?) AS dias');
+        $sentenciaDias->execute([$fechaInicio, $fechaFin]);
+        $diasSolicitados = (float) ($sentenciaDias->fetch(PDO::FETCH_ASSOC)['dias'] ?? 0);
+
+        if ($diasSolicitados <= 0) {
+            responderJson(false, 'El rango de fechas de vacaciones no contiene días hábiles.', 400);
+        }
+        if ($diasSolicitados > $saldoVacaciones) {
+            responderJson(false, "No tienes saldo de vacaciones suficiente: solicitas {$diasSolicitados} día(s) y dispones de {$saldoVacaciones}.", 400);
+        }
     }
 
     // --- Validar tipos de permiso y si requieren evidencia ---

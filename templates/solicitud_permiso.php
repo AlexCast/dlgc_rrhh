@@ -8,6 +8,10 @@ require_module_access(3);
 $puedeCrear = has_module_permission(3, 'crear');
 
 $tiposPermiso = [];
+$puedeVacaciones = false;
+$saldoVacaciones = 0.0;
+$idTipoVacaciones = null;
+
 if ($conexion) {
     $sentenciaTipos = $conexion->query(
         'SELECT id_tipo_permiso, nombre_tipo, requiere_evidencia
@@ -16,6 +20,45 @@ if ($conexion) {
          ORDER BY nombre_tipo'
     );
     $tiposPermiso = $sentenciaTipos->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($tiposPermiso as $tipo) {
+        if (mb_strtolower(trim((string) $tipo['nombre_tipo'])) === 'vacaciones') {
+            $idTipoVacaciones = (int) $tipo['id_tipo_permiso'];
+            break;
+        }
+    }
+
+    // Elegibilidad de vacaciones: mínimo 1 año de servicio (misma regla que proc_calcular_saldo_vacaciones).
+    $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
+    if (is_string($idUsuarioSesion) && $idUsuarioSesion !== '') {
+        $sentenciaEmpleado = $conexion->prepare(
+            'SELECT e.fecha_ingreso, e.fecha_egreso
+             FROM t_empleados e
+             WHERE e.id_usuario = ? AND e.fec_delete IS NULL LIMIT 1'
+        );
+        $sentenciaEmpleado->execute([$idUsuarioSesion]);
+        $empleado = $sentenciaEmpleado->fetch(PDO::FETCH_ASSOC);
+
+        if ($empleado !== false) {
+            $fechaIngreso = $empleado['fecha_ingreso'] ?? null;
+            $fechaEgreso  = $empleado['fecha_egreso'] ?? null;
+            $fechaCorte = min($fechaEgreso ?? date('Y-m-d'), date('Y-m-d'));
+            // Equivalente a TIMESTAMPDIFF(YEAR, fecha_ingreso, fecha_corte) de MariaDB.
+            if ($fechaIngreso === null || $fechaIngreso === '') {
+                $aniosServicio = 0;
+            } else {
+                $corte = new DateTimeImmutable($fechaCorte);
+                $ingreso = new DateTimeImmutable($fechaIngreso);
+                $aniosServicio = (int) $ingreso->diff($corte)->y;
+            }
+
+            $sentenciaSaldo = $conexion->prepare('SELECT fun_get_saldo_vacaciones(?) AS saldo');
+            $sentenciaSaldo->execute([$idUsuarioSesion]);
+            $saldoVacaciones = (float) ($sentenciaSaldo->fetch(PDO::FETCH_ASSOC)['saldo'] ?? 0);
+
+            $puedeVacaciones = $aniosServicio >= 1 && $idTipoVacaciones !== null && $saldoVacaciones > 0;
+        }
+    }
 }
 
 $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
@@ -33,6 +76,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 </head>
 <body
     data-puede-crear="<?php echo $puedeCrear ? '1' : '0'; ?>"
+    data-puede-vacaciones="<?php echo $puedeVacaciones ? '1' : '0'; ?>"
+    data-saldo-vacaciones="<?php echo number_format($saldoVacaciones, 1, '.', ''); ?>"
+    data-id-tipo-vacaciones="<?php echo $idTipoVacaciones !== null ? $idTipoVacaciones : ''; ?>"
     data-csrf="<?php echo $csrfToken; ?>"
 >
 
@@ -116,7 +162,21 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                         <input type="radio" id="tipo_horas" name="tipo_solicitud" value="horas" required>
                                         <label for="tipo_horas">Permiso por Horas</label>
                                     </div>
+                                    <?php if ($puedeVacaciones): ?>
+                                    <div class="perm-radio-item">
+                                        <input type="radio" id="tipo_vacaciones" name="tipo_solicitud" value="vacaciones" required>
+                                        <label for="tipo_vacaciones">Vacaciones</label>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
+                                <?php if ($puedeVacaciones): ?>
+                                <p class="perm-field-hint" id="vacaciones-hint" style="display: none;">
+                                    Saldo disponible: <strong><?php echo number_format($saldoVacaciones, 1, '.', ''); ?></strong> día(s). Las vacaciones aprobadas se descontarán de tu saldo.
+                                </p>
+                                <?php endif; ?>
+                                <?php if ($idTipoVacaciones !== null): ?>
+                                <input type="hidden" id="id_tipo_vacaciones" name="id_tipo_vacaciones" value="<?php echo $idTipoVacaciones; ?>">
+                                <?php endif; ?>
                             </div>
 
                             <!-- Selector de Fechas o Horas -->
@@ -202,7 +262,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                             <div class="perm-section">
                                 <h3 class="perm-section-title">Motivo del Permiso a Tramitar</h3>
 
-                                <div class="perm-field">
+                                <div class="perm-field" id="motivo-field">
                                     <label for="motivo">Selecciona un motivo</label>
                                     <select id="motivo" name="motivo" required>
                                         <option value="">Selecciona un motivo</option>

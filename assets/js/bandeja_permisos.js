@@ -169,6 +169,9 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
     solicitudes.forEach(sol => {
         const card = document.createElement('div');
         card.className = 'sst-queja-card';
+        if (sol.metodo_descuento === 'VACACIONES') {
+            card.dataset.metodoPredefinido = 'VACACIONES';
+        }
 
         const esPorHoras = sol.es_por_horas === 1 || sol.es_por_horas === '1' || sol.es_por_horas === true || sol.es_por_horas === 't';
         const rango = esPorHoras
@@ -178,6 +181,7 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
         const puedeResolverJefe = !historial && vista === 'jefe' && sol.estado_jefe === 'PENDIENTE';
         const puedeResolverRrhh = !historial && vista === 'rrhh' && sol.estado_rrhh === 'PENDIENTE';
         const metodoDescuentoTexto = sol.metodo_descuento ? (ETIQUETAS_METODO_DESCUENTO[sol.metodo_descuento] || sol.metodo_descuento) : 'Pendiente por definir (RRHH)';
+        const esVacaciones = sol.metodo_descuento === 'VACACIONES';
 
         card.innerHTML = `
             <div class="sst-queja-header">
@@ -190,9 +194,13 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
                 <span>Evidencias adjuntas: ${sol.total_evidencias}</span>
                 <span>Nivel Jefe: ${ETIQUETAS_ESTADO[sol.estado_jefe] || sol.estado_jefe || '—'}</span>
                 <span>Nivel RRHH: ${ETIQUETAS_ESTADO[sol.estado_rrhh] || sol.estado_rrhh || '—'}</span>
-                <span>Remunerado: ${metodoDescuentoTexto}</span>
+                <span>Descuento: ${esVacaciones ? 'Vacaciones (descuenta saldo)' : metodoDescuentoTexto}</span>
             </div>
-            ${puedeResolverRrhh ? `
+            ${puedeResolverRrhh ? (esVacaciones ? `
+            <div class="perm-field">
+                <label>Descuento</label>
+                <p class="perm-field-hint">Vacaciones: se descontarán del saldo del empleado al aprobar.</p>
+            </div>` : `
             <div class="perm-field">
                 <label>¿El permiso es remunerado?</label>
                 <select class="metodo-descuento-select" data-id="${sol.id_permiso}">
@@ -201,7 +209,7 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
                     <option value="VACACIONES">Vacaciones</option>
                     <option value="NO">No</option>
                 </select>
-            </div>` : ''}
+            </div>`) : ''}
             ${(puedeResolverJefe || puedeResolverRrhh) ? `
             <div class="perm-actions">
                 <input type="text" class="observacion-input" placeholder="Observación (opcional)" data-id="${sol.id_permiso}">
@@ -226,13 +234,22 @@ function resolverSolicitud(btn, contenedor, vista) {
     const observacion = observacionInput ? observacionInput.value : '';
     const csrf = getBodyFlags().csrf;
 
+    // Las solicitudes de vacaciones llegan con metodo_descuento = 'VACACIONES' predefinido;
+    // no se le pide a RRHH que vuelva a elegir el método de descuento.
+    const card = btn.closest('.sst-queja-card');
+    const metodoPredefinido = card ? card.dataset.metodoPredefinido || '' : '';
+
     let metodoDescuento = '';
     if (nivel === 'RRHH' && accion === 'APROBADO') {
-        const metodoSelect = contenedor.querySelector(`.metodo-descuento-select[data-id="${idPermiso}"]`);
-        metodoDescuento = metodoSelect ? metodoSelect.value : '';
-        if (!metodoDescuento) {
-            alert('Selecciona si el permiso es remunerado (Sí, Vacaciones o No) antes de aprobar.');
-            return;
+        if (metodoPredefinido === 'VACACIONES') {
+            metodoDescuento = 'VACACIONES';
+        } else {
+            const metodoSelect = contenedor.querySelector(`.metodo-descuento-select[data-id="${idPermiso}"]`);
+            metodoDescuento = metodoSelect ? metodoSelect.value : '';
+            if (!metodoDescuento) {
+                alert('Selecciona si el permiso es remunerado (Sí, Vacaciones o No) antes de aprobar.');
+                return;
+            }
         }
     }
 

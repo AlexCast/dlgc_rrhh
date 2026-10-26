@@ -14,6 +14,9 @@ function getBodyFlags() {
     const body = document.body;
     return {
         puedeCrear: body.dataset.puedeCrear === '1',
+        puedeVacaciones: body.dataset.puedeVacaciones === '1',
+        saldoVacaciones: parseFloat(body.dataset.saldoVacaciones || '0'),
+        idTipoVacaciones: body.dataset.idTipoVacaciones || '',
         csrf: body.dataset.csrf || ''
     };
 }
@@ -437,10 +440,18 @@ function handleTipoSolicitudChange(event) {
     const tipo = event.target.value;
     const datesSection = document.getElementById('dates-section');
     const hoursSection = document.getElementById('hours-section');
+    const vacacionesHint = document.getElementById('vacaciones-hint');
+    const motivoField = document.getElementById('motivo-field');
+    const motivoSelect = document.getElementById('motivo');
+    const detalleGroup = document.getElementById('detalle-motivo-group');
+    const evidenciaSection = document.getElementById('evidencia-section');
 
     if (tipo === 'dias') {
         datesSection.style.display = 'block';
         hoursSection.style.display = 'none';
+        if (vacacionesHint) vacacionesHint.style.display = 'none';
+        if (motivoField) motivoField.style.display = '';
+        if (motivoSelect) motivoSelect.required = true;
         document.getElementById('hora_inicio').value = '';
         document.getElementById('hora_inicio_display').value = '';
         document.getElementById('hora_fin').value = '';
@@ -451,11 +462,32 @@ function handleTipoSolicitudChange(event) {
     } else if (tipo === 'horas') {
         datesSection.style.display = 'none';
         hoursSection.style.display = 'block';
+        if (vacacionesHint) vacacionesHint.style.display = 'none';
+        if (motivoField) motivoField.style.display = '';
+        if (motivoSelect) motivoSelect.required = true;
         document.getElementById('fecha_inicio').value = '';
         document.getElementById('fecha_inicio_display').value = '';
         document.getElementById('fecha_fin').value = '';
         document.getElementById('fecha_fin_display').value = '';
         document.getElementById('total_dias').value = '';
+    } else if (tipo === 'vacaciones') {
+        datesSection.style.display = 'block';
+        hoursSection.style.display = 'none';
+        if (vacacionesHint) vacacionesHint.style.display = 'block';
+        if (motivoField) motivoField.style.display = 'none';
+        if (motivoSelect) {
+            motivoSelect.required = false;
+            motivoSelect.value = '';
+        }
+        if (detalleGroup) detalleGroup.style.display = 'none';
+        if (evidenciaSection) evidenciaSection.style.display = 'none';
+        document.getElementById('hora_inicio').value = '';
+        document.getElementById('hora_inicio_display').value = '';
+        document.getElementById('hora_fin').value = '';
+        document.getElementById('hora_fin_display').value = '';
+        document.getElementById('total_horas').value = '';
+        document.getElementById('fecha_permiso_horas').value = '';
+        document.getElementById('fecha_permiso_horas_display').value = '';
     }
 }
 
@@ -554,31 +586,45 @@ function mostrarFeedbackForm(mensaje, tipo) {
 function handleFormSubmit(event) {
     event.preventDefault();
 
-    const motivoSelect = document.getElementById('motivo');
-    if (!motivoSelect || !motivoSelect.value) {
-        mostrarFeedbackForm('Selecciona un motivo para tu solicitud.', 'error');
-        return;
-    }
-
     const tipoSolicitud = document.querySelector('input[name="tipo_solicitud"]:checked');
     if (!tipoSolicitud) {
-        mostrarFeedbackForm('Selecciona si es permiso por días u horas.', 'error');
+        mostrarFeedbackForm('Selecciona si es permiso por días, horas o vacaciones.', 'error');
         return;
     }
 
-    if (tipoSolicitud.value === 'dias') {
+    const esVacaciones = tipoSolicitud.value === 'vacaciones';
+
+    if (esVacaciones) {
+        const flags = getBodyFlags();
+        if (!flags.puedeVacaciones || !flags.idTipoVacaciones) {
+            mostrarFeedbackForm('Aún no tienes habilitada la solicitud de vacaciones.', 'error');
+            return;
+        }
         if (!document.getElementById('fecha_inicio').value || !document.getElementById('fecha_fin').value) {
-            mostrarFeedbackForm('Completa las fechas de inicio y fin.', 'error');
+            mostrarFeedbackForm('Completa las fechas de inicio y fin de tus vacaciones.', 'error');
             return;
         }
-    } else if (tipoSolicitud.value === 'horas') {
-        if (!document.getElementById('fecha_permiso_horas').value) {
-            mostrarFeedbackForm('Selecciona el día en el que tomarás el permiso por horas.', 'error');
+    } else {
+        const motivoSelect = document.getElementById('motivo');
+        if (!motivoSelect || !motivoSelect.value) {
+            mostrarFeedbackForm('Selecciona un motivo para tu solicitud.', 'error');
             return;
         }
-        if (!document.getElementById('hora_inicio').value || !document.getElementById('hora_fin').value) {
-            mostrarFeedbackForm('Completa las horas de inicio y fin.', 'error');
-            return;
+
+        if (tipoSolicitud.value === 'dias') {
+            if (!document.getElementById('fecha_inicio').value || !document.getElementById('fecha_fin').value) {
+                mostrarFeedbackForm('Completa las fechas de inicio y fin.', 'error');
+                return;
+            }
+        } else if (tipoSolicitud.value === 'horas') {
+            if (!document.getElementById('fecha_permiso_horas').value) {
+                mostrarFeedbackForm('Selecciona el día en el que tomarás el permiso por horas.', 'error');
+                return;
+            }
+            if (!document.getElementById('hora_inicio').value || !document.getElementById('hora_fin').value) {
+                mostrarFeedbackForm('Completa las horas de inicio y fin.', 'error');
+                return;
+            }
         }
     }
 
@@ -591,6 +637,10 @@ function handleFormSubmit(event) {
     }
 
     const formData = new FormData(event.target);
+    if (esVacaciones) {
+        // Las vacaciones usan un motivo fijo y el backend las marca para descontar del saldo.
+        formData.set('motivo', getBodyFlags().idTipoVacaciones);
+    }
     const submitBtn = event.target.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
 
@@ -692,6 +742,7 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
         const puedeResolverJefe = !historial && vista === 'jefe' && sol.estado_jefe === 'PENDIENTE';
         const puedeResolverRrhh = !historial && vista === 'rrhh' && sol.estado_rrhh === 'PENDIENTE';
         const metodoDescuentoTexto = sol.metodo_descuento ? (ETIQUETAS_METODO_DESCUENTO[sol.metodo_descuento] || sol.metodo_descuento) : 'Pendiente por definir (RRHH)';
+        const esVacaciones = sol.metodo_descuento === 'VACACIONES';
 
         card.innerHTML = `
             <div class="sst-queja-header">
@@ -704,9 +755,13 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
                 <span>Evidencias adjuntas: ${sol.total_evidencias}</span>
                 <span>Nivel Jefe: ${ETIQUETAS_ESTADO[sol.estado_jefe] || sol.estado_jefe || '—'}</span>
                 <span>Nivel RRHH: ${ETIQUETAS_ESTADO[sol.estado_rrhh] || sol.estado_rrhh || '—'}</span>
-                <span>Remunerado: ${metodoDescuentoTexto}</span>
+                <span>Descuento: ${esVacaciones ? 'Vacaciones (descuenta saldo)' : metodoDescuentoTexto}</span>
             </div>
-            ${puedeResolverRrhh ? `
+            ${puedeResolverRrhh ? (esVacaciones ? `
+            <div class="perm-field">
+                <label>Descuento</label>
+                <p class="perm-field-hint">Vacaciones: se descontarán del saldo del empleado al aprobar.</p>
+            </div>` : `
             <div class="perm-field">
                 <label>¿El permiso es remunerado?</label>
                 <select class="metodo-descuento-select" data-id="${sol.id_permiso}">
@@ -715,7 +770,7 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
                     <option value="VACACIONES">Vacaciones</option>
                     <option value="NO">No</option>
                 </select>
-            </div>` : ''}
+            </div>`) : ''}
             ${(puedeResolverJefe || puedeResolverRrhh) ? `
             <div class="perm-actions">
                 <input type="text" class="observacion-input" placeholder="Observación (opcional)" data-id="${sol.id_permiso}">
