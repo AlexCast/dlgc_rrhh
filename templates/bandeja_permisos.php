@@ -101,10 +101,16 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
             <div class="perm-page fade-in-up">
 
-                <?php if ($mostrarJefe && $esRrhh): ?>
-                <div class="sst-tabs" role="tablist">
-                    <button class="sst-tab active" data-tab="jefe" role="tab" aria-selected="true">Bandeja de Jefe</button>
-                    <button class="sst-tab" data-tab="rrhh" role="tab" aria-selected="false">Bandeja de RRHH</button>
+                <?php if ($mostrarJefe || $esRrhh): ?>
+                <?php $numBandejas = ($mostrarJefe ? 1 : 0) + ($esRrhh ? 1 : 0); ?>
+                <div class="bandeja-segment" data-count="<?php echo $numBandejas; ?>" role="tablist" aria-label="Bandejas de aprobación">
+                    <?php if ($mostrarJefe): ?>
+                    <button type="button" class="bandeja-segment-btn<?php echo $primeraVista === 'jefe' ? ' active' : ''; ?>" data-tab="jefe" role="tab" aria-selected="<?php echo $primeraVista === 'jefe' ? 'true' : 'false'; ?>">Bandeja de Jefe</button>
+                    <?php endif; ?>
+                    <?php if ($esRrhh): ?>
+                    <button type="button" class="bandeja-segment-btn<?php echo $primeraVista === 'rrhh' ? ' active' : ''; ?>" data-tab="rrhh" role="tab" aria-selected="<?php echo $primeraVista === 'rrhh' ? 'true' : 'false'; ?>">Bandeja de RRHH</button>
+                    <?php endif; ?>
+                    <span class="bandeja-segment-indicator" aria-hidden="true"></span>
                 </div>
                 <?php endif; ?>
 

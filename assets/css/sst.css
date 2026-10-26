@@ -39,6 +39,58 @@
     animation: fadeIn 0.25s ease;
 }
 
+/* =========================================
+   Bandeja de permisos — control segmentado
+   ========================================= */
+.bandeja-segment {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    padding: 0.3rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: transparent;
+}
+
+.bandeja-segment-btn {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+    min-width: max-content;
+    padding: 0.65rem 1.5rem;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.bandeja-segment-btn:not(.active):hover {
+    color: var(--text-main);
+}
+
+.bandeja-segment-btn.active {
+    color: #fff;
+}
+
+.bandeja-segment-indicator {
+    position: absolute;
+    z-index: 0;
+    top: 0.3rem;
+    bottom: 0.3rem;
+    left: 0.3rem;
+    width: 0;
+    border-radius: 9px;
+    background: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(59, 168, 106, 0.35);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .sst-section-header {
     margin-bottom: 1.5rem;
 }
@@ -372,6 +424,11 @@ body.dark-theme .sst-queja-card {
 
     .sst-tab {
         padding: 0.65rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .bandeja-segment-btn {
+        padding: 0.55rem 1rem;
         font-size: 0.9rem;
     }
 
