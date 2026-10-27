@@ -26,69 +26,29 @@ function getBodyFlags() {
 // Pestañas (Jefe / RRHH)
 // -------------------------------------------------
 function initializeTabs() {
-    const tabs = document.querySelectorAll('.bandeja-segment-btn');
     const panels = document.querySelectorAll('.sst-tab-panel');
+    const switcher = document.querySelector('.tab-switch');
     const cargadas = new Set();
-    const segmento = document.querySelector('.bandeja-segment');
-    const indicador = segmento ? segmento.querySelector('.bandeja-segment-indicator') : null;
 
-    const moverIndicador = (tabActiva, sinTransicion) => {
-        if (!indicador || !tabActiva || !segmento) return;
-        const estilos = window.getComputedStyle(segmento);
-        const bordeIzquierdo = parseFloat(estilos.borderLeftWidth) || 0;
-        const rectSegmento = segmento.getBoundingClientRect();
-        const rectTab = tabActiva.getBoundingClientRect();
+    if (switcher) {
+        initializeTabSwitch(switcher, (tab) => {
+            const target = tab.dataset.tab;
 
-        if (sinTransicion) {
-            indicador.style.transition = 'none';
-        }
-        indicador.style.left = (rectTab.left - rectSegmento.left - bordeIzquierdo) + 'px';
-        indicador.style.width = rectTab.width + 'px';
-        if (sinTransicion) {
-            void indicador.offsetWidth;
-            indicador.style.transition = '';
-        }
-    };
+            panels.forEach(p => {
+                p.classList.remove('active');
+                p.setAttribute('hidden', '');
+            });
 
-    const activarTab = (tab) => {
-        const target = tab.dataset.tab;
+            const panel = document.getElementById('tab-' + target);
+            if (panel) {
+                panel.classList.add('active');
+                panel.removeAttribute('hidden');
+            }
 
-        tabs.forEach(t => {
-            t.classList.remove('active');
-            t.setAttribute('aria-selected', 'false');
-        });
-        panels.forEach(p => {
-            p.classList.remove('active');
-            p.setAttribute('hidden', '');
-        });
-
-        tab.classList.add('active');
-        tab.setAttribute('aria-selected', 'true');
-        moverIndicador(tab);
-
-        const panel = document.getElementById('tab-' + target);
-        if (panel) {
-            panel.classList.add('active');
-            panel.removeAttribute('hidden');
-        }
-
-        if (!cargadas.has(target)) {
-            cargadas.add(target);
-            cargarBandeja(target);
-        }
-    };
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => activarTab(tab));
-    });
-
-    if (tabs.length > 0) {
-        const activaInicial = segmento.querySelector('.bandeja-segment-btn.active') || tabs[0];
-        moverIndicador(activaInicial, true);
-
-        window.addEventListener('resize', () => {
-            const activa = segmento.querySelector('.bandeja-segment-btn.active') || tabs[0];
-            moverIndicador(activa);
+            if (!cargadas.has(target)) {
+                cargadas.add(target);
+                cargarBandeja(target);
+            }
         });
     }
 

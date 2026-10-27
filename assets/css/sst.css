@@ -2,34 +2,6 @@
    Estilos específicos del módulo SST
    ========================================= */
 
-.sst-tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    flex-wrap: wrap;
-}
-
-.sst-tab {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    padding: 0.75rem 1rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
-}
-
-.sst-tab:hover {
-    color: var(--text-main);
-}
-
-.sst-tab.active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
-}
-
 .sst-tab-panel {
     display: none;
 }
@@ -40,24 +12,27 @@
 }
 
 /* =========================================
-   Bandeja de permisos — control segmentado
+   Control segmentado con indicador deslizante
+   (.tab-switch: bandeja de permisos, solicitud de permisos, SST)
    ========================================= */
-.bandeja-segment {
+.tab-switch {
     position: relative;
-    display: inline-flex;
-    align-items: stretch;
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    width: max-content;
+    max-width: 100%;
+    align-self: flex-start;
+    justify-self: start;
     padding: 0.3rem;
-    margin-bottom: 1.5rem;
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background: transparent;
 }
 
-.bandeja-segment-btn {
+.tab-switch-btn {
     position: relative;
     z-index: 1;
-    flex: 1 1 0;
-    min-width: max-content;
     padding: 0.65rem 1.5rem;
     border: none;
     border-radius: 9px;
@@ -70,15 +45,15 @@
     transition: color 0.3s ease;
 }
 
-.bandeja-segment-btn:not(.active):hover {
+.tab-switch-btn:not(.active):hover {
     color: var(--text-main);
 }
 
-.bandeja-segment-btn.active {
+.tab-switch-btn.active {
     color: #fff;
 }
 
-.bandeja-segment-indicator {
+.tab-switch-indicator {
     position: absolute;
     z-index: 0;
     top: 0.3rem;
@@ -417,19 +392,110 @@ body.dark-theme .sst-queja-card {
     width: 100%;
 }
 
+/* Filtro del buzón de quejas */
+.sst-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+}
+
+.sst-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+    max-width: 320px;
+}
+
+.sst-filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.sst-filter-label i {
+    font-size: 0.78rem;
+    color: var(--primary-color);
+}
+
+.sst-select-wrap {
+    position: relative;
+    display: block;
+}
+
+.sst-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding: 0.75rem 2.65rem 0.75rem 1.1rem;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-main);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sst-select:hover {
+    border-color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.dark-theme .sst-select:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sst-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 168, 106, 0.18);
+}
+
+.sst-select option {
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+.sst-select option:checked {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.sst-select-chevron {
+    position: absolute;
+    top: 50%;
+    right: 1.05rem;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color 0.2s ease;
+}
+
+.sst-select:hover + .sst-select-chevron,
+.sst-select:focus + .sst-select-chevron {
+    color: var(--primary-color);
+}
+
 @media (max-width: 768px) {
-    .sst-tabs {
-        gap: 0;
-    }
-
-    .sst-tab {
-        padding: 0.65rem 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    .bandeja-segment-btn {
-        padding: 0.55rem 1rem;
-        font-size: 0.9rem;
+    .tab-switch-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
     }
 
     .sst-grid {
@@ -443,5 +509,34 @@ body.dark-theme .sst-queja-card {
 
     .sst-admin-field-actions {
         align-self: flex-start;
+    }
+
+    .sst-filter-field {
+        max-width: 100%;
+        gap: 0.3rem;
+    }
+
+    .sst-filters {
+        padding: 0.7rem 0.8rem;
+        gap: 0.6rem;
+        border-radius: 14px;
+    }
+
+    .sst-filter-label {
+        font-size: 0.72rem;
+    }
+
+    .sst-select {
+        padding: 0.55rem 2.2rem 0.55rem 0.9rem;
+        font-size: 0.85rem;
+    }
+
+    .sst-select-chevron {
+        right: 0.85rem;
+        font-size: 0.62rem;
+    }
+
+    .comunicados-admin-subtitle {
+        display: none;
     }
 }

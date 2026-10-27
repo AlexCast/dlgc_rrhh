@@ -27,31 +27,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Pestañas
-    const tabs = document.querySelectorAll('.sst-tab');
     const panels = document.querySelectorAll('.sst-tab-panel');
+    const tabSwitcher = document.querySelector('.tab-switch');
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
+    if (tabSwitcher) {
+        initializeTabSwitch(tabSwitcher, (tab) => {
             const target = tab.dataset.tab;
 
-            tabs.forEach(t => {
-                t.classList.remove('active');
-                t.setAttribute('aria-selected', 'false');
-            });
             panels.forEach(p => {
                 p.classList.remove('active');
                 p.setAttribute('hidden', '');
             });
 
-            tab.classList.add('active');
-            tab.setAttribute('aria-selected', 'true');
             const panel = document.getElementById('tab-' + target);
             if (panel) {
                 panel.classList.add('active');
                 panel.removeAttribute('hidden');
             }
         });
-    });
+    }
 
     // Formulario de queja
     const form = document.getElementById('sst-queja-form');
@@ -144,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCancelarEdicion.style.display = 'inline-block';
 
             // Abrir pestaña del buzón y hacer scroll
-            const tabBuzon = document.querySelector('.sst-tab[data-tab="buzon"]');
+            const tabBuzon = document.querySelector('.tab-switch-btn[data-tab="buzon"]');
             if (tabBuzon) {
                 tabBuzon.click();
             }

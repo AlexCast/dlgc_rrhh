@@ -89,8 +89,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                     <h1>Seguridad y Salud en el Trabajo</h1>
                 </div>
                 <div class="top-bar-right">
-                    <a href="../app/logout.php" class="icon-btn" aria-label="Cerrar sesión">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <a href="/templates/firstpage.php" class="icon-btn" aria-label="Volver al inicio">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </a>
                     <button id="theme-toggle" class="icon-btn" aria-label="Cambiar modo oscuro/claro">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -99,13 +99,14 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
             </header>
 
             <div class="dashboard-body fade-in-up">
-                <div class="sst-tabs" role="tablist" aria-label="Secciones SST">
-                    <button type="button" class="sst-tab active" role="tab" aria-selected="true" aria-controls="tab-copasst" data-tab="copasst">COPASST</button>
-                    <button type="button" class="sst-tab" role="tab" aria-selected="false" aria-controls="tab-convivencia" data-tab="convivencia">Comité de Convivencia</button>
-                    <button type="button" class="sst-tab" role="tab" aria-selected="false" aria-controls="tab-buzon" data-tab="buzon">Buzón de Quejas y Sugerencias</button>
+                <div class="tab-switch" role="tablist" aria-label="Secciones SST">
+                    <button type="button" class="tab-switch-btn active" role="tab" aria-selected="true" aria-controls="tab-buzon" data-tab="buzon">Buzón</button>
+                    <button type="button" class="tab-switch-btn" role="tab" aria-selected="false" aria-controls="tab-copasst" data-tab="copasst">COPASST</button>
+                    <button type="button" class="tab-switch-btn" role="tab" aria-selected="false" aria-controls="tab-convivencia" data-tab="convivencia">C. Convivencia</button>
+                    <span class="tab-switch-indicator" aria-hidden="true"></span>
                 </div>
 
-                <section id="tab-copasst" class="sst-tab-panel active" role="tabpanel" tabindex="0">
+                <section id="tab-copasst" class="sst-tab-panel" role="tabpanel" tabindex="0" hidden>
                     <div class="sst-section-header">
                         <h2 class="card-title">Directorio COPASST</h2>
                         <p class="sst-section-desc">Comité Paritario de Seguridad y Salud en el Trabajo.</p>
@@ -165,7 +166,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                     <?php endif; ?>
                 </section>
 
-                <section id="tab-buzon" class="sst-tab-panel" role="tabpanel" tabindex="0" hidden>
+                <section id="tab-buzon" class="sst-tab-panel active" role="tabpanel" tabindex="0">
                     <div class="content-split-grid">
                         <section class="data-card">
                             <h2 class="card-title">Nueva Queja / Sugerencia</h2>
@@ -248,6 +249,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     </div>
 
     <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
+    <script src="/assets/js/tab_switch.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/tab_switch.js'); ?>"></script>
     <script src="/assets/js/sst.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/sst.js'); ?>"></script>
 </body>
 </html>

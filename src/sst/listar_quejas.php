@@ -35,17 +35,23 @@ render_alert_banner();
     </div>
 
     <section class="data-card">
-        <form method="GET" class="row g-3 mb-3">
-            <div class="col-md-4">
-                <label for="estado" class="form-label">Filtrar por estado</label>
-                <select name="estado" id="estado" class="form-select" onchange="this.form.submit()">
-                    <option value="">Todos</option>
-                    <?php foreach ($estadosValidos as $estado): ?>
-                        <option value="<?php echo htmlspecialchars($estado, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $filtroEstado === $estado ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($estado); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+        <form method="GET" class="sst-filters">
+            <div class="sst-filter-field">
+                <label for="estado" class="sst-filter-label">
+                    <i class="fas fa-filter" aria-hidden="true"></i>
+                    Filtrar por estado
+                </label>
+                <div class="sst-select-wrap">
+                    <select name="estado" id="estado" class="sst-select" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        <?php foreach ($estadosValidos as $estado): ?>
+                            <option value="<?php echo htmlspecialchars($estado, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $filtroEstado === $estado ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($estado); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <i class="fas fa-chevron-down sst-select-chevron" aria-hidden="true"></i>
+                </div>
             </div>
         </form>
 

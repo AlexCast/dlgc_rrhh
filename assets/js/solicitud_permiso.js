@@ -369,36 +369,30 @@ function initializeTimePickers() {
 // Pestañas
 // -------------------------------------------------
 function initializeTabs() {
-    const tabs = document.querySelectorAll('.sst-tab');
     const panels = document.querySelectorAll('.sst-tab-panel');
+    const switcher = document.querySelector('.tab-switch');
+    if (!switcher) return;
+
     const cargadas = new Set();
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
+    initializeTabSwitch(switcher, (tab) => {
+        const target = tab.dataset.tab;
 
-            tabs.forEach(t => {
-                t.classList.remove('active');
-                t.setAttribute('aria-selected', 'false');
-            });
-            panels.forEach(p => {
-                p.classList.remove('active');
-                p.setAttribute('hidden', '');
-            });
-
-            tab.classList.add('active');
-            tab.setAttribute('aria-selected', 'true');
-            const panel = document.getElementById('tab-' + target);
-            if (panel) {
-                panel.classList.add('active');
-                panel.removeAttribute('hidden');
-            }
-
-            if (!cargadas.has(target) && target === 'mias') {
-                cargadas.add(target);
-                cargarBandeja(target);
-            }
+        panels.forEach(p => {
+            p.classList.remove('active');
+            p.setAttribute('hidden', '');
         });
+
+        const panel = document.getElementById('tab-' + target);
+        if (panel) {
+            panel.classList.add('active');
+            panel.removeAttribute('hidden');
+        }
+
+        if (!cargadas.has(target) && target === 'mias') {
+            cargadas.add(target);
+            cargarBandeja(target);
+        }
     });
 }
 

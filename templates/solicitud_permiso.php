@@ -122,8 +122,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                 </div>
                 
                 <div class="top-bar-right">
-                    <a href="../app/logout.php" class="icon-btn" aria-label="Cerrar sesión">                        
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <a href="/templates/firstpage.php" class="icon-btn" aria-label="Volver al inicio">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </a>
                     <button id="theme-toggle" class="icon-btn" aria-label="Cambiar modo oscuro/claro">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -133,9 +133,10 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
             <div class="perm-page fade-in-up">
 
-                <div class="sst-tabs" role="tablist">
-                    <button class="sst-tab active" data-tab="nueva" role="tab" aria-selected="true">Nueva Solicitud</button>
-                    <button class="sst-tab" data-tab="mias" role="tab" aria-selected="false">Mis Solicitudes</button>
+                <div class="tab-switch" role="tablist" aria-label="Secciones de solicitud de permisos">
+                    <button type="button" class="tab-switch-btn active" data-tab="nueva" role="tab" aria-selected="true">Nueva Solicitud</button>
+                    <button type="button" class="tab-switch-btn" data-tab="mias" role="tab" aria-selected="false">Mis Solicitudes</button>
+                    <span class="tab-switch-indicator" aria-hidden="true"></span>
                 </div>
 
                 <!-- Pestaña: Nueva Solicitud -->
@@ -330,6 +331,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
     <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
     <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
+    <script src="/assets/js/tab_switch.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/tab_switch.js'); ?>"></script>
     <script src="/assets/js/solicitud_permiso.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/solicitud_permiso.js'); ?>"></script>
 </body>
 </html>
