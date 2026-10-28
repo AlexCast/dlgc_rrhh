@@ -22,27 +22,43 @@
         }
     });
 
+    function formatearFechaDisplay(iso) {
+        if (!iso) return '';
+        const partes = String(iso).split('-');
+        if (partes.length !== 3) return '';
+        return partes[2] + '/' + partes[1] + '/' + partes[0];
+    }
+
     function actualizarLimitesFechaAjuste(saldo) {
+        const wrapper = document.querySelector('.date-picker[data-target="vacaciones-fecha-ajuste"]');
         const inputFecha = document.getElementById('vacaciones-fecha-ajuste');
+        const inputFechaDisplay = document.getElementById('vacaciones-fecha-ajuste-display');
         const ayuda = document.getElementById('vacaciones-fecha-ajuste-ayuda');
-        if (!inputFecha) return;
+        if (!inputFecha || !inputFechaDisplay) return;
 
         if (!saldo) {
             inputFecha.disabled = true;
-            inputFecha.removeAttribute('min');
-            inputFecha.removeAttribute('max');
+            inputFechaDisplay.disabled = true;
+            if (wrapper) {
+                wrapper.removeAttribute('data-min');
+                wrapper.removeAttribute('data-max');
+            }
             if (ayuda) ayuda.textContent = 'Sin ciclo vigente: este empleado aún no puede recibir ajustes.';
+            inputFechaDisplay.value = formatearFechaDisplay(inputFecha.value);
             return;
         }
 
         inputFecha.disabled = false;
-        inputFecha.min = saldo.periodo_inicio;
-        inputFecha.max = saldo.periodo_fin;
-        if (inputFecha.value < saldo.periodo_inicio || inputFecha.value > saldo.periodo_fin) {
-            inputFecha.value = new Date() < new Date(saldo.periodo_fin) && new Date() > new Date(saldo.periodo_inicio)
-                ? new Date().toISOString().slice(0, 10)
-                : saldo.periodo_inicio;
+        inputFechaDisplay.disabled = false;
+        if (wrapper) {
+            wrapper.setAttribute('data-min', saldo.periodo_inicio);
+            wrapper.setAttribute('data-max', saldo.periodo_fin);
         }
+        if (inputFecha.value < saldo.periodo_inicio || inputFecha.value > saldo.periodo_fin) {
+            const hoy = new Date().toISOString().slice(0, 10);
+            inputFecha.value = (hoy >= saldo.periodo_inicio && hoy <= saldo.periodo_fin) ? hoy : saldo.periodo_inicio;
+        }
+        inputFechaDisplay.value = formatearFechaDisplay(inputFecha.value);
         if (ayuda) ayuda.textContent = `Debe estar dentro del ciclo vigente: ${saldo.periodo_inicio} a ${saldo.periodo_fin}.`;
     }
 
@@ -275,6 +291,10 @@
                 if (data.success) {
                     document.getElementById('vacaciones-ajuste-form').reset();
                     document.getElementById('vacaciones-fecha-ajuste').value = new Date().toISOString().slice(0, 10);
+                    const inputFechaDisplay = document.getElementById('vacaciones-fecha-ajuste-display');
+                    if (inputFechaDisplay) {
+                        inputFechaDisplay.value = formatearFechaDisplay(document.getElementById('vacaciones-fecha-ajuste').value);
+                    }
                     cargarSaldo(idEmpleado);
                 }
             })

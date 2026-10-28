@@ -7,7 +7,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
     <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/assets/css/src.css?v=<?php echo filemtime(__DIR__ . '/../../assets/css/src.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/datepicker.css?v=<?php echo filemtime(__DIR__ . '/../../assets/css/datepicker.css'); ?>">
     <script src="/assets/js/src.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/src.js'); ?>" defer></script>
+    <script src="/assets/js/datepicker.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/datepicker.js'); ?>" defer></script>
     <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/theme.js'); ?>"></script>
     <script src="/assets/js/alert-banner.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/alert-banner.js'); ?>" defer></script>
 </head>

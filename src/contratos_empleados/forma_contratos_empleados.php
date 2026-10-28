@@ -112,31 +112,41 @@ $areasRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
                         <div class="col-md-6">
                             <div class="field-wrap">
-                                <label for="fecha_inicio_puesto" class="form-label">Fecha Inicio Puesto</label>
+                                <label for="fecha_inicio_puesto_display" class="form-label">Fecha Inicio Puesto</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Inicio</span>
-                                    <input
-                                        type="date"
-                                        name="fecha_inicio_puesto"
-                                        id="fecha_inicio_puesto"
-                                        class="form-control"
-                                        required
-                                    >
+                                    <div class="date-picker" data-target="fecha_inicio_puesto">
+                                        <input
+                                            type="text"
+                                            id="fecha_inicio_puesto_display"
+                                            class="date-picker-input form-control"
+                                            placeholder="dd/mm/aaaa"
+                                            required
+                                            autocomplete="off"
+                                        >
+                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <input type="hidden" id="fecha_inicio_puesto" name="fecha_inicio_puesto">
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
                             <div class="field-wrap">
-                                <label for="fecha_fin_puesto" class="form-label">Fecha Fin Puesto</label>
+                                <label for="fecha_fin_puesto_display" class="form-label">Fecha Fin Puesto</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Fin</span>
-                                    <input
-                                        type="date"
-                                        name="fecha_fin_puesto"
-                                        id="fecha_fin_puesto"
-                                        class="form-control"
-                                    >
+                                    <div class="date-picker" data-target="fecha_fin_puesto">
+                                        <input
+                                            type="text"
+                                            id="fecha_fin_puesto_display"
+                                            class="date-picker-input form-control"
+                                            placeholder="dd/mm/aaaa"
+                                            autocomplete="off"
+                                        >
+                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <input type="hidden" id="fecha_fin_puesto" name="fecha_fin_puesto">
+                                    </div>
                                 </div>
                                 <p class="field-tip">Dejar en blanco si este es su puesto actual.</p>
                             </div>

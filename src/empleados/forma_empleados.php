@@ -140,31 +140,41 @@ $municipiosRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
                         <div class="col-md-6">
                             <div class="field-wrap">
-                                <label for="fecha_ingreso" class="form-label">Fecha de Ingreso</label>
+                                <label for="fecha_ingreso_display" class="form-label">Fecha de Ingreso</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Ingreso</span>
-                                    <input
-                                        type="date"
-                                        name="fecha_ingreso"
-                                        id="fecha_ingreso"
-                                        class="form-control"
-                                        required
-                                    >
+                                    <div class="date-picker" data-target="fecha_ingreso">
+                                        <input
+                                            type="text"
+                                            id="fecha_ingreso_display"
+                                            class="date-picker-input form-control"
+                                            placeholder="dd/mm/aaaa"
+                                            required
+                                            autocomplete="off"
+                                        >
+                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <input type="hidden" id="fecha_ingreso" name="fecha_ingreso">
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
                             <div class="field-wrap">
-                                <label for="fecha_egreso" class="form-label">Fecha de Egreso</label>
+                                <label for="fecha_egreso_display" class="form-label">Fecha de Egreso</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Egreso</span>
-                                    <input
-                                        type="date"
-                                        name="fecha_egreso"
-                                        id="fecha_egreso"
-                                        class="form-control"
-                                    >
+                                    <div class="date-picker" data-target="fecha_egreso">
+                                        <input
+                                            type="text"
+                                            id="fecha_egreso_display"
+                                            class="date-picker-input form-control"
+                                            placeholder="dd/mm/aaaa"
+                                            autocomplete="off"
+                                        >
+                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <input type="hidden" id="fecha_egreso" name="fecha_egreso">
+                                    </div>
                                 </div>
                                 <p class="field-tip">Opcional. Dejar en blanco si el empleado está activo.</p>
                             </div>
@@ -187,16 +197,21 @@ $municipiosRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
                         <div class="col-md-6">
                             <div class="field-wrap">
-                                <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                <label for="fecha_nacimiento_display" class="form-label">Fecha de Nacimiento</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Nacimiento</span>
-                                    <input
-                                        type="date"
-                                        name="fecha_nacimiento"
-                                        id="fecha_nacimiento"
-                                        class="form-control"
-                                        required
-                                    >
+                                    <div class="date-picker" data-target="fecha_nacimiento" data-min-year="1900" data-max-year="<?php echo date('Y'); ?>">
+                                        <input
+                                            type="text"
+                                            id="fecha_nacimiento_display"
+                                            class="date-picker-input form-control"
+                                            placeholder="dd/mm/aaaa"
+                                            required
+                                            autocomplete="off"
+                                        >
+                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <input type="hidden" id="fecha_nacimiento" name="fecha_nacimiento">
+                                    </div>
                                 </div>
                             </div>
                         </div>

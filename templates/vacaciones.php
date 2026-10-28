@@ -19,6 +19,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <title>Gestión de Vacaciones | DLGC</title>
     <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
     <link rel="stylesheet" href="/assets/css/vacaciones.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/vacaciones.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/datepicker.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/datepicker.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body
@@ -126,8 +127,12 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                     <small class="vac-field-hint">Indica cuántos días ya disfrutados quieres restar del saldo (por ley el ciclo causa exactamente 15 días).</small>
                                 </div>
                                 <div class="vac-field">
-                                    <label for="vacaciones-fecha-ajuste">Fecha del ajuste</label>
-                                    <input type="date" id="vacaciones-fecha-ajuste" name="fecha_ajuste" value="<?php echo date('Y-m-d'); ?>" disabled>
+                                    <label for="vacaciones-fecha-ajuste-display">Fecha del ajuste</label>
+                                    <div class="date-picker" data-target="vacaciones-fecha-ajuste">
+                                        <input type="text" id="vacaciones-fecha-ajuste-display" class="date-picker-input" placeholder="dd/mm/aaaa" disabled autocomplete="off">
+                                        <svg class="date-picker-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <input type="hidden" id="vacaciones-fecha-ajuste" name="fecha_ajuste" value="<?php echo date('Y-m-d'); ?>">
+                                    </div>
                                     <small id="vacaciones-fecha-ajuste-ayuda" class="vac-field-hint">Selecciona un empleado para habilitar la fecha.</small>
                                 </div>
                             </div>
@@ -152,6 +157,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
     <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
     <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
+    <script src="/assets/js/datepicker.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/datepicker.js'); ?>"></script>
     <script src="/assets/js/vacaciones_saldo.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/vacaciones_saldo.js'); ?>"></script>
 </body>
 </html>
