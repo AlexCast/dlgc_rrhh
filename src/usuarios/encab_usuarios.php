@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar por cédula, nombre o usuario'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_usuarios.php" class="nav-link" aria-label="Listar">

@@ -13,6 +13,7 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/auth_guard.php';
+require_once __DIR__ . '/header_search.php';
 
 if (!isset($moduleId) || !is_int($moduleId) || $moduleId <= 0) {
     http_response_code(500);

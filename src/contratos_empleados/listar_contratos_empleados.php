@@ -133,7 +133,7 @@ $contratosEliminados = array_filter($contratosRegistros, function ($contrato) {
                                 <tr><td colspan="8" class="text-center">No hay registros</td></tr>
                             <?php else: ?>
                                 <?php foreach ($contratosActivos as $contrato): ?>
-                                    <tr>
+                                    <tr data-search-extra="<?php echo htmlspecialchars((string) $contrato->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
                                         <td><?php echo mostrarValor($contrato->nombre_completo ?? null); ?></td>
                                         <td><?php echo mostrarValor($contrato->nombre_area ?? null); ?></td>
                                         <td><?php echo mostrarValor($contrato->puesto ?? null); ?></td>
@@ -164,7 +164,7 @@ $contratosEliminados = array_filter($contratosRegistros, function ($contrato) {
             <div class="mobile-view">
                 <div class="row">
                     <?php foreach ($contratosActivos as $contrato): ?>
-                        <div class="col-12 mb-3">
+                        <div class="col-12 mb-3" data-search-extra="<?php echo htmlspecialchars((string) $contrato->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
                             <div class="mantenimiento-card card">
                                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0"><?php echo htmlspecialchars((string) $contrato->nombre_completo, ENT_QUOTES, 'UTF-8'); ?></h5>

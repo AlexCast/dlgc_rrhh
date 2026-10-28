@@ -139,7 +139,7 @@ $totalPermisosActivos = count($relaciones) - count($relacionesEliminadas);
                     <div class="alert alert-info">No hay permisos registrados.</div>
                 <?php else: ?>
                     <?php foreach ($arbolPermisos as $idUsuario => $usuario): ?>
-                        <div class="pu-acordeon-item">
+                        <div class="pu-acordeon-item" data-search-item data-search-extra="<?php echo htmlspecialchars((string) $idUsuario, ENT_QUOTES, 'UTF-8'); ?>">
                             <button type="button" class="pu-acordeon-cabecera pu-cabecera-usuario" aria-expanded="false">
                                 <span class="pu-cabecera-texto">
                                     <i class="fas fa-user-circle pu-icono"></i>

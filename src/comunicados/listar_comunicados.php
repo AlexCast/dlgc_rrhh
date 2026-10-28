@@ -231,7 +231,7 @@ include_once 'encab_comunicados.php';
                 $requiereExpansion = mb_strlen(strip_tags($contenidoCompleto)) > 140;
                 $totalVistos = (int) $c->total_vistos;
                 ?>
-                <article class="comunicado-card" data-id-comunicado="<?php echo (int) $c->id_comunicado; ?>">
+                <article class="comunicado-card" data-id-comunicado="<?php echo (int) $c->id_comunicado; ?>" data-search-item data-search-extra="<?php echo htmlspecialchars($contenidoCompleto, ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="comunicado-card-inner">
                         <div class="comunicado-meta">
                             <span class="comunicado-tag <?php echo $tagClass; ?>">

@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar caja de compensación'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_cajacompensacion.php" class="nav-link" aria-label="Listar">

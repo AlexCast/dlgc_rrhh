@@ -112,7 +112,7 @@ $nominasEliminadas = array_filter($nominaRegistros, function ($nomina) {
                                 <tr><td colspan="5" class="text-center">No hay registros</td></tr>
                             <?php else: ?>
                                 <?php foreach ($nominasActivas as $nomina): ?>
-                                    <tr>
+                                    <tr data-search-extra="<?php echo htmlspecialchars((string) $nomina->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
                                         <td><?php echo htmlspecialchars((string) $nomina->nombre_completo, ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars((string) $nomina->nombre_banco, ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars((string) $nomina->num_cuenta, ENT_QUOTES, 'UTF-8'); ?></td>
@@ -140,7 +140,7 @@ $nominasEliminadas = array_filter($nominaRegistros, function ($nomina) {
             <div class="mobile-view">
                 <div class="row">
                     <?php foreach ($nominasActivas as $nomina): ?>
-                        <div class="col-12 mb-3">
+                        <div class="col-12 mb-3" data-search-extra="<?php echo htmlspecialchars((string) $nomina->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
                             <div class="mantenimiento-card card">
                                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0"><?php echo htmlspecialchars((string) $nomina->nombre_completo, ENT_QUOTES, 'UTF-8'); ?></h5>

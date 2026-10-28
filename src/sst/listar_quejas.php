@@ -60,7 +60,7 @@ render_alert_banner();
         <?php else: ?>
             <div class="sst-quejas-list">
                 <?php foreach ($quejas as $q): ?>
-                    <article class="sst-queja-card">
+                    <article class="sst-queja-card" data-search-item data-search-extra="<?php echo htmlspecialchars((string) $q->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
                         <div class="sst-queja-header">
                             <div>
                                 <span class="sst-queja-type"><?php echo htmlspecialchars($q->tipo_peticion); ?></span>

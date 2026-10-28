@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar área'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_area.php" class="nav-link" aria-label="Listar">

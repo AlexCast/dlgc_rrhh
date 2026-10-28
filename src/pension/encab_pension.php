@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar fondo de pensión'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_pension.php" class="nav-link" aria-label="Listar">

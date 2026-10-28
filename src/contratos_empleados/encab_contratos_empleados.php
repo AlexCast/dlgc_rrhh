@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar por cédula, nombre, área o puesto'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_contratos_empleados.php" class="nav-link" aria-label="Listar">

@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar EPS'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_eps.php" class="nav-link" aria-label="Listar">

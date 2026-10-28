@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar por cédula, nombre o EPS'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_afiliaciones_empleados.php" class="nav-link" aria-label="Listar">

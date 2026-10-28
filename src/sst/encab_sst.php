@@ -39,6 +39,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar por nombre, asunto o contenido'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_comite.php" class="nav-link" aria-label="Comités">

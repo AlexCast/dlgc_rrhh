@@ -20,6 +20,8 @@
                     <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
             </div>
+            <?php render_header_search('Buscar banco'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_banco.php" class="nav-link" aria-label="Listar">

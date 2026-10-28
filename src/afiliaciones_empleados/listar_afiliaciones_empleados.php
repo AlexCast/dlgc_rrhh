@@ -115,7 +115,7 @@ $afiliaciones_empleadosEliminadas = array_filter($afiliaciones_empleadosRegistro
                                 <tr><td colspan="7" class="text-center">No hay registros</td></tr>
                             <?php else: ?>
                                 <?php foreach ($afiliaciones_empleadosActivas as $afiliaciones_empleados): ?>
-                                    <tr>
+                                    <tr data-search-extra="<?php echo htmlspecialchars((string) $afiliaciones_empleados->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
                                         <td><?php echo htmlspecialchars((string) $afiliaciones_empleados->nombre_usuario, ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars((string) $afiliaciones_empleados->nombre_eps, ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars((string) $afiliaciones_empleados->nombre_arl, ENT_QUOTES, 'UTF-8'); ?></td>
@@ -145,7 +145,7 @@ $afiliaciones_empleadosEliminadas = array_filter($afiliaciones_empleadosRegistro
             <div class="mobile-view">
                 <div class="row">
                     <?php foreach ($afiliaciones_empleadosActivas as $afiliaciones_empleados): ?>
-                        <div class="col-12 mb-3">
+                        <div class="col-12 mb-3" data-search-extra="<?php echo htmlspecialchars((string) $afiliaciones_empleados->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
                             <div class="mantenimiento-card card">
                                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">Usuario: <?php echo htmlspecialchars((string) $afiliaciones_empleados->nombre_usuario, ENT_QUOTES, 'UTF-8'); ?></h5>

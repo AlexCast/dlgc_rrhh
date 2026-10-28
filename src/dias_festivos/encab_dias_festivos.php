@@ -19,6 +19,8 @@
                     <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
             </div>
+            <?php render_header_search('Buscar por fecha o descripción'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_dias_festivos.php" class="nav-link" aria-label="Listar">

@@ -21,6 +21,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar ARL'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_arl.php" class="nav-link" aria-label="Listar">

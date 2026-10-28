@@ -42,6 +42,8 @@
                 </a>
             </div>
 
+            <?php render_header_search('Buscar por título, categoría o contenido'); ?>
+
             <nav class="nav-menu">
                 <div class="nav-item">
                     <a href="listar_comunicados.php" class="nav-link" aria-label="Listar">
