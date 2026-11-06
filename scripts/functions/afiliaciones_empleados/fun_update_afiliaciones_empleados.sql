@@ -1,7 +1,7 @@
 DELIMITER //
 
 CREATE OR REPLACE FUNCTION fun_update_afiliaciones_empleados(
-    wid_usuario VARCHAR(20),
+    wid_usuario VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wid_eps INT,
     wid_arl INT,
     wid_caja INT,

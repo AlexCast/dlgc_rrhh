@@ -1,6 +1,6 @@
 -- ============================================================
 -- Seeds de instituciones Colombia 2026
--- EPS, Pensiones, Cajas de Compensacion, Bancos, ARL y Cesantias
+-- EPS, Pensiones, Cajas de Compensacion, Bancos, ARL, Cesantias y SOAT
 -- ============================================================
 
 START TRANSACTION;
@@ -154,6 +154,27 @@ FROM (
         ('PORVENIR'),
         ('PROTECCION'),
         ('SKANDIA')
+) AS v(nombre);
+
+-- ------------------------------------------------------------
+-- SOAT: aseguradoras autorizadas vigentes
+-- ------------------------------------------------------------
+SELECT fun_insert_soat(v.nombre)
+FROM (
+    VALUES
+        ('ALLIANZ SEGUROS'),
+        ('AXA COLPATRIA SEGUROS'),
+        ('CARDIF COLOMBIA SEGUROS GENERALES'),
+        ('HDI SEGUROS'),
+        ('LA PREVISORA SEGUROS'),
+        ('LIBERTY SEGUROS'),
+        ('MAPFRE SEGUROS'),
+        ('SBS SEGUROS'),
+        ('SEGUROS BOLIVAR'),
+        ('SEGUROS DEL ESTADO'),
+        ('SEGUROS MUNDIAL'),
+        ('SOLIDARIA DE COLOMBIA SEGUROS'),
+        ('SURAMERICANA SEGUROS')
 ) AS v(nombre);
 
 COMMIT;

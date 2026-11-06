@@ -1,7 +1,7 @@
 DELIMITER //
 
 CREATE OR REPLACE FUNCTION fun_update_contratos_empleados(
-    wid_usuario VARCHAR(20),
+    wid_usuario VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wid_contrato INT,
     wid_area INT,
     wpuesto VARCHAR(50),
@@ -49,14 +49,17 @@ BEGIN
         direccion_oficina = TRIM(wdireccion_oficina),
         usr_update = COALESCE(@app_current_user, CURRENT_USER()),
         fec_update = CURRENT_TIMESTAMP
+    -- id_usuario no se actualiza: forma parte de la identidad compuesta
+    -- (id_contrato, id_usuario) que referencia t_documentos_rrhh.
     WHERE id_contrato = wid_contrato
+      AND id_usuario = wid_usuario
       AND fec_delete IS NULL;
 
     IF ROW_COUNT() > 0 THEN
         RETURN 'Contrato actualizado correctamente.';
     END IF;
 
-    RETURN 'No se encontró el contrato activo para actualizar.';
+    RETURN 'No se encontró el contrato activo del empleado indicado para actualizar.';
 END //
 
 DELIMITER ;

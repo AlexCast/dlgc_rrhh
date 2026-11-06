@@ -596,4 +596,21 @@ BEGIN
     SET NEW.fec_update = CURRENT_TIMESTAMP;
 END//
 
+-- t_soat
+CREATE OR REPLACE TRIGGER tri_audit_soat_ins
+BEFORE INSERT ON t_soat
+FOR EACH ROW
+BEGIN
+    SET NEW.usr_insert = fun_audit_actor();
+    SET NEW.fec_insert = CURRENT_TIMESTAMP;
+END//
+
+CREATE OR REPLACE TRIGGER tri_audit_soat_upd
+BEFORE UPDATE ON t_soat
+FOR EACH ROW
+BEGIN
+    SET NEW.usr_update = fun_audit_actor();
+    SET NEW.fec_update = CURRENT_TIMESTAMP;
+END//
+
 DELIMITER ;

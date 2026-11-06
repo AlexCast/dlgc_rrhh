@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS t_documentos_versiones;
+DROP TABLE IF EXISTS t_documentos_rrhh;
+DROP TABLE IF EXISTS t_tipos_documento_rrhh;
 DROP TABLE IF EXISTS t_sst_buzon_quejas;
 DROP TABLE IF EXISTS t_sst_comite_miembros;
 DROP TABLE IF EXISTS t_codigos_registro;
@@ -67,6 +70,26 @@ CREATE TABLE IF NOT EXISTS t_areas (
     fec_delete          DATETIME,
     PRIMARY KEY (id_area)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Catálogo de tipos de documento (reemplaza el texto libre)
+CREATE TABLE IF NOT EXISTS t_tipos_documento_rrhh (
+    id_tipo_documento   INT AUTO_INCREMENT,
+    codigo              VARCHAR(30) NOT NULL UNIQUE,   -- Ej: 'CONTRATO', 'CERTIFICADO_EPS'
+    nombre              VARCHAR(80) NOT NULL,
+    usr_insert          VARCHAR(255) NOT NULL,
+    fec_insert          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usr_update          VARCHAR(255),
+    fec_update          DATETIME,
+    usr_delete          VARCHAR(255),
+    fec_delete          DATETIME,
+    PRIMARY KEY (id_tipo_documento)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+INSERT INTO t_tipos_documento_rrhh (codigo, nombre, usr_insert) VALUES
+    ('CONTRATO',         'Contrato laboral',        'sistema'),
+    ('CERTIFICADO_EPS',  'Certificado de EPS',      'sistema'),
+    ('CERTIFICADO_ARL',  'Certificado de ARL',      'sistema'),
+    ('HOJA_VIDA',        'Hoja de vida',            'sistema');
 
 CREATE TABLE IF NOT EXISTS t_bancos (
     id_banco              INT AUTO_INCREMENT,
@@ -138,6 +161,18 @@ CREATE TABLE IF NOT EXISTS t_cesantias (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_cesantia)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS t_soat (
+    id_soat               INT AUTO_INCREMENT,
+    nombre_soat           VARCHAR(50) NOT NULL,
+    usr_insert            VARCHAR(255) NOT NULL,
+    fec_insert            DATETIME NOT NULL,
+    usr_update            VARCHAR(255),
+    fec_update            DATETIME,
+    usr_delete            VARCHAR(255),
+    fec_delete            DATETIME,
+    PRIMARY KEY (id_soat)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_operaciones (
@@ -264,7 +299,7 @@ CREATE TABLE IF NOT EXISTS t_contratos_empleados (
     id_usuario         VARCHAR(20) NOT NULL,
     id_area            INT NOT NULL,
     puesto             VARCHAR(50) NOT NULL,
-    fecha_inicio_puesto  DATE NOT NULL, 
+    fecha_inicio_puesto  DATE NOT NULL,
     fecha_fin_puesto     DATE, -- Si es NULL, es su puesto actual. Si tiene fecha, ya no está en este puesto.
     tipo_contrato      VARCHAR(20) NOT NULL CHECK(tipo_contrato = 'FIJO' OR tipo_contrato = 'INDEFINIDO' OR tipo_contrato = 'PRACTICAS'),
     direccion_oficina  VARCHAR(100) NOT NULL,
@@ -275,6 +310,7 @@ CREATE TABLE IF NOT EXISTS t_contratos_empleados (
     usr_delete         VARCHAR(255),
     fec_delete         DATETIME,
     PRIMARY KEY (id_contrato),
+    CONSTRAINT uq_contrato_usuario UNIQUE (id_contrato, id_usuario),
     FOREIGN KEY (id_usuario) REFERENCES t_empleados(id_usuario),
     FOREIGN KEY (id_area) REFERENCES t_areas(id_area)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -704,3 +740,103 @@ CREATE TABLE IF NOT EXISTS t_sst_buzon_quejas (
 
 CREATE INDEX idx_sst_quejas_usuario ON t_sst_buzon_quejas(id_usuario, fec_insert DESC);
 CREATE INDEX idx_sst_quejas_estado ON t_sst_buzon_quejas(estado, fec_insert DESC);
+
+-- =====================================================================
+-- MÓDULO DE DOCUMENTOS RRHH
+-- =====================================================================
+
+-- Tabla lógica: el "contenedor" del documento
+CREATE TABLE IF NOT EXISTS t_documentos_rrhh (
+    id_documento        INT AUTO_INCREMENT,
+    id_usuario          VARCHAR(20) NOT NULL,          -- Empleado dueño del documento
+    id_tipo_documento   INT NOT NULL,
+    id_contrato         INT NULL,                      -- Opcional: contrato al que pertenece (del mismo empleado)
+    titulo              VARCHAR(150) NOT NULL,
+    estado              VARCHAR(20) NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('ACTIVO', 'INACTIVO', 'ARCHIVADO')),
+    usr_insert          VARCHAR(255) NOT NULL,
+    fec_insert          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usr_update          VARCHAR(255),
+    fec_update          DATETIME,
+    usr_delete          VARCHAR(255),
+    fec_delete          DATETIME,
+    PRIMARY KEY (id_documento),
+    FOREIGN KEY (id_usuario) REFERENCES t_empleados(id_usuario),
+    FOREIGN KEY (id_tipo_documento) REFERENCES t_tipos_documento_rrhh(id_tipo_documento),
+    -- FK compuesta: si id_contrato es NULL no se valida; si tiene valor, el contrato debe ser de id_usuario
+    CONSTRAINT fk_documentos_contrato_usuario
+        FOREIGN KEY (id_contrato, id_usuario) REFERENCES t_contratos_empleados(id_contrato, id_usuario)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE INDEX idx_documentos_usuario_tipo ON t_documentos_rrhh(id_usuario, id_tipo_documento);
+CREATE INDEX idx_documentos_tipo ON t_documentos_rrhh(id_tipo_documento);
+
+-- Tabla física: archivos subidos (Cloudflare R2)
+--
+--    REGLA DE NEGOCIO: una versión existe solo cuando está APROBADA.
+--      - PENDIENTE / RECHAZADO : numero_version = NULL, es_actual = 0
+--      - APROBADO              : numero_version asignado (1, 2, 3...) al aprobar
+--      - La versión actual es la APROBADA con es_actual = 1 (máximo una por documento,
+--        garantizado por uq_version_actual).
+--
+--    FLUJO DE APROBACIÓN (en una transacción, en este orden):
+--      START TRANSACTION;
+--      SELECT id_documento FROM t_documentos_rrhh WHERE id_documento = ? FOR UPDATE;  -- serializa la numeración
+--      UPDATE t_documentos_versiones SET es_actual = 0
+--         WHERE id_documento = ? AND es_actual = 1;                                   -- primero se desmarca la anterior
+--      UPDATE t_documentos_versiones
+--         SET estado_aprobacion = 'APROBADO',
+--             numero_version = (SELECT COALESCE(MAX(numero_version), 0) + 1
+--                               FROM (SELECT numero_version FROM t_documentos_versiones
+--                                     WHERE id_documento = ?) x),
+--             es_actual = 1, id_aprobador = ?, fec_resolucion = NOW()
+--         WHERE id_version = ?;
+--      COMMIT;
+CREATE TABLE IF NOT EXISTS t_documentos_versiones (
+    id_version          INT AUTO_INCREMENT,
+    id_documento        INT NOT NULL,
+    numero_version      INT NULL CHECK (numero_version IS NULL OR numero_version > 0),
+    proveedor           VARCHAR(20) NOT NULL DEFAULT 'R2' CHECK (proveedor IN ('R2', 'BUNNY', 'CLOUDFLARE_IMAGES')),
+    storage_key         VARCHAR(255) NOT NULL UNIQUE,  -- Ruta en el bucket ej: rrhh/contratos/uuid.pdf
+    nombre_original     VARCHAR(255) NOT NULL,
+    mime_type           VARCHAR(100) NOT NULL CHECK (mime_type IN ('application/pdf', 'image/jpeg', 'image/png')),
+    tamano_bytes        INT NOT NULL CHECK (tamano_bytes > 0 AND tamano_bytes <= 10485760),
+    hash_sha256         CHAR(64) NOT NULL,             -- Integridad y detección de duplicados
+    es_actual           BOOLEAN NOT NULL DEFAULT FALSE,
+    observacion         VARCHAR(255),                  -- Ej: "Se actualiza por Otro Sí", "Certificado EPS 2026"
+    estado_aprobacion   VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE' CHECK (estado_aprobacion IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
+    motivo_rechazo      VARCHAR(255),
+    id_aprobador        VARCHAR(20),
+    fec_resolucion      DATETIME,
+    usr_insert          VARCHAR(255) NOT NULL,
+    fec_insert          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usr_update          VARCHAR(255),
+    fec_update          DATETIME,
+    usr_delete          VARCHAR(255),
+    fec_delete          DATETIME,
+    -- Columna virtual: vale id_documento solo para la versión actual y vigente; NULL en el resto.
+    -- Su UNIQUE impide dos "actuales" para el mismo documento (MariaDB no tiene índices parciales).
+    actual_unico        INT AS (IF(es_actual = 1 AND fec_delete IS NULL, id_documento, NULL)) VIRTUAL,
+    PRIMARY KEY (id_version),
+    CONSTRAINT uq_doc_version   UNIQUE (id_documento, numero_version),  -- NULL permitido varias veces (pendientes/rechazadas)
+    CONSTRAINT uq_version_actual UNIQUE (actual_unico),
+    -- Coherencia entre estado, numeración, actual y datos de resolución
+    CONSTRAINT chk_versiones_estado CHECK (
+        (estado_aprobacion = 'PENDIENTE'
+            AND numero_version IS NULL AND es_actual = 0
+            AND id_aprobador IS NULL AND fec_resolucion IS NULL AND motivo_rechazo IS NULL)
+        OR
+        (estado_aprobacion = 'APROBADO'
+            AND numero_version IS NOT NULL
+            AND id_aprobador IS NOT NULL AND fec_resolucion IS NOT NULL AND motivo_rechazo IS NULL)
+        OR
+        (estado_aprobacion = 'RECHAZADO'
+            AND numero_version IS NULL AND es_actual = 0
+            AND id_aprobador IS NOT NULL AND fec_resolucion IS NOT NULL AND motivo_rechazo IS NOT NULL)
+    ),
+    FOREIGN KEY (id_documento) REFERENCES t_documentos_rrhh(id_documento),  -- RESTRICT: coherente con el soft delete
+    CONSTRAINT fk_versiones_aprobador FOREIGN KEY (id_aprobador) REFERENCES t_usuarios(id_usuario)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE INDEX idx_versiones_documento_actual ON t_documentos_versiones(id_documento, es_actual);
+CREATE INDEX idx_versiones_pendientes ON t_documentos_versiones(estado_aprobacion, fec_insert);
+CREATE INDEX idx_versiones_aprobador ON t_documentos_versiones(id_aprobador);

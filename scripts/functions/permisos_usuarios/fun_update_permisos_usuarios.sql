@@ -1,9 +1,9 @@
 DELIMITER //
 
 CREATE OR REPLACE FUNCTION fun_update_permisos_usuarios(
-    wid_usuario_actual VARCHAR(20),
+    wid_usuario_actual VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wid_operacion_actual INT,
-    wid_usuario_nuevo VARCHAR(20),
+    wid_usuario_nuevo VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wid_operacion_nueva INT
 ) RETURNS VARCHAR(255)
 BEGIN

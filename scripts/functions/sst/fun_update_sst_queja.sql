@@ -2,7 +2,7 @@ DELIMITER //
 
 CREATE OR REPLACE FUNCTION fun_update_sst_queja(
     wid_queja INT,
-    wid_usuario VARCHAR(20),
+    wid_usuario VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wtipo_peticion VARCHAR(30),
     wasunto VARCHAR(150),
     wdescripcion TEXT

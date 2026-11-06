@@ -1,7 +1,7 @@
 DELIMITER //
 
 CREATE OR REPLACE FUNCTION fun_update_empleados(
-    wid_usuario VARCHAR(20),
+    wid_usuario VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wfecha_ingreso DATE,
     wgenero VARCHAR(10),
     wfecha_nacimiento DATE,
@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION fun_update_empleados(
     westado_civil VARCHAR(20),
     wdireccion_casa VARCHAR(100),
     wnumero_celular VARCHAR(10),
-    wid_jefe VARCHAR(20),
+    wid_jefe VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wid_municipio INT,
     wfecha_egreso DATE,
     wfoto_perfil VARCHAR(255)

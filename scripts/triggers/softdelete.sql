@@ -221,4 +221,13 @@ BEGIN
         SET MESSAGE_TEXT = 'Borrado físico no permitido en t_usuarios_operaciones; utilice el borrado lógico.';
 END//
 
+-- t_soat
+CREATE OR REPLACE TRIGGER tri_soft_delete_soat
+BEFORE DELETE ON t_soat
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Borrado físico no permitido en t_soat; utilice el borrado lógico.';
+END//
+
 DELIMITER ;

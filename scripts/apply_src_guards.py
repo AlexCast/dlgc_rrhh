@@ -17,6 +17,7 @@ MODULE_MAP = {
     'banco': 10,
     'cajacompensacion': 11,
     'cesantias': 12,
+    'soat': 2,
     'contratos_empleados': 13,
     'empleados': 4,
     'eps': 14,

@@ -5,7 +5,8 @@
 -- t_tipos_permisos.
 --
 -- Convención de IDs:
---   Módulos: 1=Inicio, 3=Solicitudes y Permisos, 4=Empleados (CRUD SRC),
+--   Módulos: 1=Inicio, 2=SOAT (catálogo SRC/soat), 3=Solicitudes y Permisos,
+--            4=Empleados (CRUD SRC),
 --            5 = Comunicados (público/templates/comunicados.php),
 --            6..21 = módulos de administración (SRC),
 --            22 = Directorio de Empleados (templates/empleados.php + ficha_tecnica.php),
@@ -45,6 +46,7 @@ ON DUPLICATE KEY UPDATE nombre_rol = VALUES(nombre_rol),
 INSERT INTO t_modulos (id_modulo, nombre_modulo, usr_insert, fec_insert)
 VALUES
     (1,  'Inicio',                   'seed', CURRENT_TIMESTAMP),
+    (2,  'SOAT',                     'seed', CURRENT_TIMESTAMP),
     (3,  'Solicitudes y Permisos',   'seed', CURRENT_TIMESTAMP),
     (4,  'Empleados',                'seed', CURRENT_TIMESTAMP),
     (5,  'Comunicados',              'seed', CURRENT_TIMESTAMP),
@@ -86,6 +88,12 @@ VALUES
     (12, 1, 'CREAR',      'seed', CURRENT_TIMESTAMP),
     (13, 1, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
     (14, 1, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
+
+    -- 2. SOAT
+    (21, 2, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (22, 2, 'CREAR',      'seed', CURRENT_TIMESTAMP),
+    (23, 2, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+    (24, 2, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
 
     -- 3. Solicitudes y Permisos
     (31, 3, 'VER',        'seed', CURRENT_TIMESTAMP),
@@ -235,6 +243,7 @@ VALUES
 
     -- RESTAURAR (id_modulo * 10 + 5)
     (15,   1, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
+    (25,   2, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (35,   3, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (45,   4, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (55,   5, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),

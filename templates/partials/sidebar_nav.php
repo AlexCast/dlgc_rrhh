@@ -21,6 +21,7 @@ $iconArl          = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
 $iconPension      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
 $iconCaja         = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>';
 $iconCesantias    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>';
+$iconSoat         = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10.5 17 5H7L5.5 10.6A2 2 0 0 0 4 12.5V16c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle><path d="M9 17h6"></path></svg>';
 $iconBancos       = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>';
 $iconNomina       = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>';
 $iconContratos    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>';
@@ -53,6 +54,7 @@ $grupos = [
         'icono'  => $iconEmpresa,
         'modulos' => [
             ['id' => 10, 'slug' => 'bancos',       'titulo' => 'Bancos',               'url' => '/src/banco/listar_banco.php',                         'icono' => $iconBancos],
+            ['id' => 2,  'slug' => 'soat',         'titulo' => 'SOAT',                 'url' => '/src/soat/listar_soat.php',                           'icono' => $iconSoat],
             ['id' => 15, 'slug' => 'nomina',       'titulo' => 'Nómina',               'url' => '/src/nomina/listar_nomina.php',                       'icono' => $iconNomina],
             ['id' => 13, 'slug' => 'contratos',    'titulo' => 'Contratos Empleados',  'url' => '/src/contratos_empleados/listar_contratos_empleados.php', 'icono' => $iconContratos],
             ['id' => 7,  'slug' => 'afiliaciones', 'titulo' => 'Afiliaciones Empleados','url' => '/src/afiliaciones_empleados/listar_afiliaciones_empleados.php', 'icono' => $iconAfiliaciones],

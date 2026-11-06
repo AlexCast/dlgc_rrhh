@@ -1,7 +1,7 @@
 DELIMITER //
 
 CREATE OR REPLACE FUNCTION fun_update_usuarios(
-    wid_usuario VARCHAR(20),
+    wid_usuario VARCHAR(20) COLLATE utf8mb4_unicode_ci,
     wid_rol INT,
     wusername VARCHAR(30),
     wtipo_documento VARCHAR(20),
