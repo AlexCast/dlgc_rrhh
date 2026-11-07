@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS t_sst_comite_miembros;
 DROP TABLE IF EXISTS t_codigos_registro;
 DROP TABLE IF EXISTS t_remember_tokens;
 DROP TABLE IF EXISTS t_intentos_correo;
+DROP TABLE IF EXISTS t_intentos_subida;
 DROP TABLE IF EXISTS t_verificacion_correo;
 DROP TABLE IF EXISTS t_registros_pendientes;
 DROP TABLE IF EXISTS t_recuperacion_contrasena;
@@ -161,18 +162,6 @@ CREATE TABLE IF NOT EXISTS t_cesantias (
     usr_delete            VARCHAR(255),
     fec_delete            DATETIME,
     PRIMARY KEY (id_cesantia)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS t_soat (
-    id_soat               INT AUTO_INCREMENT,
-    nombre_soat           VARCHAR(50) NOT NULL,
-    usr_insert            VARCHAR(255) NOT NULL,
-    fec_insert            DATETIME NOT NULL,
-    usr_update            VARCHAR(255),
-    fec_update            DATETIME,
-    usr_delete            VARCHAR(255),
-    fec_delete            DATETIME,
-    PRIMARY KEY (id_soat)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS t_operaciones (
@@ -484,11 +473,11 @@ CREATE INDEX idx_permisos_aprobaciones_aprobador ON t_permisos_aprobaciones(id_a
 CREATE TABLE IF NOT EXISTS t_permisos_evidencias (
     id_evidencia            INT AUTO_INCREMENT,
     id_permiso              INT NOT NULL,
-    proveedor               VARCHAR(20) NOT NULL DEFAULT 'BUNNY' CHECK (proveedor IN ('BUNNY', 'R2', 'B2', 'CLOUDFLARE_IMAGES')),
+    proveedor               VARCHAR(20) NOT NULL DEFAULT 'R2' CHECK (proveedor IN ('R2', 'NULL')),
     storage_key             VARCHAR(255) NOT NULL,
     url_publica             VARCHAR(500),
     nombre_original         VARCHAR(255) NOT NULL,
-    mime_type               VARCHAR(100) NOT NULL CHECK (mime_type IN ('image/jpeg', 'image/png', 'application/pdf')),
+    mime_type               VARCHAR(100) NOT NULL CHECK (mime_type IN ('image/jpeg', 'image/png', 'image/webp', 'application/pdf')),
     tamano_bytes            INT NOT NULL CHECK (tamano_bytes > 0 AND tamano_bytes <= 10485760),
     usr_insert              VARCHAR(255) NOT NULL,
     fec_insert              DATETIME NOT NULL,
@@ -655,6 +644,23 @@ CREATE TABLE IF NOT EXISTS t_intentos_correo (
 CREATE INDEX idx_intentos_usuario_tipo ON t_intentos_correo(id_usuario, tipo);
 CREATE INDEX idx_intentos_ultimo ON t_intentos_correo(ultimo_intento);
 
+-- Rate limiting de subidas de archivos (foto de perfil, evidencias, gestor y documentación).
+CREATE TABLE IF NOT EXISTS t_intentos_subida (
+    id_intento     INT AUTO_INCREMENT,
+    id_usuario     VARCHAR(20) NOT NULL,
+    tipo           VARCHAR(40) NOT NULL CHECK (tipo IN ('foto_perfil', 'evidencias', 'gestor_subida', 'documento_subida', 'mi_ficha')),
+    contador       INT NOT NULL DEFAULT 1,
+    ultimo_intento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usr_insert     VARCHAR(255) NOT NULL DEFAULT 'sistema',
+    fec_insert     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usr_update     VARCHAR(255),
+    fec_update     DATETIME,
+    PRIMARY KEY (id_intento),
+    UNIQUE KEY uq_intentos_subida_usuario_tipo (id_usuario, tipo)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE INDEX idx_intentos_subida_ultimo ON t_intentos_subida(ultimo_intento);
+
 -- Tabla de tokens persistentes para "Recordarme".
 CREATE TABLE IF NOT EXISTS t_remember_tokens (
     id INT AUTO_INCREMENT,
@@ -795,10 +801,10 @@ CREATE TABLE IF NOT EXISTS t_documentos_versiones (
     id_version          INT AUTO_INCREMENT,
     id_documento        INT NOT NULL,
     numero_version      INT NULL CHECK (numero_version IS NULL OR numero_version > 0),
-    proveedor           VARCHAR(20) NOT NULL DEFAULT 'R2' CHECK (proveedor IN ('R2', 'BUNNY', 'CLOUDFLARE_IMAGES')),
+    proveedor           VARCHAR(20) NOT NULL DEFAULT 'LOCAL' CHECK (proveedor IN ('LOCAL', 'R2')),
     storage_key         VARCHAR(255) NOT NULL UNIQUE,  -- Ruta en el bucket ej: rrhh/contratos/uuid.pdf
     nombre_original     VARCHAR(255) NOT NULL,
-    mime_type           VARCHAR(100) NOT NULL CHECK (mime_type IN ('application/pdf', 'image/jpeg', 'image/png')),
+    mime_type           VARCHAR(100) NOT NULL CHECK (mime_type IN ('application/pdf', 'image/jpeg', 'image/png', 'image/webp')),
     tamano_bytes        INT NOT NULL CHECK (tamano_bytes > 0 AND tamano_bytes <= 10485760),
     hash_sha256         CHAR(64) NOT NULL,             -- Integridad y detección de duplicados
     es_actual           BOOLEAN NOT NULL DEFAULT FALSE,

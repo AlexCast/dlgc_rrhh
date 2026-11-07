@@ -69,6 +69,12 @@ try {
     $sentenciaEvidencias->execute([$idPermiso]);
     $evidencias = $sentenciaEvidencias->fetchAll(PDO::FETCH_ASSOC);
 
+    // URL del proxy autenticado para cada evidencia (descarga llega en la vista).
+    $evidencias = array_map(static function (array $evidencia): array {
+        $evidencia['url'] = '/app/evidencia_archivo.php?id_evidencia=' . (int) $evidencia['id_evidencia'];
+        return $evidencia;
+    }, $evidencias);
+
     $sentenciaAprobaciones = $conexion->prepare(
         'SELECT nivel_aprobacion, id_aprobador, estado, observacion, fec_resolucion
          FROM t_permisos_aprobaciones

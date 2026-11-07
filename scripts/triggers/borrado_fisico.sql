@@ -57,3 +57,17 @@ DELIMITER ;
 /*   fecha_uso seteada y se excluye de las consultas                         */
 /*   (filtro fecha_uso IS NULL).                                             */
 /*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/* Módulos de documentos (t_tipos_documento_rrhh, t_documentos_rrhh,         */
+/* t_documentos_versiones): NO aplica borrado físico.                        */
+/*                                                                           */
+/* - Estas tablas son de negocio (no temporales): quedan protegidas por los  */
+/*   guardas de soft delete (tri_soft_delete_*) en softdelete.sql.           */
+/* - El rechazo de una versión NO elimina la fila: es un cambio de estado a  */
+/*   RECHAZADO que conserva motivo_rechazo/id_aprobador/fec_resolucion       */
+/*   (lo exige el CHECK chk_versiones_estado), preservando la trazabilidad.  */
+/* - Aunque se quisiera borrar la fila al rechazar, MariaDB no permite que   */
+/*   un trigger DELETE de su propia tabla (error 1442); esa lógica, si algún */
+/*   día se requiere, debe vivir en la app o en un procedimiento.            */
+/*---------------------------------------------------------------------------*/

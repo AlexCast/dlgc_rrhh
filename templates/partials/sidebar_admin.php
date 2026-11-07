@@ -37,6 +37,8 @@ $iconPermisos     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
 $iconCodigos      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
 $iconComunicados  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
 $iconSst          = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>';
+$iconDocumentos  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>';
+$iconArchivos    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
 $iconChevron      = '<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
 $grupos = [
@@ -84,6 +86,7 @@ $grupos = [
         'modulos' => [
             ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/src/comunicados/listar_comunicados.php', 'icono' => $iconComunicados],
             ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/src/sst/listar_quejas.php',              'icono' => $iconSst],
+            ['id' => 30, 'slug' => 'gestor_archivos',   'titulo' => 'Gestor de Archivos',      'url' => '/templates/gestor_archivos.php',          'icono' => $iconArchivos],
         ],
     ],
 ];
@@ -146,6 +149,11 @@ if (!function_exists('renderGrupo')) {
 <nav class="sidebar-nav" aria-label="Enlaces del panel">
     <ul>
         <?php echo renderNavItem('/templates/firstpage.php', 'Inicio RRHH', $iconInicio, 'inicio', $activeItem); ?>
+        <?php
+        // Módulo 31 "Documentación": transversal. Se muestra para TODOS los usuarios
+        // autenticados sin exigir asignación previa en el RBAC (solo permite ver e insertar).
+        echo renderNavItem('/templates/documentacion.php', 'Documentación', $iconDocumentos, 'documentacion', $activeItem);
+        ?>
         <?php foreach ($gruposVisibles as $key => $grupo): ?>
             <?php echo renderGrupo($key, $grupo, $activeItem, $iconChevron); ?>
         <?php endforeach; ?>

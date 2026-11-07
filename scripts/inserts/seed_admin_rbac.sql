@@ -51,3 +51,14 @@ WHERE fec_delete IS NULL
 ON DUPLICATE KEY UPDATE
     fec_delete = NULL,
     usr_delete = NULL;
+
+-- 3.1 (explícito) Asegurar el acceso del admin a los módulos 30 (Gestor de Archivos)
+-- y 31 (Documentación) con todos sus permisos, incluso en aplicaciones incrementales.
+INSERT INTO t_usuarios_operaciones (id_usuario, id_operacion, usr_insert, fec_insert)
+SELECT '1234567890', id_operacion, 'seed', CURRENT_TIMESTAMP
+FROM t_operaciones
+WHERE id_modulo IN (30, 31)
+  AND fec_delete IS NULL
+ON DUPLICATE KEY UPDATE
+    fec_delete = NULL,
+    usr_delete = NULL;

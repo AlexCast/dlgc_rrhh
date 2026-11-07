@@ -95,6 +95,30 @@ try {
     $sentencia->execute($parametros);
     $solicitudes = $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
+    // Adjuntar la lista de evidencias de cada solicitud (para verlas/descargarlas).
+    if (!empty($solicitudes)) {
+        $ids = array_map(static fn (array $s): int => (int) $s['id_permiso'], $solicitudes);
+        $placeholdersEv = implode(',', array_fill(0, count($ids), '?'));
+        $sentenciaEv = $conexion->prepare(
+            "SELECT id_evidencia, id_permiso, nombre_original, mime_type, tamano_bytes
+               FROM t_permisos_evidencias
+              WHERE id_permiso IN ({$placeholdersEv}) AND fec_delete IS NULL
+              ORDER BY fec_insert, id_evidencia"
+        );
+        $sentenciaEv->execute($ids);
+
+        $evidenciasPorPermiso = [];
+        foreach ($sentenciaEv->fetchAll(PDO::FETCH_ASSOC) as $ev) {
+            $ev['url'] = '/app/evidencia_archivo.php?id_evidencia=' . (int) $ev['id_evidencia'];
+            $evidenciasPorPermiso[(int) $ev['id_permiso']][] = $ev;
+        }
+
+        foreach ($solicitudes as &$sol) {
+            $sol['evidencias'] = $evidenciasPorPermiso[(int) $sol['id_permiso']] ?? [];
+        }
+        unset($sol);
+    }
+
     responderJson(true, 'Listado obtenido correctamente.', 200, ['solicitudes' => $solicitudes]);
 
 } catch (PDOException $e) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * EvidenceValidator.php
- * Valida archivos de evidencia (jpg/png/pdf, máx 10MB) antes de subirlos al
+ * Valida archivos de evidencia (jpg/png/webp/pdf, máx 10MB) antes de subirlos al
  * proveedor externo. Refleja las mismas reglas del CHECK de t_permisos_evidencias
  * para fallar rápido en el servidor sin gastar una llamada al proveedor externo.
  */
@@ -15,6 +15,7 @@ class EvidenceValidator
     private const ALLOWED_MIME_EXT = [
         'image/jpeg'      => ['jpg', 'jpeg'],
         'image/png'       => ['png'],
+        'image/webp'      => ['webp'],
         'application/pdf' => ['pdf'],
     ];
 
@@ -42,7 +43,7 @@ class EvidenceValidator
             : '';
 
         if (!isset(self::ALLOWED_MIME_EXT[$mimeType])) {
-            $errores[] = 'Solo se permiten archivos JPG, PNG o PDF.';
+            $errores[] = 'Solo se permiten archivos JPG, PNG, WebP o PDF.';
             return $errores;
         }
 

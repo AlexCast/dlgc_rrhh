@@ -5,7 +5,7 @@
 -- t_tipos_permisos.
 --
 -- Convención de IDs:
---   Módulos: 1=Inicio, 2=SOAT (catálogo SRC/soat), 3=Solicitudes y Permisos,
+--   Módulos: 1=Inicio, 3=Solicitudes y Permisos,
 --            4=Empleados (CRUD SRC),
 --            5 = Comunicados (público/templates/comunicados.php),
 --            6..21 = módulos de administración (SRC),
@@ -20,6 +20,12 @@
 --            29 = Gestión de Vacaciones (saldo por ciclo aniversario, ajustes manuales,
 --                 reportes; templates/vacaciones.php). Sin CREAR/ELIMINAR/RESTAURAR amplios
 --                 para EMPLEADO: RRHH se asigna por usuario individual, igual que el 27.
+--            30 = Gestor de Archivos (versiones de los archivos físicos de documentos;
+--                 templates/gestor_archivos.php). Acceso restringido por RBAC (admin/RRHH).
+--            31 = Documentación (registros documentales del empleado; templates/documentacion.php).
+--                 Módulo transversal: visible para todos los usuarios autenticados desde el
+--                 sidebar sin asignación previa; SOLO operaciones VER (311) y CREAR (312).
+--                 No se crean ACTUALIZAR/ELIMINAR/RESTAURAR por regla de negocio.
 --   Operaciones por módulo: id_modulo*10 + [1=VER, 2=CREAR, 3=ACTUALIZAR, 4=ELIMINAR, 5=RESTAURAR].
 --   Roles: 1=ADMINISTRADOR, 2=EMPLEADO.
 --   Nota: la aprobación de JEFE directo NO tiene módulo RBAC propio; usa la operación 33
@@ -46,7 +52,6 @@ ON DUPLICATE KEY UPDATE nombre_rol = VALUES(nombre_rol),
 INSERT INTO t_modulos (id_modulo, nombre_modulo, usr_insert, fec_insert)
 VALUES
     (1,  'Inicio',                   'seed', CURRENT_TIMESTAMP),
-    (2,  'SOAT',                     'seed', CURRENT_TIMESTAMP),
     (3,  'Solicitudes y Permisos',   'seed', CURRENT_TIMESTAMP),
     (4,  'Empleados',                'seed', CURRENT_TIMESTAMP),
     (5,  'Comunicados',              'seed', CURRENT_TIMESTAMP),
@@ -57,6 +62,8 @@ VALUES
     (27, 'Aprobación RRHH de Permisos', 'seed', CURRENT_TIMESTAMP),
     (28, 'Días Festivos',              'seed', CURRENT_TIMESTAMP),
     (29, 'Gestión de Vacaciones',      'seed', CURRENT_TIMESTAMP),
+    (30, 'Gestor de Archivos',         'seed', CURRENT_TIMESTAMP),
+    (31, 'Documentación',              'seed', CURRENT_TIMESTAMP),
     (6,  'Roles Operaciones',        'seed', CURRENT_TIMESTAMP),
     (7,  'Afiliaciones Empleados',   'seed', CURRENT_TIMESTAMP),
     (8,  'Áreas',                    'seed', CURRENT_TIMESTAMP),
@@ -88,12 +95,6 @@ VALUES
     (12, 1, 'CREAR',      'seed', CURRENT_TIMESTAMP),
     (13, 1, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
     (14, 1, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
-
-    -- 2. SOAT
-    (21, 2, 'VER',        'seed', CURRENT_TIMESTAMP),
-    (22, 2, 'CREAR',      'seed', CURRENT_TIMESTAMP),
-    (23, 2, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
-    (24, 2, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
 
     -- 3. Solicitudes y Permisos
     (31, 3, 'VER',        'seed', CURRENT_TIMESTAMP),
@@ -243,7 +244,6 @@ VALUES
 
     -- RESTAURAR (id_modulo * 10 + 5)
     (15,   1, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
-    (25,   2, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (35,   3, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (45,   4, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
     (55,   5, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP),
@@ -308,6 +308,30 @@ ON DUPLICATE KEY UPDATE id_modulo       = VALUES(id_modulo),
                                           fec_delete       = NULL,
                                           usr_delete       = NULL;
 
+-- Módulo 30: Gestor de Archivos. CRUD completo (ver, subir versiones, descargar).
+INSERT INTO t_operaciones (id_operacion, id_modulo, nombre_operacion, usr_insert, fec_insert)
+VALUES
+    (301, 30, 'VER',        'seed', CURRENT_TIMESTAMP),
+    (302, 30, 'CREAR',      'seed', CURRENT_TIMESTAMP),
+    (303, 30, 'ACTUALIZAR', 'seed', CURRENT_TIMESTAMP),
+    (304, 30, 'ELIMINAR',   'seed', CURRENT_TIMESTAMP),
+    (305, 30, 'RESTAURAR',  'seed', CURRENT_TIMESTAMP)
+ON DUPLICATE KEY UPDATE id_modulo       = VALUES(id_modulo),
+                                          nombre_operacion = VALUES(nombre_operacion),
+                                          fec_delete       = NULL,
+                                          usr_delete       = NULL;
+
+-- Módulo 31: Documentación. Regla de negocio: SOLO VER e INSERTAR.
+-- No se crean ACTUALIZAR (313), ELIMINAR (314) ni RESTAURAR (315).
+INSERT INTO t_operaciones (id_operacion, id_modulo, nombre_operacion, usr_insert, fec_insert)
+VALUES
+    (311, 31, 'VER',   'seed', CURRENT_TIMESTAMP),
+    (312, 31, 'CREAR', 'seed', CURRENT_TIMESTAMP)
+ON DUPLICATE KEY UPDATE id_modulo       = VALUES(id_modulo),
+                                          nombre_operacion = VALUES(nombre_operacion),
+                                          fec_delete       = NULL,
+                                          usr_delete       = NULL;
+
 -- --------------------------------------------------------
 -- 4. Asignaciones Rol-Operación
 -- --------------------------------------------------------
@@ -333,7 +357,11 @@ VALUES
     -- Comunicados: ver
     (2, 51, 'seed', CURRENT_TIMESTAMP),
     -- SST: ver (acceso default para todos los empleados)
-    (2, 251, 'seed', CURRENT_TIMESTAMP)
+    (2, 251, 'seed', CURRENT_TIMESTAMP),
+    -- Documentación (31): transversal; ver y crear para todos los empleados.
+    -- El Gestor de Archivos (30) NO se asigna al rol EMPLEADO: es de acceso restringido.
+    (2, 311, 'seed', CURRENT_TIMESTAMP),
+    (2, 312, 'seed', CURRENT_TIMESTAMP)
 ON DUPLICATE KEY UPDATE fec_delete = NULL,
                                                    usr_delete = NULL;
 
@@ -342,6 +370,17 @@ INSERT INTO t_roles_operaciones (id_rol, id_operacion, usr_insert, fec_insert)
 SELECT 1, id_operacion, 'seed', CURRENT_TIMESTAMP
 FROM t_operaciones
 WHERE id_modulo = 23
+  AND fec_delete IS NULL
+ON DUPLICATE KEY UPDATE fec_delete = NULL,
+                                                   usr_delete = NULL;
+
+-- Asegurar que ADMINISTRADOR tenga TODOS los permisos de los módulos 30 (Gestor de
+-- Archivos) y 31 (Documentación). El INSERT genérico de arriba ya los cubre si este
+-- seed se ejecuta completo; este bloque lo garantiza también de forma incremental.
+INSERT INTO t_roles_operaciones (id_rol, id_operacion, usr_insert, fec_insert)
+SELECT 1, id_operacion, 'seed', CURRENT_TIMESTAMP
+FROM t_operaciones
+WHERE id_modulo IN (30, 31)
   AND fec_delete IS NULL
 ON DUPLICATE KEY UPDATE fec_delete = NULL,
                                                    usr_delete = NULL;

@@ -117,7 +117,7 @@
 | GEN-RF-056 | La generación de reportes Excel debe realizarse con PhpSpreadsheet. | ☐ | ☐ | ☐ | app/permiso_reporte.php, app/vacaciones_reporte.php |
 | GEN-RF-057 | La generación de reportes PDF debe realizarse con Dompdf. | ☐ | ☐ | ☐ | app/permiso_reporte.php, app/vacaciones_reporte.php |
 | GEN-RF-058 | La protección anti-bot debe integrar Cloudflare Turnstile con verificación server-side. | ☐ | ☐ | ☐ | app/helpers/TurnstileHelper.php |
-| GEN-RF-059 | Las evidencias de solicitudes deben almacenarse en un proveedor de storage externo configurable (Bunny/R2/B2/CF Images). | ☐ | ☐ | ☐ | app/helpers/FileStorage/StorageFactory.php, config/storage_config.php |
+| GEN-RF-059 | Las evidencias de solicitudes deben almacenarse en un proveedor de storage externo configurable (R2, con NULL para desarrollo). | ☐ | ☐ | ☐ | app/helpers/FileStorage/StorageFactory.php, config/storage_config.php |
 | GEN-RF-060 | La subida de evidencias debe validar tipo, MIME y tamaño antes de enviarse al storage. | ☐ | ☐ | ☐ | app/helpers/FileStorage/EvidenceValidator.php |
 | GEN-RF-061 | La iconografía debe implementarse con SVG inline, sin fuentes de iconos externas. | ☐ | ☐ | ☐ | templates/partials/sidebar_*.php |
 
@@ -789,7 +789,7 @@
 | BDD-RF-048 | t_solicitudes_permisos debe validar metodo_descuento IN (N/A, VACACIONES, DINERO). | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-049 | t_permisos_aprobaciones debe validar nivel IN (JEFE, RRHH) y estado IN (PENDIENTE, APROBADO, RECHAZADO). | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-050 | t_permisos_aprobaciones debe tener UNIQUE (id_permiso, nivel_aprobacion). | ☐ | ☐ | ☐ | modelo_db.sql |
-| BDD-RF-051 | t_permisos_evidencias debe validar proveedor IN (BUNNY, R2, B2, CF_IMAGES) y mime IN (jpeg, png, pdf). | ☐ | ☐ | ☐ | modelo_db.sql |
+| BDD-RF-051 | t_permisos_evidencias debe validar proveedor IN (R2, NULL) y mime IN (jpeg, png, webp, pdf). | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-052 | t_permisos_evidencias debe validar tamaño entre 1 byte y 10 MB (CHECK). | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-053 | t_vacaciones_ajustes debe impedir ajustes de 0 días (CHECK dias_ajuste <> 0). | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-054 | t_dias_festivos debe tener UNIQUE en fecha y CHECK de tipo_festivo. | ☐ | ☐ | ☐ | modelo_db.sql |

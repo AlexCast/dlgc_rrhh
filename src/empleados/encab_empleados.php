@@ -13,6 +13,9 @@
     <script src="/assets/js/datepicker.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/datepicker.js'); ?>" defer></script>
     <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/theme.js'); ?>"></script>
     <script src="/assets/js/alert-banner.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/alert-banner.js'); ?>" defer></script>
+    <?php if (!empty($turnstileSiteKey)): ?>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+    <?php endif; ?>
 </head>
 <body>
     <header class="header-container">

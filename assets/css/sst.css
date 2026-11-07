@@ -180,6 +180,28 @@
     color: var(--text-muted);
 }
 
+.sst-evidencias {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.evidencia-link {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: fit-content;
+}
+
+.evidencia-link:hover {
+    color: var(--color-primary, #2563eb);
+    text-decoration: underline;
+}
+
 .form-actions {
     display: flex;
     gap: 0.75rem;

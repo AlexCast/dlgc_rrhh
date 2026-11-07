@@ -1,26 +1,54 @@
 <?php
 /**
- * Configuración del proveedor externo de almacenamiento de evidencias.
+ * Configuración del proveedor externo de almacenamiento de objetos (Cloudflare R2).
  * Copia este archivo como storage_config.php y completa tus credenciales reales.
  * storage_config.php debe agregarse a .gitignore (igual que mail_config.php).
  *
- * Ningún archivo de evidencia se guarda en la base de datos ni dentro del
- * proyecto: solo se persiste la referencia (proveedor + storage_key + url_publica)
- * en t_permisos_evidencias.
+ * Ningún archivo se guarda en la base de datos ni dentro del proyecto: solo se
+ * persiste la referencia (proveedor + storage_key) en t_permisos_evidencias,
+ * t_documentos_versiones o t_empleados.foto_perfil.
+ *
+ * El bucket es PRIVADO: los archivos solo se sirven a usuarios autenticados
+ * a través de endpoints proxy (app/foto_perfil.php y futuros).
  */
 
 return [
-    // Proveedor activo: 'BUNNY', 'NULL' (modo desarrollo, no sube archivos reales).
-    'provider' => 'NULL',
+    // Proveedor activo: 'R2' o 'NULL' (modo desarrollo, no sube archivos reales).
+    'provider' => 'R2',
 
-    'bunny' => [
-        // Nombre de la Storage Zone en Bunny.net (panel > Storage).
-        'storage_zone_name' => 'TU_STORAGE_ZONE',
-        // Storage API Password / AccessKey de la Storage Zone (NO el API Key de cuenta).
-        'access_key' => 'TU_ACCESS_KEY',
-        // Endpoint regional de almacenamiento (ver documentación de Bunny.net; por defecto Falkenstein).
-        'storage_host' => 'storage.bunnycdn.com',
-        // Hostname de la Pull Zone (CDN) conectada a la Storage Zone, usado para servir las evidencias.
-        'pull_zone_host' => 'tu-pull-zone.b-cdn.net',
+    'r2' => [
+        // Account ID de Cloudflare (visible en el dashboard principal).
+        'account_id' => 'TU_ACCOUNT_ID',
+        // API Token de R2 con permisos "Object Read & Write" limitado al bucket.
+        'access_key_id' => 'TU_ACCESS_KEY_ID',
+        'secret_access_key' => 'TU_SECRET_ACCESS_KEY',
+        // Nombre del bucket privado.
+        'bucket' => 'dlgc-rrhh',
+        // Endpoint S3 de R2 (reemplaza TU_ACCOUNT_ID).
+        'endpoint' => 'https://TU_ACCOUNT_ID.r2.cloudflarestorage.com',
+        // R2 exige 'auto' como región.
+        'region' => 'auto',
+    ],
+
+    // Compresión antes de subir (Fase 4). Si omites 'compression', se usan los
+    // valores por defecto (1600 px, calidad 80 y PDFs con /ebook + fallback /screen).
+    'compression' => [
+        // Ruta al ejecutable de Ghostscript (gswin64c.exe). Si se deja vacía,
+        // la app auto-detecta C:\Program Files\gs\<version>\bin\gswin64c.exe,
+        // C:\tools\gs\bin\gswin64c.exe o el PATH. Sin Ghostscript, los PDFs
+        // suben sin comprimir.
+        'gs_path' => '',
+        // Máximo lado (px) de imágenes de evidencias/documentos antes de subir.
+        'image_max_dimension' => 1600,
+        // Calidad JPEG de salida (1-100).
+        'jpeg_quality' => 80,
+        // Perfil de Ghostscript para PDFs: 'screen' (72dpi), 'ebook' (150dpi),
+        // 'printer' (300dpi) o 'prepress'.
+        'pdf_settings' => 'ebook',
+        // Si el perfil principal no alcanza pdf_min_ahorro, reintenta con /screen.
+        'pdf_fallback_screen' => true,
+        // Ahorro mínimo exigido (%). Si no se alcanza con ningún perfil, se sube
+        // el original (nunca se empeora el tamaño).
+        'pdf_min_ahorro' => 15,
     ],
 ];

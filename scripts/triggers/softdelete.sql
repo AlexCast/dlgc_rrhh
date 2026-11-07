@@ -221,13 +221,31 @@ BEGIN
         SET MESSAGE_TEXT = 'Borrado físico no permitido en t_usuarios_operaciones; utilice el borrado lógico.';
 END//
 
--- t_soat
-CREATE OR REPLACE TRIGGER tri_soft_delete_soat
-BEFORE DELETE ON t_soat
+-- t_tipos_documento_rrhh
+CREATE OR REPLACE TRIGGER tri_soft_delete_tipos_documento_rrhh
+BEFORE DELETE ON t_tipos_documento_rrhh
 FOR EACH ROW
 BEGIN
     SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Borrado físico no permitido en t_soat; utilice el borrado lógico.';
+        SET MESSAGE_TEXT = 'Borrado físico no permitido en t_tipos_documento_rrhh; utilice el borrado lógico.';
+END//
+
+-- t_documentos_rrhh
+CREATE OR REPLACE TRIGGER tri_soft_delete_documentos_rrhh
+BEFORE DELETE ON t_documentos_rrhh
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Borrado físico no permitido en t_documentos_rrhh; utilice el borrado lógico.';
+END//
+
+-- t_documentos_versiones
+CREATE OR REPLACE TRIGGER tri_soft_delete_documentos_versiones
+BEFORE DELETE ON t_documentos_versiones
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Borrado físico no permitido en t_documentos_versiones; utilice el borrado lógico.';
 END//
 
 DELIMITER ;

@@ -121,7 +121,6 @@ abstract class AbstractApiMailer implements MailerInterface
         $curlErrno = curl_errno($handle);
         $curlError = curl_error($handle);
         $httpCode = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
-        curl_close($handle);
 
         if ($curlErrno !== 0) {
             throw new MailProviderException(

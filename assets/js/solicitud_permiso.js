@@ -445,6 +445,7 @@ function handleTipoSolicitudChange(event) {
         if (vacacionesHint) vacacionesHint.style.display = 'none';
         if (motivoField) motivoField.style.display = '';
         if (motivoSelect) motivoSelect.required = true;
+        if (evidenciaSection) evidenciaSection.style.display = 'block';
         document.getElementById('hora_inicio').value = '';
         document.getElementById('hora_inicio_display').value = '';
         document.getElementById('hora_fin').value = '';
@@ -458,6 +459,7 @@ function handleTipoSolicitudChange(event) {
         if (vacacionesHint) vacacionesHint.style.display = 'none';
         if (motivoField) motivoField.style.display = '';
         if (motivoSelect) motivoSelect.required = true;
+        if (evidenciaSection) evidenciaSection.style.display = 'block';
         document.getElementById('fecha_inicio').value = '';
         document.getElementById('fecha_inicio_display').value = '';
         document.getElementById('fecha_fin').value = '';
@@ -547,8 +549,7 @@ function calculateTotalHoras() {
 }
 
 /**
- * Muestra el campo de detalle por motivo y el bloque de evidencia si algún
- * motivo marcado la requiere (data-requiere-evidencia="1").
+ * Muestra el campo de detalle por motivo y el bloque de evidencia (opcional).
  */
 function handleMotivoChange() {
     const select = document.getElementById('motivo');
@@ -558,7 +559,7 @@ function handleMotivoChange() {
 
     if (selected) {
         if (detalleGroup) detalleGroup.style.display = 'block';
-        if (evidenciaSection) evidenciaSection.style.display = selected.dataset.requiereEvidencia === '1' ? 'block' : 'none';
+        if (evidenciaSection) evidenciaSection.style.display = 'block';
     } else {
         if (detalleGroup) {
             detalleGroup.style.display = 'none';
@@ -621,14 +622,6 @@ function handleFormSubmit(event) {
         }
     }
 
-    const evidenciaSection = document.getElementById('evidencia-section');
-    const evidenciasInput = document.getElementById('evidencias');
-    const requiereEvidencia = evidenciaSection && evidenciaSection.style.display === 'block';
-    if (requiereEvidencia && (!evidenciasInput.files || evidenciasInput.files.length === 0)) {
-        mostrarFeedbackForm('El motivo seleccionado requiere al menos un archivo de evidencia (JPG, PNG o PDF).', 'error');
-        return;
-    }
-
     const formData = new FormData(event.target);
     // Para vacaciones el backend no usa motivo: lo identifica por tipo_solicitud=vacaciones.
     const submitBtn = event.target.querySelector('button[type="submit"]');
@@ -643,6 +636,10 @@ function handleFormSubmit(event) {
         .then(data => {
             if (!data.success) {
                 mostrarFeedbackForm(data.message || 'No se pudo enviar la solicitud.', 'error');
+                // El token de Turnstile es de un solo uso: se reinicia para reintentar sin recargar.
+                if (typeof window.turnstile !== 'undefined' && typeof window.turnstile.reset === 'function') {
+                    window.turnstile.reset();
+                }
                 if (submitBtn) submitBtn.disabled = false;
                 return;
             }
@@ -713,6 +710,18 @@ function cargarBandeja(vista, historial) {
         });
 }
 
+function escapeHtmlEv(texto) {
+    return String(texto).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+
+function formatearTamanoEvidencia(bytes) {
+    const b = Number(bytes) || 0;
+    if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB';
+    return Math.max(1, Math.round(b / 1024)) + ' KB';
+}
+
 function renderBandeja(contenedor, solicitudes, vista, historial) {
     if (!solicitudes || solicitudes.length === 0) {
         contenedor.innerHTML = '<div class="sst-empty">' + (historial ? 'Sin solicitudes resueltas todavía.' : 'No hay solicitudes pendientes.') + '</div>';
@@ -744,6 +753,10 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
             <div class="sst-form-meta">
                 <span>Fechas: ${rango}</span>
                 <span>Evidencias adjuntas: ${sol.total_evidencias}</span>
+                ${sol.evidencias && sol.evidencias.length > 0 ? `
+                <div class="sst-evidencias">
+                    ${sol.evidencias.map(ev => `<a href="${ev.url}" target="_blank" rel="noopener" class="evidencia-link">📎 ${escapeHtmlEv(ev.nombre_original)} (${formatearTamanoEvidencia(ev.tamano_bytes)})</a>`).join('')}
+                </div>` : ''}
                 <span>Nivel Jefe: ${ETIQUETAS_ESTADO[sol.estado_jefe] || sol.estado_jefe || '—'}</span>
                 <span>Nivel RRHH: ${ETIQUETAS_ESTADO[sol.estado_rrhh] || sol.estado_rrhh || '—'}</span>
                 <span>${esVacaciones ? 'Reconocimiento: Vacaciones (remuneradas)' : 'Reconocimiento: ' + metodoDescuentoTexto}</span>

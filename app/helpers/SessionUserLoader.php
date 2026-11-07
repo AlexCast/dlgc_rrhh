@@ -56,6 +56,23 @@ function load_user_session(PDO $conexion, string $idUsuario): bool
         $_SESSION['last_activity_timestamp'] = time();
         $_SESSION['permisos']      = $permisos;
 
+        // Foto de perfil (empleados): URL del proxy autenticado o null.
+        $_SESSION['foto_perfil'] = null;
+        try {
+            $stmtFoto = $conexion->prepare(
+                'SELECT foto_perfil FROM t_empleados WHERE id_usuario = ? AND fec_delete IS NULL'
+            );
+            $stmtFoto->execute([$idUsuario]);
+            $foto = $stmtFoto->fetchColumn();
+            $stmtFoto->closeCursor();
+            $foto = ($foto === false || $foto === null) ? null : (string) $foto;
+            $_SESSION['foto_perfil'] = ($foto === null || $foto === '')
+                ? null
+                : '/app/foto_perfil.php?id=' . rawurlencode($idUsuario);
+        } catch (PDOException $e) {
+            error_log('Error al cargar foto de perfil en sesión: ' . $e->getMessage());
+        }
+
         return true;
     } catch (PDOException $e) {
         error_log('Error al cargar sesión de usuario: ' . $e->getMessage());

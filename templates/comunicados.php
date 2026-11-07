@@ -136,7 +136,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
             <a href="/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
+        <img src="<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
              alt="Foto de perfil" 
              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     <?php else: ?>
@@ -178,7 +178,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
                 <section class="comunicados-header">
                     <div>
-                        <h2>Últimas Noticias</h2>
+                        <h2>�šltimas Noticias</h2>
                         <p class="text-muted">Mantente al día con la información oficial de la empresa.</p>
                     </div>
                     <?php if (has_module_permission(24, 'crear') || has_module_permission(24, 'actualizar')): ?>

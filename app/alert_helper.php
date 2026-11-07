@@ -19,6 +19,7 @@ function render_alert_banner(array $mapaErrores = [], array $mapaSuccess = []): 
         'delete' => 'No se pudo eliminar el registro.',
         'restore' => 'No se pudo restaurar el registro.',
         'estado' => 'El estado seleccionado no es válido.',
+        'turnstile' => 'No pudimos verificar que no eres un robot. Resuelve la verificación de seguridad e inténtalo de nuevo.',
     ];
     $mapaErrores = array_merge($mapaErroresPorDefecto, $mapaErrores);
 

@@ -3,6 +3,10 @@
 $moduleId = 4;
 $requiredAction = 'actualizar';
 require_once __DIR__ . '/../../app/src_guard.php';
+require_once __DIR__ . '/../../app/helpers/TurnstileHelper.php';
+
+$turnstileSiteKey = TurnstileHelper::siteKey();
+
 if (!isset($_GET['id_usuario']) || empty(trim($_GET['id_usuario']))) {
     echo 'No existe el registro a editar';
     exit();
@@ -76,7 +80,7 @@ if (!$registro) {
             </header>
 
             <div class="editor-body">
-                <form action="update_empleados.php" method="POST" novalidate data-validate>
+                <form action="update_empleados.php" method="POST" enctype="multipart/form-data" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <input type="hidden" name="id_usuario" value="<?php echo htmlspecialchars((string) $registro->id_usuario, ENT_QUOTES, 'UTF-8'); ?>">
@@ -315,24 +319,40 @@ if (!$registro) {
 
                         <div class="col-md-12">
                             <div class="field-wrap">
-                                <label for="foto_perfil" class="form-label">Foto de Perfil (Ruta/URL)</label>
+                                <label for="foto_perfil" class="form-label">Foto de Perfil</label>
+                                <?php if (!empty($registro->foto_perfil)): ?>
+                                    <div class="mb-2">
+                                        <img
+                                            src="/app/foto_perfil.php?id=<?php echo rawurlencode((string) $registro->id_usuario); ?>"
+                                            alt="Foto de perfil actual"
+                                            class="rounded-circle"
+                                            style="width: 96px; height: 96px; object-fit: cover;"
+                                        >
+                                        <div class="form-check mt-1">
+                                            <input class="form-check-input" type="checkbox" name="quitar_foto" id="quitar_foto" value="1">
+                                            <label class="form-check-label" for="quitar_foto">Quitar foto actual</label>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="input-group">
                                     <span class="input-group-text">Foto</span>
                                     <input
-                                        type="text"
+                                        type="file"
                                         name="foto_perfil"
                                         id="foto_perfil"
                                         class="form-control"
-                                        maxlength="255"
-                                        value="<?php echo htmlspecialchars((string) $registro->foto_perfil, ENT_QUOTES, 'UTF-8'); ?>"
-                                        placeholder="Ej: uploads/perfil_123.png"
+                                        accept="image/jpeg,image/png,image/webp"
                                     >
                                 </div>
-                                <p class="field-tip">Opcional. Especifica la ruta de la imagen o URL.</p>
+                                <p class="field-tip">Opcional. JPG, PNG o WebP de máximo 2 MB. La imagen se comprime y se guarda en Cloudflare R2 (solo visible para usuarios con sesión).</p>
                             </div>
                         </div>
 
                     </div>
+
+                    <?php if ($turnstileSiteKey !== ''): ?>
+                        <div class="cf-turnstile mb-3" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="empleado_foto"></div>
+                    <?php endif; ?>
 
                     <div class="cta-row">
                         <a href="listar_empleados.php" class="btn btn-soft">Cancelar y volver</a>

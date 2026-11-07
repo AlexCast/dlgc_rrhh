@@ -249,7 +249,7 @@ if ($verTramitesEmpresa) {
             <a href="/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
+        <img src="<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
              alt="Foto de perfil" 
              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     <?php else: ?>
@@ -304,7 +304,7 @@ if ($verTramitesEmpresa) {
                         <?php else: ?>
                         <span class="metric-value"><?php echo (int) $saldoVacaciones['saldo_disponible']; ?> <small>Días</small></span>
                         <?php if ($saldoVacaciones['alerta_vencimiento_proximo']): ?>
-                        <small class="metric-hint metric-hint--warning">⚠ Se pierden en <?php echo (int) $saldoVacaciones['dias_para_vencer']; ?> día(s) (<?php echo htmlspecialchars($saldoVacaciones['periodo_fin']); ?>)</small>
+                        <small class="metric-hint metric-hint--warning">�š� Se pierden en <?php echo (int) $saldoVacaciones['dias_para_vencer']; ?> día(s) (<?php echo htmlspecialchars($saldoVacaciones['periodo_fin']); ?>)</small>
                         <?php else: ?>
                         <small class="metric-hint">Ciclo vigente hasta <?php echo htmlspecialchars($saldoVacaciones['periodo_fin']); ?></small>
                         <?php endif; ?>
@@ -356,7 +356,7 @@ if ($verTramitesEmpresa) {
 
                     <section class="data-card carousel-card" aria-labelledby="carousel-title">
                         <div class="carousel-header">
-                            <h3 id="carousel-title" class="card-title">Últimos Trámites e Incapacidades (TÚ)</h3>
+                            <h3 id="carousel-title" class="card-title">�šltimos Trámites e Incapacidades (T�š)</h3>
                             <?php if ($verTramitesEmpresa): ?>
                             <div class="carousel-controls">
                                 <button type="button" class="carousel-nav-btn" data-carousel-prev aria-label="Tarjeta anterior">
@@ -374,7 +374,7 @@ if ($verTramitesEmpresa) {
                         </div>
                         <div class="carousel-viewport">
                             <div class="carousel-track" id="tramites-carousel-track">
-                                <div class="carousel-slide" data-slide-title="Últimos Trámites e Incapacidades (TÚ)">
+                                <div class="carousel-slide" data-slide-title="�šltimos Trámites e Incapacidades (T�š)">
                                     <div class="table-responsive">
                                         <table>
                                             <thead>
@@ -408,7 +408,7 @@ if ($verTramitesEmpresa) {
                                     </div>
                                 </div>
                                 <?php if ($verTramitesEmpresa): ?>
-                                <div class="carousel-slide" data-slide-title="Últimos Trámites y Afiliaciones de la Empresa">
+                                <div class="carousel-slide" data-slide-title="�šltimos Trámites y Afiliaciones de la Empresa">
                                     <div class="table-responsive">
                                         <table>
                                             <thead>

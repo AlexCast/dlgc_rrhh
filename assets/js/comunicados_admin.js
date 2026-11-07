@@ -74,9 +74,9 @@
                 var avatar = document.createElement('div');
                 avatar.className = 'lector-avatar';
 
-                if (lector.foto_perfil) {
+                if (lector.foto_url) {
                     var img = document.createElement('img');
-                    img.src = '/uploads/perfiles/' + encodeURIComponent(lector.foto_perfil);
+                    img.src = lector.foto_url;
                     img.alt = lector.nombre_completo;
                     avatar.appendChild(img);
                 } else {

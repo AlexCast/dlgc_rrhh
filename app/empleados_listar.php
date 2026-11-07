@@ -73,6 +73,9 @@ try {
         $empleado['correo'] = trim((string) ($empleado['correo'] ?? ''));
         $empleado['segundo_nombre'] = $segundoNombre;
         $empleado['segundo_apellido'] = $segundoApellido;
+        $empleado['foto_url'] = !empty($empleado['foto_perfil'])
+            ? '/app/foto_perfil.php?id=' . rawurlencode((string) $empleado['id_usuario'])
+            : null;
 
         return $empleado;
     }, $empleados);

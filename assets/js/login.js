@@ -7,6 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const formsContainer = document.querySelector('.forms-container');
     const feedbackBox = document.getElementById('auth-feedback');
     const loginInput = document.getElementById('login-user');
+    const registerForm = document.getElementById('register-form');
+    const resendLink = document.getElementById('resend-verification-link');
+    const resendArea = document.getElementById('resend-verification-area');
+    const resendInput = document.getElementById('resend-ident');
+    const resendSubmit = document.getElementById('resend-verification-submit');
+    const resendMsg = document.getElementById('resend-verification-msg');
+    const resendTurnstile = document.getElementById('resend-turnstile-container');
 
     const ajustarAlturaContenedor = () => {
         if (!formsContainer) {
@@ -69,7 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         validacion_registro: 'Revisa los campos del registro e inténtalo nuevamente.',
         registro_no_completado: 'No se pudo completar el registro. Valida los datos.',
         registro_exitoso: 'Cuenta registrada correctamente. Ahora inicia sesión.',
-        registro_pendiente_verificacion: 'Cuenta creada. Revisa tu correo y haz clic en el enlace de verificación para activarla.',
+        registro_pendiente_verificacion: 'Cuenta creada. Revisa tu correo y haz clic en el enlace de verificación para activarla. Si no llega en unos minutos, usa "Reenviar correo" en la pestaña "Activar Cuenta".',
+        reenvio_enviado: 'Correo de verificación reenviado. Revisa tu bandeja de entrada y la carpeta de spam.',
+        reenvio_sin_pendiente: 'No encontramos una activación pendiente con esos datos. Regístrate desde la pestaña "Activar Cuenta".',
+        reenvio_datos_invalidos: 'Ingresa un usuario o correo válido.',
+        reenvio_fallo: 'No pudimos enviar el correo en este momento. Inténtalo más tarde.',
         codigo_registro_invalido: 'El código de acceso no es válido.',
         codigo_registro_expirado: 'El código de acceso ha expirado. Solicita uno nuevo.',
         codigo_valido: 'Código validado correctamente. Completa tus datos.',
@@ -161,6 +172,120 @@ document.addEventListener('DOMContentLoaded', () => {
         window.history.replaceState({}, document.title, urlLimpia);
     }
 
+    // ==========================================
+    // 3. Reenvío de correo de verificación (dentro de "Activar Cuenta")
+    // ==========================================
+    let resendTurnstileRendered = false;
+
+    const renderResendTurnstile = () => {
+        if (resendTurnstileRendered || !resendTurnstile) {
+            return;
+        }
+        const siteKey = resendTurnstile.getAttribute('data-sitekey') || '';
+        if (siteKey === '' || typeof window.turnstile === 'undefined' || typeof window.turnstile.render !== 'function') {
+            return;
+        }
+        window.turnstile.render(resendTurnstile, { sitekey: siteKey, action: 'resend' });
+        resendTurnstileRendered = true;
+    };
+
+    const abrirResend = (prefill = '') => {
+        if (!resendArea) {
+            return;
+        }
+        resendArea.hidden = false;
+        renderResendTurnstile();
+        if (prefill !== '' && resendInput) {
+            resendInput.value = prefill;
+        }
+        if (resendInput) {
+            resendInput.focus();
+        }
+        requestAnimationFrame(ajustarAlturaContenedor);
+    };
+
+    if (resendLink && resendArea) {
+        resendLink.addEventListener('click', () => {
+            if (resendArea.hidden) {
+                abrirResend();
+            } else {
+                resendArea.hidden = true;
+                requestAnimationFrame(ajustarAlturaContenedor);
+            }
+        });
+    }
+
+    const mostrarResendMsg = (mensaje, tipo) => {
+        if (!resendMsg) {
+            return;
+        }
+        resendMsg.textContent = mensaje;
+        resendMsg.classList.remove('error', 'success');
+        resendMsg.classList.add(tipo === 'success' ? 'success' : 'error');
+        requestAnimationFrame(ajustarAlturaContenedor);
+    };
+
+    // Al enviar el formulario de registro, desvincula el token del widget de
+    // reenvío para no duplicar el campo cf-turnstile-response.
+    if (registerForm && resendTurnstile) {
+        registerForm.addEventListener('submit', () => {
+            const tokenExtra = resendTurnstile.querySelector('input[type="hidden"]');
+            if (tokenExtra) {
+                tokenExtra.name = '';
+            }
+        });
+    }
+
+    if (resendSubmit) {
+        resendSubmit.addEventListener('click', async () => {
+            const ident = (resendInput?.value || '').trim();
+
+            if (ident.length < 3 || ident.length > 40) {
+                mostrarResendMsg(catalogoMensajes.reenvio_datos_invalidos, 'error');
+                return;
+            }
+
+            const csrfInput = document.querySelector('input[name="csrf_token"]');
+            const tokenExtra = resendTurnstile ? resendTurnstile.querySelector('input[type="hidden"]') : null;
+
+            const formData = new FormData();
+            formData.append('csrf_token', csrfInput ? csrfInput.value : '');
+            formData.append('identificador', ident);
+            formData.append('cf-turnstile-response', tokenExtra ? tokenExtra.value : '');
+            formData.append('ajax', '1');
+
+            resendSubmit.disabled = true;
+
+            try {
+                const respuesta = await fetch('../app/reenviar_verificacion.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const datos = await respuesta.json().catch(() => ({}));
+                const mensaje = datos.msg || catalogoMensajes[datos.code] || catalogoMensajes.error_servidor;
+                const tipo = datos.status === 'success' ? 'success' : 'error';
+                mostrarResendMsg(mensaje, tipo);
+
+                if (datos.status === 'success' && resendTurnstileRendered && typeof window.turnstile?.reset === 'function') {
+                    window.turnstile.reset(resendTurnstile);
+                }
+            } catch (error) {
+                mostrarResendMsg(catalogoMensajes.error_servidor, 'error');
+            } finally {
+                resendSubmit.disabled = false;
+            }
+        });
+    }
+
+    // Lleva al usuario al reenvío dentro de "Activar Cuenta" cuando su cuenta
+    // está pendiente de verificación o su registro quedó trabado.
+    if (code === 'correo_no_verificado' || code === 'registro_no_completado') {
+        activarTab('register-form');
+        showRegisterStep(1);
+        abrirResend(user || '');
+    }
+
     window.addEventListener('resize', ajustarAlturaContenedor);
     ajustarAlturaContenedor();
 
@@ -189,7 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const registerForm = document.getElementById('register-form');
     const registerPassword = document.getElementById('reg-password');
     const registerPasswordConfirm = document.getElementById('reg-password-confirm');
     const tipoDocumentoSelect = document.getElementById('reg-doc-type');

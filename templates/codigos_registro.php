@@ -90,7 +90,7 @@ $esTabUnico = $tabActiva === 'unico';
             <a href="/templates/perfil_rrhh.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
                     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-                        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
+                        <img src="<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
                              alt="Foto de perfil" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                     <?php else: ?>
@@ -132,7 +132,7 @@ $esTabUnico = $tabActiva === 'unico';
                     <div class="codes-tabs" role="tablist" aria-label="Tipo de c贸digo de registro">
                         <button class="codes-tab <?php echo $esTabUnico ? 'active' : ''; ?>" type="button" role="tab" aria-selected="<?php echo $esTabUnico ? 'true' : 'false'; ?>" aria-controls="panel-unico" id="tab-unico">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            脷nico de un solo uso
+                            门ico de un solo uso
                         </button>
                         <button class="codes-tab <?php echo $esTabUnico ? '' : 'active'; ?>" type="button" role="tab" aria-selected="<?php echo $esTabUnico ? 'false' : 'true'; ?>" aria-controls="panel-temporal" id="tab-temporal">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -143,7 +143,7 @@ $esTabUnico = $tabActiva === 'unico';
                     <div class="codes-panels">
                         <div id="panel-unico" class="codes-panel <?php echo $esTabUnico ? 'active' : ''; ?>" role="tabpanel" aria-labelledby="tab-unico" aria-hidden="<?php echo $esTabUnico ? 'false' : 'true'; ?>">
                             <div class="codes-panel-intro">
-                                <h3 class="codes-panel-title">C贸digo 脷nico</h3>
+                                <h3 class="codes-panel-title">C贸digo 门ico</h3>
                                 <p class="codes-panel-desc">Una persona lo usa para registrarse y el sistema genera autom谩ticamente el siguiente.</p>
                             </div>
 

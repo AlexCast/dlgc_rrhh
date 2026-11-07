@@ -1,0 +1,330 @@
+/* =========================================
+   Módulo Documentación (31) — templates/documentacion.php
+   Reutiliza las variables de tema de firstpage.css.
+   ========================================= */
+
+.doc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.doc-header h2 {
+    font-size: 1.35rem;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.doc-alertas {
+    margin-bottom: 16px;
+}
+
+.doc-alerta {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid;
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+    animation: docFadeIn 0.25s ease;
+}
+
+.doc-alerta-ok {
+    background: rgba(59, 168, 106, 0.08);
+    border-color: rgba(59, 168, 106, 0.2);
+    color: #2f8f57;
+}
+
+.doc-alerta-error {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.2);
+    color: #b91c1c;
+}
+
+.doc-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.doc-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.doc-card-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.doc-table-wrap {
+    overflow-x: auto;
+}
+
+.doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.95rem;
+}
+
+.doc-table th,
+.doc-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.doc-table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border-bottom-width: 2px;
+}
+
+.doc-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.doc-table tbody tr:hover {
+    background: rgba(59, 168, 106, 0.04);
+}
+
+.doc-empty {
+    text-align: center;
+    padding: 28px 0;
+    color: var(--text-muted);
+}
+
+.doc-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.doc-badge-activo {
+    background: var(--status-approved-bg);
+    color: var(--status-approved-text);
+}
+
+.doc-badge-inactivo,
+.doc-badge-archivado {
+    background: var(--status-pending-bg);
+    color: var(--status-pending-text);
+}
+
+.doc-badge-vers {
+    background: rgba(59, 168, 106, 0.12);
+    color: var(--primary-color);
+    margin-left: 6px;
+}
+
+.doc-archivo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.doc-archivo-nombre {
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.doc-archivo-enlace {
+    color: var(--color-primary, #2563eb);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.doc-archivo-enlace:hover {
+    text-decoration: underline;
+}
+
+/* Botones */
+.doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.doc-btn-primary {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.doc-btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.doc-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.doc-btn-outline {
+    background: transparent;
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+.doc-btn-outline:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Modal */
+.doc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.doc-modal-overlay[hidden] {
+    display: none;
+}
+
+.doc-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    animation: docFadeIn 0.2s ease;
+}
+
+.doc-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.doc-modal-header h3 {
+    font-size: 1.05rem;
+    color: var(--text-main);
+}
+
+.doc-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.doc-form-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.doc-form-campo label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.doc-form-campo input,
+.doc-form-campo select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-size: 0.92rem;
+    font-family: inherit;
+}
+
+.doc-form-campo input:focus,
+.doc-form-campo select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 168, 106, 0.15);
+}
+
+.doc-obligatorio {
+    color: #dc2626;
+}
+
+.doc-ayuda {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.doc-form-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+@keyframes docFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+    .doc-table thead {
+        display: none;
+    }
+
+    .doc-table,
+    .doc-table tbody,
+    .doc-table tr,
+    .doc-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .doc-table tr {
+        border-bottom: 1px solid var(--border-color);
+        padding: 8px 0;
+    }
+
+    .doc-table td {
+        border-bottom: none;
+        padding: 6px 4px;
+    }
+
+    .doc-table td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+}

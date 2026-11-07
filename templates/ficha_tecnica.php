@@ -1,10 +1,13 @@
 <?php
 require_once '../app/auth_guard.php';
 require_once '../app/conexion.php';
+require_once '../app/helpers/TurnstileHelper.php';
 
 require_module_access(22);
 
 $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
+
+$turnstileSiteKey = TurnstileHelper::siteKey();
 
 if (!is_string($idUsuarioSesion) || trim($idUsuarioSesion) === '') {
     header('Location: /templates/login.php', true, 302);
@@ -141,6 +144,14 @@ $documento = trim(implode(' ', array_filter([
     $ficha['id_usuario'] ?? '',
 ])));
 
+// Escape para atributos value de inputs (no aplica el reemplazo por 'N/A').
+$valor = static function ($campo): string {
+    return htmlspecialchars((string) ($campo ?? ''), ENT_QUOTES, 'UTF-8');
+};
+
+// La edición autoservicio solo aplica a quienes tienen ficha de empleado activa.
+$tieneFichaEmpleado = !empty($ficha['fecha_nacimiento'] ?? null);
+
 $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
 ?>
 <!DOCTYPE html>
@@ -180,7 +191,7 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
             <a href="/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
+        <img src="<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
              alt="Foto de perfil" 
              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     <?php else: ?>
@@ -225,11 +236,17 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                         <div class="card-header">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                             <h2 id="personal-title" class="card-title">Datos Personales</h2>
+                            <?php if ($tieneFichaEmpleado): ?>
+                            <button type="button" id="btn-editar-personales" class="card-edit-btn" aria-label="Editar mis datos personales" aria-expanded="false" aria-controls="personal-form">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                <span>Editar</span>
+                            </button>
+                            <?php endif; ?>
                         </div>
-                        <div class="info-grid">
+                        <div class="info-grid" id="personal-view">
                             <div class="info-item">
                                 <span class="info-label">Nombre Completo</span>
-                                <span class="info-value"><?php echo $escape($nombreCompleto); ?></span>
+                                <span class="info-value" id="v-nombre-completo"><?php echo $escape($nombreCompleto); ?></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Identificación</span>
@@ -237,33 +254,128 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Fecha de Nacimiento</span>
-                                <span class="info-value"><?php echo $formatearFecha($ficha['fecha_nacimiento'] ?? null); ?></span>
+                                <span class="info-value" id="v-fecha-nacimiento"><?php echo $formatearFecha($ficha['fecha_nacimiento'] ?? null); ?></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Género</span>
-                                <span class="info-value"><?php echo $escape($ficha['genero'] ?? null); ?></span>
+                                <span class="info-value" id="v-genero"><?php echo $escape($ficha['genero'] ?? null); ?></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Tipo de Sangre</span>
-                                <span class="info-value"><?php echo $escape($ficha['tipo_sangre'] ?? null); ?></span>
+                                <span class="info-value" id="v-tipo-sangre"><?php echo $escape($ficha['tipo_sangre'] ?? null); ?></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Estado Civil</span>
-                                <span class="info-value"><?php echo $escape($ficha['estado_civil'] ?? null); ?></span>
+                                <span class="info-value" id="v-estado-civil"><?php echo $escape($ficha['estado_civil'] ?? null); ?></span>
                             </div>
                             <div class="info-item full-width">
                                 <span class="info-label">Dirección de Residencia</span>
-                                <span class="info-value"><?php echo $escape($ficha['direccion_casa'] ?? null); ?></span>
+                                <span class="info-value" id="v-direccion"><?php echo $escape($ficha['direccion_casa'] ?? null); ?></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Número Celular</span>
-                                <span class="info-value"><?php echo $escape($ficha['numero_celular'] ?? null); ?></span>
+                                <span class="info-value" id="v-celular"><?php echo $escape($ficha['numero_celular'] ?? null); ?></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Correo</span>
                                 <span class="info-value"><?php echo $escape($ficha['correo'] ?? null); ?></span>
                             </div>
                         </div>
+
+                        <?php if ($tieneFichaEmpleado): ?>
+                        <form id="personal-form" class="edit-form" hidden>
+                            <?php echo csrf_input(); ?>
+                            <div class="edit-form-grid">
+                                <div class="edit-field">
+                                    <label for="pf-primer-nombre">Primer Nombre <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="text" id="pf-primer-nombre" name="primer_nombre" required maxlength="30" autocomplete="given-name" value="<?php echo $valor($ficha['primer_nombre'] ?? null); ?>">
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-segundo-nombre">Segundo Nombre</label>
+                                    <input type="text" id="pf-segundo-nombre" name="segundo_nombre" maxlength="30" autocomplete="additional-name" value="<?php echo $valor($ficha['segundo_nombre'] ?? null); ?>">
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-primer-apellido">Primer Apellido <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="text" id="pf-primer-apellido" name="primer_apellido" required maxlength="30" autocomplete="family-name" value="<?php echo $valor($ficha['primer_apellido'] ?? null); ?>">
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-segundo-apellido">Segundo Apellido</label>
+                                    <input type="text" id="pf-segundo-apellido" name="segundo_apellido" maxlength="30" autocomplete="additional-name" value="<?php echo $valor($ficha['segundo_apellido'] ?? null); ?>">
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-fecha-nacimiento">Fecha de Nacimiento <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="date" id="pf-fecha-nacimiento" name="fecha_nacimiento" required max="<?php echo date('Y-m-d'); ?>" value="<?php echo $valor($ficha['fecha_nacimiento'] ?? null); ?>">
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-genero">Género <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select id="pf-genero" name="genero" required>
+                                        <?php foreach (['MASCULINO', 'FEMENINO', 'OTRO'] as $opcionGenero): ?>
+                                            <option value="<?php echo $opcionGenero; ?>" <?php echo ($ficha['genero'] ?? '') === $opcionGenero ? 'selected' : ''; ?>><?php echo $opcionGenero; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-tipo-sangre">Tipo de Sangre <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select id="pf-tipo-sangre" name="tipo_sangre" required>
+                                        <?php foreach (['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $opcionSangre): ?>
+                                            <option value="<?php echo $opcionSangre; ?>" <?php echo ($ficha['tipo_sangre'] ?? '') === $opcionSangre ? 'selected' : ''; ?>><?php echo $opcionSangre; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-estado-civil">Estado Civil <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select id="pf-estado-civil" name="estado_civil" required>
+                                        <?php foreach (['SOLTERO(A)', 'CASADO(A)', 'DIVORCIADO(A)', 'VIUDO(A)', 'UNION LIBRE', 'SEPARADO(A)'] as $opcionCivil): ?>
+                                            <option value="<?php echo $opcionCivil; ?>" <?php echo ($ficha['estado_civil'] ?? '') === $opcionCivil ? 'selected' : ''; ?>><?php echo $opcionCivil; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="edit-field full-width">
+                                    <label for="pf-direccion-casa">Dirección de Residencia <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="text" id="pf-direccion-casa" name="direccion_casa" required maxlength="100" autocomplete="street-address" value="<?php echo $valor($ficha['direccion_casa'] ?? null); ?>">
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-numero-celular">Número Celular <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="tel" id="pf-numero-celular" name="numero_celular" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" value="<?php echo $valor($ficha['numero_celular'] ?? null); ?>">
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-correo">Correo (solo lectura)</label>
+                                    <input type="email" id="pf-correo" disabled value="<?php echo $valor($ficha['correo'] ?? null); ?>">
+                                    <p class="field-tip">El documento y el correo no se cambian desde aquí; contacta a RRHH si necesitas actualizarlos.</p>
+                                </div>
+                                <div class="edit-field full-width">
+                                    <label>Foto de Perfil</label>
+                                    <div class="edit-photo-row">
+                                        <div class="edit-photo-preview" id="edit-photo-preview">
+                                            <?php if (!empty($_SESSION['foto_perfil'])): ?>
+                                                <img src="<?php echo htmlspecialchars((string) $_SESSION['foto_perfil'], ENT_QUOTES, 'UTF-8'); ?>" alt="Foto de perfil actual">
+                                            <?php else: ?>
+                                                <span class="edit-photo-placeholder" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="edit-photo-actions">
+                                            <input type="file" id="pf-foto" name="foto_perfil" accept="image/jpeg,image/png,image/webp">
+                                            <?php if (!empty($_SESSION['foto_perfil'])): ?>
+                                                <label class="edit-photo-quitar">
+                                                    <input type="checkbox" name="quitar_foto" id="pf-quitar-foto" value="1">
+                                                    Quitar foto actual
+                                                </label>
+                                            <?php endif; ?>
+                                            <p class="field-tip">Opcional. JPG, PNG o WebP de máximo 2 MB. La imagen se comprime y solo es visible para usuarios con sesión.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php if ($turnstileSiteKey !== ''): ?>
+                                <div id="turnstile-personales" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="empleado_foto"></div>
+                            <?php endif; ?>
+                            <div class="edit-form-actions">
+                                <button type="submit" class="edit-btn edit-btn-primary">Guardar cambios</button>
+                                <button type="button" class="edit-btn edit-btn-secondary" id="btn-cancelar-personales">Cancelar</button>
+                            </div>
+                            <p id="personal-form-message" class="form-message" role="alert" hidden></p>
+                        </form>
+                        <?php endif; ?>
                     </section>
 
                     <!-- Datos Laborales -->
@@ -343,6 +455,9 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
         </main>
     </div>
 
+    <?php if ($turnstileSiteKey !== ''): ?>
+    <script id="turnstile-script" src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+    <?php endif; ?>
     <script src="/assets/js/theme.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/theme.js'); ?>"></script>
     <script src="/assets/js/firstpage.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/firstpage.js'); ?>"></script>
     <script src="/assets/js/ficha_tecnica.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/ficha_tecnica.js'); ?>"></script>

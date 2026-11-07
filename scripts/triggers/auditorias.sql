@@ -596,17 +596,51 @@ BEGIN
     SET NEW.fec_update = CURRENT_TIMESTAMP;
 END//
 
--- t_soat
-CREATE OR REPLACE TRIGGER tri_audit_soat_ins
-BEFORE INSERT ON t_soat
+-- t_tipos_documento_rrhh
+CREATE OR REPLACE TRIGGER tri_audit_tipos_documento_rrhh_ins
+BEFORE INSERT ON t_tipos_documento_rrhh
 FOR EACH ROW
 BEGIN
     SET NEW.usr_insert = fun_audit_actor();
     SET NEW.fec_insert = CURRENT_TIMESTAMP;
 END//
 
-CREATE OR REPLACE TRIGGER tri_audit_soat_upd
-BEFORE UPDATE ON t_soat
+CREATE OR REPLACE TRIGGER tri_audit_tipos_documento_rrhh_upd
+BEFORE UPDATE ON t_tipos_documento_rrhh
+FOR EACH ROW
+BEGIN
+    SET NEW.usr_update = fun_audit_actor();
+    SET NEW.fec_update = CURRENT_TIMESTAMP;
+END//
+
+-- t_documentos_rrhh
+CREATE OR REPLACE TRIGGER tri_audit_documentos_rrhh_ins
+BEFORE INSERT ON t_documentos_rrhh
+FOR EACH ROW
+BEGIN
+    SET NEW.usr_insert = fun_audit_actor();
+    SET NEW.fec_insert = CURRENT_TIMESTAMP;
+END//
+
+CREATE OR REPLACE TRIGGER tri_audit_documentos_rrhh_upd
+BEFORE UPDATE ON t_documentos_rrhh
+FOR EACH ROW
+BEGIN
+    SET NEW.usr_update = fun_audit_actor();
+    SET NEW.fec_update = CURRENT_TIMESTAMP;
+END//
+
+-- t_documentos_versiones
+CREATE OR REPLACE TRIGGER tri_audit_documentos_versiones_ins
+BEFORE INSERT ON t_documentos_versiones
+FOR EACH ROW
+BEGIN
+    SET NEW.usr_insert = fun_audit_actor();
+    SET NEW.fec_insert = CURRENT_TIMESTAMP;
+END//
+
+CREATE OR REPLACE TRIGGER tri_audit_documentos_versiones_upd
+BEFORE UPDATE ON t_documentos_versiones
 FOR EACH ROW
 BEGIN
     SET NEW.usr_update = fun_audit_actor();

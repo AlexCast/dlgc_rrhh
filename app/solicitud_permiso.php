@@ -15,6 +15,8 @@ require_once __DIR__ . '/auth_guard.php';
 require_once __DIR__ . '/helpers/Mailer.php';
 require_once __DIR__ . '/helpers/FileStorage/EvidenceValidator.php';
 require_once __DIR__ . '/helpers/FileStorage/StorageFactory.php';
+require_once __DIR__ . '/helpers/FileCompressor.php';
+require_once __DIR__ . '/helpers/TurnstileHelper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -33,6 +35,11 @@ if (!csrf_validate(false)) {
     responderJson(false, 'Token de seguridad inválido o ausente. Recarga la página e inténtalo de nuevo.', 403);
 }
 
+// Verificación anti-bot (Cloudflare Turnstile) antes de crear la solicitud.
+if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null, 'solicitud_permiso')) {
+    responderJson(false, 'No pudimos verificar que no eres un robot. Resuelve la verificación de seguridad e inténtalo de nuevo.', 400);
+}
+
 if (!has_module_permission(3, 'crear')) {
     responderJson(false, 'No tienes permiso para crear solicitudes.', 403);
 }
@@ -41,6 +48,15 @@ $idEmpleado = $_SESSION['id_usuario'] ?? null;
 if (!is_string($idEmpleado) || trim($idEmpleado) === '') {
     responderJson(false, 'Sesión inválida.', 401);
 }
+
+// Rate limiting de solicitudes con evidencias (10 por hora por usuario).
+require_once __DIR__ . '/helpers/UploadRateLimiter.php';
+$limiteSubidas = new UploadRateLimiter($conexion, 10, 60);
+$chequeoSubidas = $limiteSubidas->verificar($idEmpleado, 'evidencias');
+if (!$chequeoSubidas['permitido']) {
+    responderJson(false, 'Has superado el límite de solicitudes con evidencias. Inténtalo de nuevo en ' . $chequeoSubidas['minutos'] . ' minuto(s).', 429);
+}
+$limiteSubidas->registrar($idEmpleado, 'evidencias');
 
 // --- Recepción de campos ---
 $tipoSolicitud   = strtolower(trim($_POST['tipo_solicitud'] ?? ''));
@@ -129,8 +145,7 @@ try {
         }
     }
 
-    // --- Validar tipos de permiso y si requieren evidencia (solo aplica a permisos) ---
-    $requiereEvidencia = false;
+    // --- Validar tipos de permiso (solo aplica a permisos, no a vacaciones) ---
     if (!empty($idsTiposPermiso)) {
         $placeholders = implode(',', array_fill(0, count($idsTiposPermiso), '?'));
         $sentenciaTipos = $conexion->prepare(
@@ -143,21 +158,17 @@ try {
         if (count($tiposEncontrados) !== count(array_unique($idsTiposPermiso))) {
             responderJson(false, 'Uno o más motivos seleccionados no son válidos.', 400);
         }
-
-        $requiereEvidencia = in_array(true, array_map('boolval', $tiposEncontrados), true);
     }
 
-    // --- Validación y subida de evidencias (antes de crear la solicitud) ---
+    // --- Validación y subida de evidencias (opcionales, antes de crear la solicitud) ---
     $archivosSubidos = []; // [{storage_key, url_publica, nombre_original, mime_type, tamano_bytes}]
+    $proveedorStorage = null; // Nombre del proveedor real ('R2' o 'NULL') para persistir en la BD.
     $archivosEvidencia = $_FILES['evidencias'] ?? null;
     $cantidadArchivos = is_array($archivosEvidencia['name'] ?? null) ? count($archivosEvidencia['name']) : 0;
 
-    if ($requiereEvidencia && $cantidadArchivos === 0) {
-        responderJson(false, 'El motivo seleccionado requiere adjuntar evidencia (JPG, PNG o PDF).', 400);
-    }
-
     if ($cantidadArchivos > 0) {
         $storage = StorageFactory::create();
+        $proveedorStorage = $storage->getProviderName();
         for ($i = 0; $i < $cantidadArchivos; $i++) {
             $archivo = [
                 'name'     => $archivosEvidencia['name'][$i],
@@ -178,17 +189,34 @@ try {
             }
 
             $mimeType = EvidenceValidator::detectMimeType($archivo['tmp_name']);
-            $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
-            $storageKey = EvidenceValidator::buildStorageKey($idEmpleado, $extension);
 
-            $resultado = $storage->upload($archivo['tmp_name'], $storageKey, $mimeType);
+            // Compresión antes de subir (imágenes con GD, PDFs con Ghostscript).
+            $tmpComprimido = tempnam(sys_get_temp_dir(), 'evid_comp_');
+            if ($tmpComprimido === false) {
+                responderJson(false, 'No se pudo preparar el archivo para su subida.', 500);
+            }
+
+            try {
+                $comp = FileCompressor::compress($archivo['tmp_name'], $tmpComprimido, $mimeType);
+                $extension = $comp['extension'] !== ''
+                    ? $comp['extension']
+                    : pathinfo($archivo['name'], PATHINFO_EXTENSION);
+                $storageKey = EvidenceValidator::buildStorageKey($idEmpleado, $extension);
+                $resultado = $storage->upload($tmpComprimido, $storageKey, $comp['mime']);
+                $tamanoFinal = (int) filesize($tmpComprimido);
+            } catch (Throwable $e) {
+                @unlink($tmpComprimido);
+                error_log('solicitud_permiso: error comprimiendo evidencia: ' . $e->getMessage());
+                responderJson(false, 'No se pudo procesar el archivo adjunto.', 500);
+            }
+            @unlink($tmpComprimido);
 
             $archivosSubidos[] = [
                 'storage_key'     => $resultado['storage_key'],
                 'url_publica'     => $resultado['url_publica'] ?? null,
                 'nombre_original' => $archivo['name'],
-                'mime_type'       => $mimeType,
-                'tamano_bytes'    => (int) $archivo['size'],
+                'mime_type'       => $comp['mime'],
+                'tamano_bytes'    => $tamanoFinal,
             ];
         }
     }
@@ -229,7 +257,7 @@ try {
         foreach ($archivosSubidos as $evidencia) {
             $sentenciaEvidencia->execute([
                 $idPermiso,
-                'BUNNY',
+                $proveedorStorage ?? 'NULL',
                 $evidencia['storage_key'],
                 $evidencia['url_publica'],
                 $evidencia['nombre_original'],

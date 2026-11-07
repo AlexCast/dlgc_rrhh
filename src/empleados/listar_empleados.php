@@ -125,7 +125,13 @@ $empleadosEliminados = array_filter($empleadosRegistros, function ($empleado) {
                                                     <td><?php echo mostrarValor($empleado->estado_civil ?? null); ?></td>
                                                     <td><?php echo mostrarValor($empleado->direccion_casa ?? null); ?></td>
                                                     <td><?php echo mostrarValor($empleado->numero_celular ?? null); ?></td>
-                                                    <td><?php echo mostrarValor($empleado->foto_perfil ?? null); ?></td>
+                                                    <td>
+                                                        <?php if (!empty($empleado->foto_perfil)): ?>
+                                                            <img src="/app/foto_perfil.php?id=<?php echo rawurlencode((string) $empleado->id_usuario); ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                                        <?php else: ?>
+                                                            <span class="text-muted">—</span>
+                                                        <?php endif; ?>
+                                                    </td>
                                                     <td class="acciones-fijas">
                                                         <?php if (has_module_permission($moduleId, 'restaurar')): ?>
                                                         <form method="POST" action="restore_empleados.php" style="display:inline-block;">
@@ -191,7 +197,13 @@ $empleadosEliminados = array_filter($empleadosRegistros, function ($empleado) {
                                         <td><?php echo mostrarValor($empleado->estado_civil ?? null); ?></td>
                                         <td><?php echo mostrarValor($empleado->direccion_casa ?? null); ?></td>
                                         <td><?php echo mostrarValor($empleado->numero_celular ?? null); ?></td>
-                                        <td><?php echo mostrarValor($empleado->foto_perfil ?? null); ?></td>
+                                        <td>
+                                            <?php if (!empty($empleado->foto_perfil)): ?>
+                                                <img src="/app/foto_perfil.php?id=<?php echo rawurlencode((string) $empleado->id_usuario); ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                            <?php else: ?>
+                                                <span class="text-muted">—</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="actions-cell acciones-fijas">
                                             <?php if (has_module_permission(4, 'actualizar')): ?>
                                             <a class="btn btn-warning btn-sm" href="editar_empleados.php?id_usuario=<?php echo urlencode((string) $empleado->id_usuario); ?>">Editar</a>
@@ -248,7 +260,13 @@ $empleadosEliminados = array_filter($empleadosRegistros, function ($empleado) {
                                     <p class="card-text mb-1"><strong>Estado Civil:</strong> <?php echo mostrarValor($empleado->estado_civil ?? null); ?></p>
                                     <p class="card-text mb-1"><strong>Dirección:</strong> <?php echo mostrarValor($empleado->direccion_casa ?? null); ?></p>
                                     <p class="card-text mb-1"><strong>Celular:</strong> <?php echo mostrarValor($empleado->numero_celular ?? null); ?></p>
-                                    <p class="card-text mb-0"><strong>Foto Perfil:</strong> <?php echo mostrarValor($empleado->foto_perfil ?? null); ?></p>
+                                    <p class="card-text mb-0"><strong>Foto Perfil:</strong>
+                                        <?php if (!empty($empleado->foto_perfil)): ?>
+                                            <img src="/app/foto_perfil.php?id=<?php echo rawurlencode((string) $empleado->id_usuario); ?>" alt="Foto de perfil" class="rounded-circle d-block mt-1" style="width: 48px; height: 48px; object-fit: cover;">
+                                        <?php else: ?>
+                                            No registrada
+                                        <?php endif; ?>
+                                    </p>
                                 </div>
                             </div>
                         </div>

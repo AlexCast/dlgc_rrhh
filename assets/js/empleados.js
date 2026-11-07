@@ -135,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('button');
             card.className = 'employee-card';
             card.setAttribute('aria-label', `Ver disponibilidad de ${emp.name}`);
-            const avatarHtml = emp.foto_perfil
-                ? `<img src="/uploads/perfiles/${encodeURIComponent(emp.foto_perfil)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+            const avatarHtml = emp.foto_url
+                ? `<img src="${escapeHtml(emp.foto_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
                 : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
             card.innerHTML = `
                 <div class="emp-avatar">${avatarHtml}</div>
@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         fullName: emp.nombre_completo,
                         role: emp.cargo,
                         foto_perfil: emp.foto_perfil || null,
+                        foto_url: emp.foto_url || null,
                         phone: emp.numero_celular,
                         email: emp.correo
                     }));
@@ -344,8 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('employee-modal-phone').textContent = empleadoSeleccionado.phone || 'No registrado';
         document.getElementById('employee-modal-email').textContent = empleadoSeleccionado.email || 'No registrado';
         const avatarContainer = document.getElementById('employee-modal-avatar');
-        if (empleadoSeleccionado.foto_perfil) {
-            avatarContainer.innerHTML = `<img src="/uploads/perfiles/${encodeURIComponent(empleadoSeleccionado.foto_perfil)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        if (empleadoSeleccionado.foto_url) {
+            avatarContainer.innerHTML = `<img src="${escapeHtml(empleadoSeleccionado.foto_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
         } else {
             avatarContainer.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
         }

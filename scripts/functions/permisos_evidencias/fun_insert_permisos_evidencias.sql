@@ -36,7 +36,7 @@ BEGIN
     )
     VALUES (
         wid_permiso, 
-        COALESCE(UPPER(TRIM(wproveedor)), 'BUNNY'), 
+        COALESCE(UPPER(TRIM(wproveedor)), 'R2'), 
         TRIM(wstorage_key), 
         wurl_publica,
         wnombre_original, 

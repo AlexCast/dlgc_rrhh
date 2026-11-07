@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 require_once '../app/auth_guard.php';
 require_once '../app/conexion.php';
+require_once '../app/helpers/TurnstileHelper.php';
 require_module_access(3);
+
+$turnstileSiteKey = TurnstileHelper::siteKey();
 
 $puedeCrear = has_module_permission(3, 'crear');
 
@@ -69,6 +72,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="/assets/css/sst.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/sst.css'); ?>">
     <link rel="stylesheet" href="/assets/css/solicitud_permiso.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/solicitud_permiso.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
+    <?php if ($turnstileSiteKey !== ''): ?>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+    <?php endif; ?>
 </head>
 <body
     data-puede-crear="<?php echo $puedeCrear ? '1' : '0'; ?>"
@@ -93,7 +99,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
             <a href="/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
+        <img src="<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
              alt="Foto de perfil" 
              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     <?php else: ?>
@@ -285,14 +291,18 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 0.4rem;">
                                             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
                                         </svg>
-                                        Evidencia (JPG, PNG o PDF, máx. 10MB c/u)
+                                        Evidencia (JPG, PNG, WebP o PDF, máx. 10MB c/u)
                                     </label>
-                                    <input type="file" id="evidencias" name="evidencias[]" accept=".jpg,.jpeg,.png,.pdf" multiple>
-                                    <p class="perm-field-hint">El motivo seleccionado requiere evidencia.</p>
+                                    <input type="file" id="evidencias" name="evidencias[]" accept=".jpg,.jpeg,.png,.webp,.pdf" multiple>
+                                    <p class="perm-field-hint">Opcional: adjunta evidencia que respalde tu solicitud.</p>
                                 </div>
                             </div>
 
                             <p id="permiso-form-feedback" class="sst-feedback"></p>
+
+                            <?php if ($turnstileSiteKey !== '' && $puedeCrear): ?>
+                            <div class="cf-turnstile" style="margin-bottom: 1rem;" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="solicitud_permiso"></div>
+                            <?php endif; ?>
 
                             <!-- Botones -->
                             <div class="perm-actions">

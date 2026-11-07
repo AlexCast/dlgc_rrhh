@@ -3,6 +3,9 @@
 $moduleId = 4;
 require_once __DIR__ . '/../../app/src_guard.php';
 require_once __DIR__ . '/../../app/conexion.php';
+require_once __DIR__ . '/../../app/helpers/TurnstileHelper.php';
+
+$turnstileSiteKey = TurnstileHelper::siteKey();
 
 $sentencia = $conexion->query("
     SELECT 
@@ -63,7 +66,7 @@ $municipiosRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
             </header>
 
             <div class="editor-body">
-                <form action="insertar_empleados.php" method="POST" novalidate data-validate>
+                <form action="insertar_empleados.php" method="POST" enctype="multipart/form-data" novalidate data-validate>
                     <?php echo csrf_input(); ?>
 
                     <div class="row g-3">
@@ -295,23 +298,26 @@ $municipiosRegistros = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
                         <div class="col-md-12">
                             <div class="field-wrap">
-                                <label for="foto_perfil" class="form-label">Foto de Perfil (Ruta/URL)</label>
+                                <label for="foto_perfil" class="form-label">Foto de Perfil</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Foto</span>
                                     <input
-                                        type="text"
+                                        type="file"
                                         name="foto_perfil"
                                         id="foto_perfil"
                                         class="form-control"
-                                        maxlength="255"
-                                        placeholder="Ej: uploads/perfiles/emp001.jpg"
+                                        accept="image/jpeg,image/png,image/webp"
                                     >
                                 </div>
-                                <p class="field-tip">Opcional. Especifica la ruta de la imagen o URL.</p>
+                                <p class="field-tip">Opcional. JPG, PNG o WebP de máximo 2 MB. La imagen se comprime y se guarda en Cloudflare R2 (solo visible para usuarios con sesión).</p>
                             </div>
                         </div>
 
                     </div>
+
+                    <?php if ($turnstileSiteKey !== ''): ?>
+                        <div class="cf-turnstile mb-3" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="empleado_foto"></div>
+                    <?php endif; ?>
 
                     <div class="cta-row">
                         <a href="listar_empleados.php" class="btn btn-soft">Cancelar y volver</a>

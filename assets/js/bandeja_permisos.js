@@ -153,6 +153,18 @@ function cargarBandeja(vista, historial) {
         });
 }
 
+function escapeHtmlEv(texto) {
+    return String(texto).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+
+function formatearTamanoEvidencia(bytes) {
+    const b = Number(bytes) || 0;
+    if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB';
+    return Math.max(1, Math.round(b / 1024)) + ' KB';
+}
+
 function renderBandeja(contenedor, solicitudes, vista, historial) {
     if (!solicitudes || solicitudes.length === 0) {
         contenedor.innerHTML = '<div class="sst-empty">' + (historial ? 'Sin solicitudes resueltas todavía.' : 'No hay solicitudes pendientes.') + '</div>';
@@ -187,6 +199,10 @@ function renderBandeja(contenedor, solicitudes, vista, historial) {
             <div class="sst-form-meta">
                 <span>Fechas: ${rango}</span>
                 <span>Evidencias adjuntas: ${sol.total_evidencias}</span>
+                ${sol.evidencias && sol.evidencias.length > 0 ? `
+                <div class="sst-evidencias">
+                    ${sol.evidencias.map(ev => `<a href="${ev.url}" target="_blank" rel="noopener" class="evidencia-link">📎 ${escapeHtmlEv(ev.nombre_original)} (${formatearTamanoEvidencia(ev.tamano_bytes)})</a>`).join('')}
+                </div>` : ''}
                 <span>Nivel Jefe: ${ETIQUETAS_ESTADO[sol.estado_jefe] || sol.estado_jefe || '—'}</span>
                 <span>Nivel RRHH: ${ETIQUETAS_ESTADO[sol.estado_rrhh] || sol.estado_rrhh || '—'}</span>
                 <span>${esVacaciones ? 'Reconocimiento: Vacaciones (remuneradas)' : 'Reconocimiento: ' + metodoDescuentoTexto}</span>

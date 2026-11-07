@@ -22,7 +22,7 @@ function terminate_session_and_redirect(): void
         session_destroy();
     }
 
-    header('Location: ../templates/login.php', true, 302);
+    header('Location: /templates/login.php', true, 302);
     exit;
 }
 

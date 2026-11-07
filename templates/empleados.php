@@ -54,7 +54,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
             <a href="/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">
     <?php if (!empty($_SESSION['foto_perfil'])): ?>
-        <img src="/uploads/perfiles/<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
+        <img src="<?php echo htmlspecialchars($_SESSION['foto_perfil']); ?>" 
              alt="Foto de perfil" 
              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     <?php else: ?>
@@ -165,7 +165,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         <div class="employee-modal-panel">
             <div class="employee-modal-header">
                 <h3 id="employee-info-title">Datos de contacto</h3>
-                <button type="button" id="employee-info-close" class="employee-modal-close" aria-label="Cerrar">×</button>
+                <button type="button" id="employee-info-close" class="employee-modal-close" aria-label="Cerrar">�—</button>
             </div>
             <div class="employee-modal-body">
                 <div class="employee-modal-avatar" id="employee-modal-avatar"></div>

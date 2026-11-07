@@ -132,6 +132,20 @@ $registerData = $_SESSION['register_form_data'] ?? [];
                             <span id="access-code-help" class="help-text">Solicita este código de 4 dígitos al área de RRHH.</span>
                         </div>
 
+                        <button type="button" id="resend-verification-link" class="resend-link">¿No recibiste tu correo? Reenviar correo</button>
+
+                        <div id="resend-verification-area" class="resend-area" hidden>
+                            <div class="input-group">
+                                <label for="resend-ident">Usuario o Correo Electrónico</label>
+                                <input type="text" id="resend-ident" maxlength="40" placeholder="usuario o ejemplo@empresa.com" autocomplete="username" autocapitalize="off">
+                            </div>
+                            <?php if ($turnstileSiteKey !== ''): ?>
+                                <div id="resend-turnstile-container" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
+                            <?php endif; ?>
+                            <button type="button" id="resend-verification-submit" class="btn btn-dark full-width">Reenviar correo</button>
+                            <p id="resend-verification-msg" class="help-text" aria-live="polite"></p>
+                        </div>
+
                         <?php if ($turnstileSiteKey !== ''): ?>
                             <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="register"></div>
                         <?php endif; ?>

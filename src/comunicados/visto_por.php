@@ -57,6 +57,9 @@ try {
     $lectores = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
     foreach ($lectores as $lector) {
+        $lector->foto_url = !empty($lector->foto_perfil)
+            ? '/app/foto_perfil.php?id=' . rawurlencode((string) $lector->id_usuario)
+            : null;
         $lector->id_usuario = htmlspecialchars((string) $lector->id_usuario, ENT_QUOTES, 'UTF-8');
         $lector->nombre_completo = htmlspecialchars((string) $lector->nombre_completo, ENT_QUOTES, 'UTF-8');
         $lector->foto_perfil = !empty($lector->foto_perfil)
