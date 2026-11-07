@@ -6,6 +6,10 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Bloquear el directorio .git completo. <FilesMatch> solo cubre archivos,
+    # no directorios: sin esta regla /.git/config y demás quedarían expuestos.
+    RewriteRule ^\.git(/|$) - [F,L]
+
     # Si entran a la raíz (ejemplo: ip_vps/), sirve templates/index.html
     RewriteRule ^$ templates/index.html [L]
 
