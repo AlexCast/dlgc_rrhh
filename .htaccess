@@ -10,6 +10,12 @@ Options -Indexes
     # no directorios: sin esta regla /.git/config y demás quedarían expuestos.
     RewriteRule ^\.git(/|$) - [F,L]
 
+    # Bloquear directorios sensibles servidos por Apache (esquema SQL, seeds,
+    # logs y configuración). Nada de la app los consume por HTTP.
+    RewriteRule ^scripts(/|$) - [F,L]
+    RewriteRule ^logs(/|$)   - [F,L]
+    RewriteRule ^config(/|$) - [F,L]
+
     # Si entran a la raíz (ejemplo: ip_vps/), sirve templates/index.html
     RewriteRule ^$ templates/index.html [L]
 
