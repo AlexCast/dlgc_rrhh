@@ -44,8 +44,8 @@ $t_roles_registros = $sentencia->fetchAll(PDO::FETCH_OBJ);
                                         class="form-control"
                                          required maxlength="20"
                                          autocapitalize="characters"
-                                         pattern="[0-9]{10}|[A-Za-z0-9\-]{5,20}"
-                                         title="CC: 10 dígitos. PPT/CE: 5-20 caracteres alfanuméricos (guiones permitidos)."
+                                         pattern="[0-9]{8,10}|[A-Za-z0-9\-]{5,20}"
+                                         title="CC: 8-10 dígitos. PPT/CE: 5-20 caracteres alfanuméricos (guiones permitidos)."
                                     >
                                 </div>
                             </div>

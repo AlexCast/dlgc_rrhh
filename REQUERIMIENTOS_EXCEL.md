@@ -220,7 +220,7 @@
 | LOG-RF-031 | El paso 2 debe mostrar un banner de confirmación "Código validado". | ☐ | ☐ | ☐ | templates/login.php (register-step2) |
 | LOG-RF-032 | El campo username debe validar: iniciar con letra minúscula, 3–30 caracteres, solo `[a-z0-9_.-]`. | ☐ | ☐ | ☐ | InputSanitizer::validateUsername |
 | LOG-RF-033 | El campo tipo de documento debe ofrecer las opciones CC, PPT y CE. | ☐ | ☐ | ☐ | templates/login.php |
-| LOG-RF-034 | El documento CC debe validarse como exactamente 10 dígitos. | ☐ | ☐ | ☐ | app/register.php (regex `^[0-9]{10}$`) |
+| LOG-RF-034 | El documento CC debe validarse con entre 8 y 10 dígitos. | ☐ | ☐ | ☐ | app/register.php (regex `^[0-9]{8,10}$`) |
 | LOG-RF-035 | El documento PPT debe validarse como 5–20 caracteres alfanuméricos con guion. | ☐ | ☐ | ☐ | app/register.php |
 | LOG-RF-036 | El documento CE debe validarse como 5–20 caracteres alfanuméricos. | ☐ | ☐ | ☐ | app/register.php |
 | LOG-RF-037 | El formulario debe capturar primer nombre (obligatorio) y segundo nombre (opcional). | ☐ | ☐ | ☐ | templates/login.php |
@@ -778,7 +778,7 @@
 | ID | Requerimiento | SÍ | NO | ADI | Evidencia / Observaciones |
 |----|---------------|----|----|-----|---------------------------|
 | BDD-RF-039 | t_usuarios debe tener UNIQUE en username y correo. | ☐ | ☐ | ☐ | modelo_db.sql |
-| BDD-RF-040 | t_usuarios debe validar el formato del documento según tipo (CC: 10 dígitos; PPT/CE: 5–20 alfanuméricos) con CHECK. | ☐ | ☐ | ☐ | modelo_db.sql |
+| BDD-RF-040 | t_usuarios debe validar el formato del documento según tipo (CC: 8-10 dígitos; PPT/CE: 5–20 alfanuméricos) con CHECK. | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-041 | t_empleados debe impedir que un empleado sea su propio jefe (CHECK id_jefe <> id_usuario). | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-042 | t_empleados debe validar género, tipo de sangre y estado civil con CHECK de dominio. | ☐ | ☐ | ☐ | modelo_db.sql |
 | BDD-RF-043 | t_contratos_empleados debe validar tipo_contrato IN (FIJO, INDEFINIDO, PRACTICAS). | ☐ | ☐ | ☐ | modelo_db.sql |

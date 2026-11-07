@@ -94,6 +94,8 @@ assertTrue('boundedText: rechaza exceder maximo', InputSanitizer::boundedText(st
 assertEq('letters: nombres con tildes', 'MARÍA JOSÉ', InputSanitizer::letters('maría josé', 30), $fallos, $total);
 assertTrue('letters: rechaza digitos', InputSanitizer::letters('juan123', 30) === null, $fallos, $total);
 assertEq('document: CC valido', '1000123456', InputSanitizer::document('CC', '1000123456'), $fallos, $total);
+assertEq('document: CC valido (8 digitos)', '12345678', InputSanitizer::document('CC', '12345678'), $fallos, $total);
+assertTrue('document: CC invalido (7 digitos)', InputSanitizer::document('CC', '1234567') === null, $fallos, $total);
 assertTrue('document: CC invalido', InputSanitizer::document('CC', '1000') === null, $fallos, $total);
 assertEq('document: PPT normaliza mayusculas', 'ABC-123', InputSanitizer::document('PPT', 'abc-123'), $fallos, $total);
 assertEq('telefono: acepta formato', '300 123-4567', InputSanitizer::telefono('300 123-4567'), $fallos, $total);

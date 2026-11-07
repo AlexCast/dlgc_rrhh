@@ -389,9 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch (tipo) {
             case 'CC':
-                patron = '^[0-9]{10}$';
-                placeholder = 'Ej: 1234567890';
-                titulo = 'La cédula debe tener exactamente 10 dígitos numéricos.';
+                patron = '^[0-9]{8,10}$';
+                placeholder = 'Ej: 12345678';
+                titulo = 'La cédula debe tener entre 8 y 10 dígitos numéricos.';
                 break;
             case 'CE':
                 patron = '^[A-Z0-9]{5,20}$';

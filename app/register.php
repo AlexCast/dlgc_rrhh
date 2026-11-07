@@ -154,12 +154,12 @@ if (!in_array($tipoDocumento, $tiposValidos, true)) {
 
 // Formato de documento según tipo (igual al CHECK de la base de datos)
 $patronesDocumento = [
-    'CC'  => '/^[0-9]{10}$/',
+    'CC'  => '/^[0-9]{8,10}$/',
     'PPT' => '/^[A-Z0-9-]{5,20}$/',
     'CE'  => '/^[A-Z0-9]{5,20}$/',
 ];
 $mensajesDocumento = [
-    'CC'  => 'La cédula de ciudadanía debe tener exactamente 10 dígitos numéricos.',
+    'CC'  => 'La cédula de ciudadanía debe tener entre 8 y 10 dígitos numéricos.',
     'PPT' => 'El pasaporte debe tener entre 5 y 20 caracteres alfanuméricos o guiones.',
     'CE'  => 'La cédula de extranjería debe tener entre 5 y 20 caracteres alfanuméricos.',
 ];

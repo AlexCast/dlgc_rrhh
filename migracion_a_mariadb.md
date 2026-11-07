@@ -439,7 +439,7 @@ creado en la sección 5.
    - **Esperado:** aparece el mensaje con el código de 4 dígitos y su vencimiento.
 3. Cerrar sesión y, en `login.php`, ir a la pestaña **Registrarse** e ingresar ese código.
    - **Esperado:** avanza al formulario (paso 2) sin error.
-4. Llenar el formulario (documento CC de 10 dígitos, usuario en minúsculas, correo y clave).
+4. Llenar el formulario (documento CC de 8 a 10 dígitos, usuario en minúsculas, correo y clave).
    - **Esperado:** redirige al login con `code=registro_pendiente_verificacion`.
    - **Verificación en BD:** debe existir la fila en `t_registros_pendientes` y su token en
      `t_verificacion_correo`.

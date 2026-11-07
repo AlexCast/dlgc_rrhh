@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS t_usuarios (
     fec_delete       DATETIME,
     CONSTRAINT chk_t_usuarios_documento_formato
         CHECK (
-            (tipo_documento = 'CC' AND id_usuario REGEXP '^[0-9]{10}$') OR
+            (tipo_documento = 'CC' AND id_usuario REGEXP '^[0-9]{8,10}$') OR
             (tipo_documento = 'PPT' AND id_usuario REGEXP '^[A-Z0-9\-]{5,20}$') OR
             (tipo_documento = 'CE' AND id_usuario REGEXP '^[A-Z0-9]{5,20}$')
         ),

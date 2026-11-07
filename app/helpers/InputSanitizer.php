@@ -290,7 +290,7 @@ class InputSanitizer
         $numero = mb_strtoupper(trim($numero), 'UTF-8');
 
         $patrones = [
-            'CC'  => '/^[0-9]{10}$/',
+            'CC'  => '/^[0-9]{8,10}$/',
             'PPT' => '/^[A-Z0-9\-]{5,20}$/',
             'CE'  => '/^[A-Z0-9]{5,20}$/',
         ];
