@@ -90,6 +90,9 @@ if (str_starts_with($fotoKey, 'uploads/')) {
     } catch (Throwable $e) {
         error_log('foto_perfil: ' . $e->getMessage());
         http_response_code(404);
+        if (getenv('APP_DEBUG') === '1') {
+            die('Foto no encontrada. [DEBUG] ' . $e->getMessage());
+        }
         die('Foto no encontrada.');
     }
 }

@@ -23,6 +23,15 @@ jobs:
             cd /var/www/html/dlgc_rrhh
             git reset --hard HEAD
             git pull origin master
+
+            # Dependencias de Composer: vendor/ no está versionado y el código
+            # depende de aws/aws-sdk-php (R2), phpspreadsheet y dompdf.
+            if ! command -v composer >/dev/null 2>&1; then
+              echo "ERROR: composer no está instalado en el VPS. Instálalo para poder desplegar."
+              exit 1
+            fi
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction || { echo "ERROR ejecutando composer install"; exit 1; }
+
             sudo chown -R www-data:www-data /var/www/html/dlgc_rrhh
             sudo chmod -R 775 /var/www/html/dlgc_rrhh
 

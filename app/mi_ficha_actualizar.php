@@ -36,6 +36,20 @@ function responderFichaJson(bool $success, string $message, int $httpCode = 200,
     exit;
 }
 
+/**
+ * Solo cuando APP_DEBUG=1 en el .env del servidor se revela el detalle técnico
+ * del error en la respuesta (para diagnosticar sin revisar logs). En producción
+ * normal el usuario solo ve el mensaje genérico.
+ */
+function mensajeFichaDebug(string $mensaje, ?Throwable $e = null): string
+{
+    if (getenv('APP_DEBUG') !== '1' || $e === null) {
+        return $mensaje;
+    }
+
+    return $mensaje . ' [DEBUG] ' . $e->getMessage();
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     responderFichaJson(false, 'Método no permitido.', 405);
 }
@@ -187,7 +201,7 @@ if ($quitarFoto) {
     } catch (Throwable $e) {
         @unlink($temporalComprimido);
         error_log('mi_ficha_actualizar: error procesando foto: ' . $e->getMessage());
-        responderFichaJson(false, 'No se pudo procesar la foto de perfil.', 400);
+        responderFichaJson(false, mensajeFichaDebug('No se pudo procesar la foto de perfil.', $e), 400);
     }
     @unlink($temporalComprimido);
 } elseif ($errorArchivo !== UPLOAD_ERR_NO_FILE) {
@@ -269,5 +283,5 @@ try {
         }
     }
     error_log('mi_ficha_actualizar: ' . $e->getMessage());
-    responderFichaJson(false, 'Ocurrió un error al guardar los cambios. Inténtalo de nuevo.', 500);
+    responderFichaJson(false, mensajeFichaDebug('Ocurrió un error al guardar los cambios. Inténtalo de nuevo.', $e), 500);
 }
