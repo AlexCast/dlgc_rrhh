@@ -178,7 +178,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
                 <section class="comunicados-header">
                     <div>
-                        <h2>�šltimas Noticias</h2>
+                        <h2>Últimas Noticias</h2>
                         <p class="text-muted">Mantente al día con la información oficial de la empresa.</p>
                     </div>
                     <?php if (has_module_permission(24, 'crear') || has_module_permission(24, 'actualizar')): ?>

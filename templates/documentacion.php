@@ -229,7 +229,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                         <option value="">Sin contrato</option>
                         <?php foreach ($contratos as $contrato): ?>
                             <option value="<?php echo (int) $contrato->id_contrato; ?>">
-                                <?php echo '#' . (int) $contrato->id_contrato . ' �€” ' . htmlspecialchars((string) $contrato->puesto, ENT_QUOTES, 'UTF-8'); ?>
+                                <?php echo '#' . (int) $contrato->id_contrato . ' — ' . htmlspecialchars((string) $contrato->puesto, ENT_QUOTES, 'UTF-8'); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

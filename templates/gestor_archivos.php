@@ -253,7 +253,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                 <?php echo csrf_input(); ?>
                 <input type="hidden" name="id_documento" id="gestor-subir-id-documento">
                 <div class="gestor-form-campo">
-                    <label for="gestor-subir-archivo">Archivo (PDF, JPG, PNG o WebP �€” máx. 10 MB) <span class="gestor-obligatorio">*</span></label>
+                    <label for="gestor-subir-archivo">Archivo (PDF, JPG, PNG o WebP — máx. 10 MB) <span class="gestor-obligatorio">*</span></label>
                     <input type="file" id="gestor-subir-archivo" name="archivo" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" required>
                 </div>
                 <div class="gestor-form-campo">

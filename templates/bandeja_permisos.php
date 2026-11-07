@@ -179,7 +179,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                             </div>
 
                             <div class="reporte-grupo">
-                                <p class="perm-field-hint"><strong>Para Nómina</strong> �€” permisos no remunerados (descuento de sueldo) y días cargados a vacaciones.</p>
+                                <p class="perm-field-hint"><strong>Para Nómina</strong> — permisos no remunerados (descuento de sueldo) y días cargados a vacaciones.</p>
                                 <div class="perm-actions">
                                     <a class="btn btn-outline reporte-link" data-vista="nomina" data-formato="excel" href="#">Descargar Nómina (Excel)</a>
                                     <a class="btn btn-outline reporte-link" data-vista="nomina" data-formato="pdf" href="#">Descargar Nómina (PDF)</a>
@@ -187,7 +187,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                             </div>
 
                             <div class="reporte-grupo">
-                                <p class="perm-field-hint"><strong>Para RRHH</strong> �€” informe completo de todos los permisos aprobados, se descuenten o no.</p>
+                                <p class="perm-field-hint"><strong>Para RRHH</strong> — informe completo de todos los permisos aprobados, se descuenten o no.</p>
                                 <div class="perm-actions">
                                     <a class="btn btn-outline reporte-link" data-vista="rrhh" data-formato="excel" href="#">Descargar Informe RRHH (Excel)</a>
                                     <a class="btn btn-outline reporte-link" data-vista="rrhh" data-formato="pdf" href="#">Descargar Informe RRHH (PDF)</a>

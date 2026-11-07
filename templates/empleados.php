@@ -165,7 +165,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         <div class="employee-modal-panel">
             <div class="employee-modal-header">
                 <h3 id="employee-info-title">Datos de contacto</h3>
-                <button type="button" id="employee-info-close" class="employee-modal-close" aria-label="Cerrar">�—</button>
+                <button type="button" id="employee-info-close" class="employee-modal-close" aria-label="Cerrar">×</button>
             </div>
             <div class="employee-modal-body">
                 <div class="employee-modal-avatar" id="employee-modal-avatar"></div>
