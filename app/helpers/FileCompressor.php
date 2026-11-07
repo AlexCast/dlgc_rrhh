@@ -75,7 +75,8 @@ class FileCompressor
 
     /**
      * Resuelve el ejecutable de Ghostscript: config explícita, auto-detección
-     * en instalaciones típicas de Windows, o PATH.
+     * en instalaciones típicas (Windows: C:\Program Files\gs, C:\tools\gs;
+     * Linux: /usr/bin/gs, /usr/local/bin/gs) o PATH.
      */
     public static function gsPath(): string
     {
@@ -88,31 +89,61 @@ class FileCompressor
                 return self::$gsPath;
             }
 
+            $esWindows = (PHP_OS_FAMILY ?? PHP_OS) === 'Windows';
+
             $candidatos = [];
-            foreach (['C:\\Program Files\\gs', 'C:\\Program Files (x86)\\gs', 'C:\\tools\\gs'] as $raiz) {
-                // Instalación típica: <raiz>\gsX.Y.Z\bin\gswin64c.exe o <raiz>\bin\gswin64c.exe.
-                foreach ([$raiz . '\\*\\bin\\gswin64c.exe', $raiz . '\\bin\\gswin64c.exe'] as $patron) {
-                    $encontrados = glob($patron);
-                    if (is_array($encontrados)) {
-                        $candidatos = array_merge($candidatos, $encontrados);
+            if ($esWindows) {
+                foreach (['C:\\Program Files\\gs', 'C:\\Program Files (x86)\\gs', 'C:\\tools\\gs'] as $raiz) {
+                    // Instalación típica: <raiz>\gsX.Y.Z\bin\gswin64c.exe o <raiz>\bin\gswin64c.exe.
+                    foreach ([$raiz . '\\*\\bin\\gswin64c.exe', $raiz . '\\bin\\gswin64c.exe'] as $patron) {
+                        $encontrados = glob($patron);
+                        if (is_array($encontrados)) {
+                            $candidatos = array_merge($candidatos, $encontrados);
+                        }
                     }
                 }
-            }
 
-            if (!empty($candidatos)) {
-                rsort($candidatos); // la versión más nueva primero
-                self::$gsPath = (string) $candidatos[0];
-                return self::$gsPath;
-            }
-
-            // Último recurso: PATH (gs o gswin64c).
-            foreach (['gswin64c', 'gs'] as $binario) {
-                $salida = [];
-                $estado = 0;
-                $ruta = @exec('where ' . $binario . ' 2>nul', $salida, $estado);
-                if ($estado === 0 && is_array($salida) && !empty($salida[0]) && is_file(trim((string) $salida[0]))) {
-                    self::$gsPath = trim((string) $salida[0]);
+                if (!empty($candidatos)) {
+                    rsort($candidatos); // la versión más nueva primero
+                    self::$gsPath = (string) $candidatos[0];
                     return self::$gsPath;
+                }
+
+                // Último recurso en Windows: where.exe.
+                foreach (['gswin64c', 'gs'] as $binario) {
+                    $salida = [];
+                    $estado = 0;
+                    $ruta = @exec('where ' . $binario . ' 2>nul', $salida, $estado);
+                    if ($estado === 0 && is_array($salida) && !empty($salida[0]) && is_file(trim((string) $salida[0]))) {
+                        self::$gsPath = trim((string) $salida[0]);
+                        return self::$gsPath;
+                    }
+                }
+            } else {
+                // Linux/macOS: rutas típicas y PATH (command -v o which).
+                foreach (['/usr/bin/gs', '/usr/local/bin/gs'] as $ruta) {
+                    if (is_file($ruta)) {
+                        self::$gsPath = $ruta;
+                        return self::$gsPath;
+                    }
+                }
+
+                if (is_callable('shell_exec') && stripos((string) ini_get('disable_functions'), 'shell_exec') === false) {
+                    $ruta = trim((string) @shell_exec('command -v gs 2>/dev/null'));
+                    if ($ruta !== '' && is_file($ruta)) {
+                        self::$gsPath = $ruta;
+                        return self::$gsPath;
+                    }
+                } else {
+                    foreach (['gs', 'gsc', 'gswin64c'] as $binario) {
+                        $salida = [];
+                        $estado = 0;
+                        $ruta = trim((string) @exec('which ' . $binario . ' 2>/dev/null', $salida, $estado));
+                        if ($estado === 0 && $ruta !== '' && is_file($ruta)) {
+                            self::$gsPath = $ruta;
+                            return self::$gsPath;
+                        }
+                    }
                 }
             }
 
