@@ -20,14 +20,14 @@ ALTER TABLE t_documentos_versiones
 INSERT INTO t_tipos_documento_rrhh (codigo, nombre, usr_insert, fec_insert)
 SELECT t.codigo, t.nombre, t.usr_insert, t.fec_insert
 FROM (
-    SELECT 'CERTIFICADO_LABORAL'       AS codigo, 'Certificado laboral'           AS nombre, 'seed' AS usr_insert, CURRENT_TIMESTAMP AS fec_insert
-    UNION ALL SELECT 'OTROSI',              'Otrosí de contrato',                   'seed', CURRENT_TIMESTAMP
-    UNION ALL SELECT 'AUTORIZACION_AFILIACION', 'Autorización de afiliación',      'seed', CURRENT_TIo obligatorio de accidentes de tránsito)', 'seed', CURRENT_TIMESTAMP
-    UNION ALL SELECT 'CERTIFICADO_BANCARIO', 'Certificación bancaria',             'seed', CURRENT_TIMESTAMPMESTAMP
-    UNION ALL SELECT 'SOAT',                  'SOAT (segur
-    UNION ALL SELECT 'CERTIFICADO_PENSION',   'Certificado de pensión',            'seed', CURRENT_TIMESTAMP
-    UNION ALL SELECT 'CERTIFICADO_CAJA',      'Certificado de caja de compensación', 'seed', CURRENT_TIMESTAMP
-    UNION ALL SELECT 'OTRO',                  'Otro documento',                    'seed', CURRENT_TIMESTAMP
+    SELECT 'CERTIFICADO_LABORAL'          AS codigo, 'Certificado laboral'                  AS nombre, 'seed' AS usr_insert, CURRENT_TIMESTAMP AS fec_insert
+    UNION ALL SELECT 'OTROSI',                     'Otrosí de contrato',                    'seed', CURRENT_TIMESTAMP
+    UNION ALL SELECT 'AUTORIZACION_AFILIACION',    'Autorización de afiliación',            'seed', CURRENT_TIMESTAMP
+    UNION ALL SELECT 'CERTIFICADO_BANCARIO',       'Certificación bancaria',                'seed', CURRENT_TIMESTAMP
+    UNION ALL SELECT 'SOAT',                       'SOAT (seguro obligatorio de accidentes de tránsito)', 'seed', CURRENT_TIMESTAMP
+    UNION ALL SELECT 'CERTIFICADO_PENSION',        'Certificado de pensión',                'seed', CURRENT_TIMESTAMP
+    UNION ALL SELECT 'CERTIFICADO_CAJA',           'Certificado de caja de compensación',   'seed', CURRENT_TIMESTAMP
+    UNION ALL SELECT 'OTRO',                       'Otro documento',                        'seed', CURRENT_TIMESTAMP
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM t_tipos_documento_rrhh x WHERE x.codigo = t.codigo
