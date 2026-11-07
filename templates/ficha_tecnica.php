@@ -29,8 +29,10 @@ $consultaFicha = $conexion->prepare(
         e.estado_civil,
         e.direccion_casa,
         e.numero_celular,
+        e.id_municipio,
         e.fecha_ingreso,
         m.municipio,
+        m.departamento_id AS id_departamento,
         d.departamento,
         c.puesto,
         c.tipo_contrato,
@@ -106,6 +108,18 @@ $consultaFicha = $conexion->prepare(
 $consultaFicha->execute([$idUsuarioSesion]);
 $ficha = $consultaFicha->fetch(PDO::FETCH_ASSOC) ?: [];
 
+// Catálogos para el formulario de edición (departamento → municipios).
+$departamentos = $conexion->query(
+    'SELECT id_departamento, departamento FROM t_departamentos ORDER BY departamento, id_departamento'
+)->fetchAll(PDO::FETCH_ASSOC);
+
+$municipios = $conexion->query(
+    'SELECT m.id_municipio, m.municipio, m.departamento_id
+     FROM t_municipios m
+     WHERE m.estado = 1
+     ORDER BY m.municipio, m.id_municipio'
+)->fetchAll(PDO::FETCH_ASSOC);
+
 $escape = static function ($valor): string {
     $texto = trim((string) ($valor ?? ''));
     return $texto !== '' ? htmlspecialchars($texto, ENT_QUOTES, 'UTF-8') : 'N/A';
@@ -149,8 +163,11 @@ $valor = static function ($campo): string {
     return htmlspecialchars((string) ($campo ?? ''), ENT_QUOTES, 'UTF-8');
 };
 
-// La edición autoservicio solo aplica a quienes tienen ficha de empleado activa.
-$tieneFichaEmpleado = !empty($ficha['fecha_nacimiento'] ?? null);
+// Municipio / departamento para la vista de datos personales.
+$ubicacion = trim(implode(' / ', array_filter([
+    $ficha['municipio'] ?? '',
+    $ficha['departamento'] ?? '',
+])));
 
 $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
 ?>
@@ -236,12 +253,10 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                         <div class="card-header">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                             <h2 id="personal-title" class="card-title">Datos Personales</h2>
-                            <?php if ($tieneFichaEmpleado): ?>
                             <button type="button" id="btn-editar-personales" class="card-edit-btn" aria-label="Editar mis datos personales" aria-expanded="false" aria-controls="personal-form">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 <span>Editar</span>
                             </button>
-                            <?php endif; ?>
                         </div>
                         <div class="info-grid" id="personal-view">
                             <div class="info-item">
@@ -273,6 +288,10 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                                 <span class="info-value" id="v-direccion"><?php echo $escape($ficha['direccion_casa'] ?? null); ?></span>
                             </div>
                             <div class="info-item">
+                                <span class="info-label">Municipio / Departamento</span>
+                                <span class="info-value" id="v-municipio"><?php echo $escape($ubicacion); ?></span>
+                            </div>
+                            <div class="info-item">
                                 <span class="info-label">Número Celular</span>
                                 <span class="info-value" id="v-celular"><?php echo $escape($ficha['numero_celular'] ?? null); ?></span>
                             </div>
@@ -282,7 +301,6 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                             </div>
                         </div>
 
-                        <?php if ($tieneFichaEmpleado): ?>
                         <form id="personal-form" class="edit-form" hidden>
                             <?php echo csrf_input(); ?>
                             <div class="edit-form-grid">
@@ -335,6 +353,30 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                                     <input type="text" id="pf-direccion-casa" name="direccion_casa" required maxlength="100" autocomplete="street-address" value="<?php echo $valor($ficha['direccion_casa'] ?? null); ?>">
                                 </div>
                                 <div class="edit-field">
+                                    <label for="pf-departamento">Departamento <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select id="pf-departamento" name="departamento" required>
+                                        <option value="">Seleccione departamento</option>
+                                        <?php foreach ($departamentos as $departamento): ?>
+                                            <option value="<?php echo (int) $departamento['id_departamento']; ?>" <?php echo (int) ($ficha['id_departamento'] ?? 0) === (int) $departamento['id_departamento'] ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars((string) $departamento['departamento'], ENT_QUOTES, 'UTF-8'); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="edit-field">
+                                    <label for="pf-municipio">Municipio <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select id="pf-municipio" name="id_municipio" required>
+                                        <option value="">Seleccione departamento primero</option>
+                                        <?php foreach ($municipios as $municipio): ?>
+                                            <option value="<?php echo (int) $municipio['id_municipio']; ?>"
+                                                data-departamento-id="<?php echo (int) $municipio['departamento_id']; ?>"
+                                                <?php echo (int) ($ficha['id_municipio'] ?? 0) === (int) $municipio['id_municipio'] ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars((string) $municipio['municipio'], ENT_QUOTES, 'UTF-8'); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="edit-field">
                                     <label for="pf-numero-celular">Número Celular <span class="required-mark" aria-hidden="true">*</span></label>
                                     <input type="tel" id="pf-numero-celular" name="numero_celular" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" value="<?php echo $valor($ficha['numero_celular'] ?? null); ?>">
                                 </div>
@@ -375,7 +417,6 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
                             </div>
                             <p id="personal-form-message" class="form-message" role="alert" hidden></p>
                         </form>
-                        <?php endif; ?>
                     </section>
 
                     <!-- Datos Laborales -->

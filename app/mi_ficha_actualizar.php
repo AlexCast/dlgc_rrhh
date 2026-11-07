@@ -14,9 +14,10 @@ declare(strict_types=1);
  *  - Cambios de foto exigen Turnstile (acción 'empleado_foto'), rate limiting
  *    (5/10 min) y compresión server-side; el nombre de la llave en R2 se
  *    genera desde el id de sesión, nunca desde la entrada del usuario.
- *  - La función fun_update_mi_ficha() no acepta campos privilegiados (rol,
- *    jefe, municipio, fechas laborales, correo), así que aunque el cliente
- *    envíe otros campos serán ignorados.
+ *  - La función fun_update_mi_ficha() registra la ficha en t_empleados si el
+ *    empleado aún no la tiene, y no acepta campos privilegiados (rol, jefe,
+ *    fechas laborales, correo, documento), así que aunque el cliente envíe
+ *    otros campos serán ignorados.
  */
 
 require_once __DIR__ . '/auth_guard.php'; // Sesión + conexion.php + helpers CSRF.
@@ -78,6 +79,7 @@ $tipoSangre      = InputSanitizer::whitelist($_POST['tipo_sangre'] ?? null, ['A+
 $estadoCivil     = InputSanitizer::whitelist($_POST['estado_civil'] ?? null, ['SOLTERO(A)', 'CASADO(A)', 'DIVORCIADO(A)', 'VIUDO(A)', 'UNION LIBRE', 'SEPARADO(A)']);
 $direccionCasa   = InputSanitizer::boundedText($_POST['direccion_casa'] ?? null, 100);
 $numeroCelular   = InputSanitizer::digits($_POST['numero_celular'] ?? null, 10);
+$idMunicipio     = InputSanitizer::intValue($_POST['id_municipio'] ?? null, 1);
 
 // --- Foto de perfil: detectar si hay un cambio solicitado --------------------
 $quitarFoto = ($_POST['quitar_foto'] ?? '') === '1';
@@ -114,6 +116,9 @@ if ($direccionCasa === null) {
 }
 if ($numeroCelular === null || strlen($numeroCelular) !== 10) {
     $errores[] = 'El número celular debe tener exactamente 10 dígitos.';
+}
+if ($idMunicipio === null) {
+    $errores[] = 'El municipio seleccionado no es válido.';
 }
 
 if (!empty($errores)) {
@@ -192,7 +197,7 @@ if ($quitarFoto) {
 try {
     $conexion->beginTransaction();
 
-    $sentencia = $conexion->prepare('SELECT fun_update_mi_ficha(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $sentencia = $conexion->prepare('SELECT fun_update_mi_ficha(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
     $sentencia->execute([
         $idUsuario,
         $primerNombre,
@@ -205,6 +210,7 @@ try {
         $estadoCivil,
         $direccionCasa,
         $numeroCelular,
+        $idMunicipio,
         $fotoPerfil,
     ]);
     $resultado = (string) $sentencia->fetchColumn();
@@ -234,7 +240,7 @@ try {
             }
         }
 
-        responderFichaJson(true, 'Tu información personal fue actualizada correctamente.', 200, [
+        responderFichaJson(true, $resultado !== '' ? $resultado : 'Tu información personal fue actualizada correctamente.', 200, [
             'foto_perfil' => $_SESSION['foto_perfil'],
         ]);
     }

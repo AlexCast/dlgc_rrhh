@@ -211,6 +211,18 @@ document.addEventListener('DOMContentLoaded', () => {
         asignarTexto('v-tipo-sangre', leer('pf-tipo-sangre') || 'N/A');
         asignarTexto('v-estado-civil', leer('pf-estado-civil') || 'N/A');
         asignarTexto('v-direccion', leer('pf-direccion-casa') || 'N/A');
+
+        const leerTexto = (id) => {
+            const campo = document.getElementById(id);
+            if (!campo || !campo.selectedOptions.length) {
+                return '';
+            }
+            const seleccion = campo.selectedOptions[0];
+            return seleccion.value === '' ? '' : seleccion.textContent.trim();
+        };
+        const ubicacion = [leerTexto('pf-municipio'), leerTexto('pf-departamento')].filter(Boolean).join(' / ') || 'N/A';
+        asignarTexto('v-municipio', ubicacion);
+
         asignarTexto('v-celular', leer('pf-numero-celular') || 'N/A');
 
         // Reflejar el nuevo nombre en el perfil del sidebar sin recargar.
@@ -264,6 +276,53 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             reader.readAsDataURL(file);
         });
+    }
+
+    // Filtro de municipios según el departamento seleccionado.
+    const deptoSelect = document.getElementById('pf-departamento');
+    const muniSelect = document.getElementById('pf-municipio');
+    if (deptoSelect && muniSelect) {
+        const municipiosCatalogo = Array.from(muniSelect.options)
+            .filter(opt => opt.value !== '')
+            .map(opt => ({ value: opt.value, text: opt.textContent, dep: opt.dataset.departamentoId || '' }));
+        let muniInicial = muniSelect.value;
+
+        const filtrarMunicipios = () => {
+            const dep = deptoSelect.value;
+            muniSelect.innerHTML = '';
+            const ph = document.createElement('option');
+            ph.value = '';
+            ph.textContent = dep ? 'Seleccione municipio' : 'Seleccione departamento primero';
+            ph.disabled = true;
+            ph.selected = true;
+            muniSelect.appendChild(ph);
+            municipiosCatalogo
+                .filter(m => m.dep === dep)
+                .forEach(m => {
+                    const o = document.createElement('option');
+                    o.value = m.value;
+                    o.textContent = m.text;
+                    if (m.value === muniInicial) {
+                        o.selected = true;
+                    }
+                    muniSelect.appendChild(o);
+                });
+        };
+
+        deptoSelect.addEventListener('change', () => {
+            muniInicial = '';
+            filtrarMunicipios();
+        });
+
+        // Si ya hay municipio precargado, asegurar que el departamento coincida.
+        if (muniInicial) {
+            const mun = municipiosCatalogo.find(m => m.value === muniInicial);
+            if (mun && mun.dep && deptoSelect.value !== mun.dep) {
+                deptoSelect.value = mun.dep;
+            }
+        }
+
+        filtrarMunicipios();
     }
 
     const actualizarAvatar = (fotoUrl) => {
