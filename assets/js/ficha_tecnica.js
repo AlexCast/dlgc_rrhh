@@ -153,6 +153,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const recalcularAlturaTarjeta = (card) => {
+        if (!card) {
+            return;
+        }
+        card.style.setProperty('--expanded-height', `${card.scrollHeight}px`);
+    };
+
     const setEditMode = (editing) => {
         if (personalView) {
             personalView.hidden = editing;
@@ -161,17 +168,102 @@ document.addEventListener('DOMContentLoaded', () => {
         editBtn.setAttribute('aria-expanded', editing ? 'true' : 'false');
         if (editing) {
             // En móvil la tarjeta está colapsada: expandirla para que el formulario sea visible.
+            // Se recalcula SIEMPRE el alto (el formulario es más alto que la vista de solo
+            // lectura), incluso si la tarjeta ya estaba expandida en modo lectura.
             const card = personalForm.closest('.data-card');
-            if (card && card.classList.contains('is-collapsible') && !card.classList.contains('is-expanded')) {
+            if (card && card.classList.contains('is-collapsible')) {
+                recalcularAlturaTarjeta(card);
                 card.classList.add('is-expanded');
                 card.setAttribute('aria-expanded', 'true');
-                card.style.setProperty('--expanded-height', `${card.scrollHeight}px`);
             }
             const firstField = personalForm.querySelector('input:not([disabled]):not([type="hidden"]), select');
             if (firstField) {
                 firstField.focus();
             }
         }
+    };
+
+    // --- Borrador local de la ficha (sessionStorage) --------------------------
+    // Permite recuperar lo diligenciado si la página se reinicia o se corta la
+    // conexión. Solo se persisten campos de texto/select; la foto no se puede
+    // serializar y debe volver a seleccionarse.
+    const FICHA_BORRADOR_KEY = 'dlgc_mi_ficha_borrador';
+    const FICHA_BORRADOR_FIELDS = [
+        'pf-primer-nombre', 'pf-segundo-nombre', 'pf-primer-apellido', 'pf-segundo-apellido',
+        'pf-fecha-nacimiento', 'pf-genero', 'pf-tipo-sangre', 'pf-estado-civil',
+        'pf-direccion-casa', 'pf-departamento', 'pf-municipio', 'pf-numero-celular'
+    ];
+
+    const guardarBorradorFicha = () => {
+        const data = {};
+        FICHA_BORRADOR_FIELDS.forEach(id => {
+            const campo = document.getElementById(id);
+            if (campo) {
+                data[id] = campo.value;
+            }
+        });
+        try {
+            sessionStorage.setItem(FICHA_BORRADOR_KEY, JSON.stringify(data));
+        } catch (e) {
+            // sessionStorage puede no estar disponible (modo privado, etc.).
+        }
+    };
+
+    const limpiarBorradorFicha = () => {
+        try {
+            sessionStorage.removeItem(FICHA_BORRADOR_KEY);
+        } catch (e) {
+            // ignorar
+        }
+    };
+
+    const restaurarBorradorFicha = () => {
+        let raw = null;
+        try {
+            raw = sessionStorage.getItem(FICHA_BORRADOR_KEY);
+        } catch (e) {
+            return false;
+        }
+        if (!raw) {
+            return false;
+        }
+
+        let data;
+        try {
+            data = JSON.parse(raw);
+        } catch (e) {
+            limpiarBorradorFicha();
+            return false;
+        }
+
+        let restaurado = false;
+        Object.entries(data).forEach(([id, value]) => {
+            const campo = document.getElementById(id);
+            if (campo && typeof value === 'string' && value !== '') {
+                campo.value = value;
+                restaurado = true;
+            }
+        });
+
+        if (!restaurado) {
+            limpiarBorradorFicha();
+            return false;
+        }
+
+        // Reconstruir la lista de municipios para que coincida con el
+        // departamento restaurado y seleccionar el municipio guardado.
+        const depto = document.getElementById('pf-departamento');
+        const muni = document.getElementById('pf-municipio');
+        if (depto && muni && data['pf-municipio']) {
+            depto.dispatchEvent(new Event('change'));
+            const opcion = Array.from(muni.options).find(opt => opt.value === data['pf-municipio']);
+            if (opcion) {
+                muni.value = data['pf-municipio'];
+            }
+        }
+
+        showMessage('Restauramos el borrador de tu ficha. Verifica los datos (la foto debes volver a seleccionarla) y pulsa "Guardar cambios".', 'success');
+        return true;
     };
 
     const formatearFechaVista = (valor) => {
@@ -236,16 +328,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const editando = personalForm.hidden;
         setEditMode(editando);
         if (editando) {
+            const borradorRestaurado = restaurarBorradorFicha();
+            if (messageEl) {
+                messageEl.hidden = !borradorRestaurado;
+            }
             renderTurnstile();
-        }
-        if (editando && messageEl) {
-            messageEl.hidden = true;
         }
     });
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
             setEditMode(false);
+            limpiarBorradorFicha();
             if (messageEl) {
                 messageEl.hidden = true;
             }
@@ -375,6 +469,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Mantener el alto expandido sincronizado cuando cambia el contenido de la
+    // tarjeta (formulario visible, widget de Turnstile, mensajes de error, etc.).
+    // Corrige el recorte en móvil que ocultaba los últimos campos y los botones.
+    if (typeof ResizeObserver !== 'undefined') {
+        const observarAltura = (contenedor) => {
+            if (!contenedor) {
+                return;
+            }
+            const card = contenedor.closest('.data-card');
+            if (!card) {
+                return;
+            }
+            const observer = new ResizeObserver(() => recalcularAlturaTarjeta(card));
+            observer.observe(contenedor);
+        };
+        observarAltura(personalForm);
+        observarAltura(turnstileContainer);
+    } else {
+        window.addEventListener('resize', () => recalcularAlturaTarjeta(personalForm.closest('.data-card')));
+    }
+
     personalForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -406,6 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 actualizarVista();
                 setEditMode(false);
+                limpiarBorradorFicha();
 
                 if (fotoCambiada && data.foto_perfil) {
                     actualizarAvatar(data.foto_perfil);
@@ -436,6 +552,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (submitBtn) {
                 submitBtn.disabled = false;
             }
+        }
+    });
+
+    // Guardar borrador automáticamente mientras el usuario escribe o cambia un select.
+    FICHA_BORRADOR_FIELDS.forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) {
+            campo.addEventListener('input', guardarBorradorFicha);
+            campo.addEventListener('change', guardarBorradorFicha);
         }
     });
 });
