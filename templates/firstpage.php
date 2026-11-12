@@ -157,14 +157,15 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
 }
 
 if ($verMetricaEmpleados) {
-    $stmt = $conexion->query("SELECT COUNT(*) FROM t_empleados WHERE fecha_egreso IS NULL OR fecha_egreso > CURRENT_DATE");
+    $stmt = $conexion->query("SELECT COUNT(*) FROM t_empleados WHERE fec_delete IS NULL AND (fecha_egreso IS NULL OR fecha_egreso > CURRENT_DATE)");
     $totalEmpleadosActivos = (int) $stmt->fetchColumn();
 }
 
 if ($verMetricaAfiliaciones) {
     $stmt = $conexion->query("SELECT COUNT(*)
         FROM t_empleados e
-        WHERE (e.fecha_egreso IS NULL OR e.fecha_egreso > CURRENT_DATE)
+        WHERE e.fec_delete IS NULL
+          AND (e.fecha_egreso IS NULL OR e.fecha_egreso > CURRENT_DATE)
           AND NOT EXISTS (
               SELECT 1 FROM t_afiliaciones_empleados a
               WHERE a.id_usuario = e.id_usuario AND a.fec_delete IS NULL
