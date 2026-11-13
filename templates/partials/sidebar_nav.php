@@ -54,6 +54,7 @@ $grupos = [
         'titulo' => 'Empresa',
         'icono'  => $iconEmpresa,
         'modulos' => [
+            ['id' => 4,  'slug' => 'empleados_src', 'titulo' => 'Gestión de Empleados', 'url' => '/src/empleados/listar_empleados.php',                 'icono' => $iconEmpleados],
             ['id' => 10, 'slug' => 'bancos',       'titulo' => 'Bancos',               'url' => '/src/banco/listar_banco.php',                         'icono' => $iconBancos],
             ['id' => 15, 'slug' => 'nomina',       'titulo' => 'Nómina',               'url' => '/src/nomina/listar_nomina.php',                       'icono' => $iconNomina],
             ['id' => 13, 'slug' => 'contratos',    'titulo' => 'Contratos Empleados',  'url' => '/src/contratos_empleados/listar_contratos_empleados.php', 'icono' => $iconContratos],
