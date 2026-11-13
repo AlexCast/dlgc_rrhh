@@ -36,6 +36,7 @@ $iconVacaciones   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
 $iconBandeja      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>';
 $iconDocumentos  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>';
 $iconArchivos    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+$iconCodigos      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
 $iconChevron      = '<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
 $grupos = [
@@ -104,6 +105,7 @@ if (has_module_access(27)) {
 // Módulos SRC/administrativos sueltos (no agrupados) que el usuario tenga asignados.
 // La clave es el slug usado como $activeItem en cada vista.
 $modulosAdminSueltos = [
+    ['id' => 23, 'slug' => 'codigos_registro', 'titulo' => 'Códigos de Registro',  'url' => '/templates/codigos_registro.php',             'icono' => $iconCodigos],
     ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/src/comunicados/listar_comunicados.php', 'icono' => $iconSrc],
     ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/src/sst/listar_quejas.php',              'icono' => $iconSst],
     ['id' => 29, 'slug' => 'vacaciones',        'titulo' => 'Gestión de Vacaciones',   'url' => '/templates/vacaciones.php',               'icono' => $iconVacaciones],
