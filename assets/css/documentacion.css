@@ -132,6 +132,14 @@
     margin-left: 6px;
 }
 
+.doc-badge-pendiente {
+    display: block;
+    width: fit-content;
+    margin-top: 5px;
+    background: var(--status-pending-bg);
+    color: var(--status-pending-text);
+}
+
 .doc-archivo {
     display: inline-flex;
     align-items: center;

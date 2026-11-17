@@ -308,7 +308,7 @@ ON DUPLICATE KEY UPDATE id_modulo       = VALUES(id_modulo),
                                           fec_delete       = NULL,
                                           usr_delete       = NULL;
 
--- Módulo 30: Gestor de Archivos. CRUD completo (ver, subir versiones, descargar).
+-- Módulo 30: Gestor de Archivos. CRUD completo y resolución de aprobaciones.
 INSERT INTO t_operaciones (id_operacion, id_modulo, nombre_operacion, usr_insert, fec_insert)
 VALUES
     (301, 30, 'VER',        'seed', CURRENT_TIMESTAMP),

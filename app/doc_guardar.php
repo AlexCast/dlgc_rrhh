@@ -19,6 +19,7 @@ require_once __DIR__ . '/helpers/InputSanitizer.php';
 require_once __DIR__ . '/helpers/FileStorage/StorageFactory.php';
 require_once __DIR__ . '/helpers/FileCompressor.php';
 require_once __DIR__ . '/helpers/TurnstileHelper.php';
+require_once __DIR__ . '/helpers/UploadConcurrencyGuard.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -45,6 +46,16 @@ if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null, 'doc_emple
 $idUsuario = $_SESSION['id_usuario'] ?? null;
 if (!is_string($idUsuario) || trim($idUsuario) === '') {
     responderDocGuardarJson(false, 'Sesión inválida.', 401);
+}
+
+try {
+    $concurrenciaSubida = new UploadConcurrencyGuard();
+    if (!$concurrenciaSubida->acquire($idUsuario)) {
+        responderDocGuardarJson(false, 'Ya tienes otra carga en proceso. Espera a que termine antes de intentarlo nuevamente.', 429);
+    }
+} catch (RuntimeException $e) {
+    error_log('doc_guardar: error en control de concurrencia: ' . $e->getMessage());
+    responderDocGuardarJson(false, 'No se pudo iniciar la carga de forma segura.', 503);
 }
 
 // Rate limiting de subidas (20 por hora por usuario).
@@ -224,4 +235,4 @@ try {
     responderDocGuardarJson(false, $e instanceof RuntimeException ? $e->getMessage() : 'Ocurrió un error al registrar el documento.', 400);
 }
 
-responderDocGuardarJson(true, 'Documento registrado correctamente con su archivo.');
+responderDocGuardarJson(true, 'Documento registrado correctamente y enviado a aprobación.');

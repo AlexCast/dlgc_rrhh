@@ -20,6 +20,7 @@ require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
 require_once __DIR__ . '/helpers/InputSanitizer.php';
 require_once __DIR__ . '/helpers/TurnstileHelper.php';
+require_once __DIR__ . '/helpers/UploadConcurrencyGuard.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -54,6 +55,16 @@ if (!has_module_permission(30, 'crear')) {
 $idUsuario = $_SESSION['id_usuario'] ?? null;
 if (!is_string($idUsuario) || trim($idUsuario) === '') {
     responderGestorSubirJson(false, 'Sesión inválida.', 401);
+}
+
+try {
+    $concurrenciaSubida = new UploadConcurrencyGuard();
+    if (!$concurrenciaSubida->acquire($idUsuario)) {
+        responderGestorSubirJson(false, 'Ya tienes otra carga en proceso. Espera a que termine antes de intentarlo nuevamente.', 429);
+    }
+} catch (RuntimeException $e) {
+    error_log('gestor_subir: error en control de concurrencia: ' . $e->getMessage());
+    responderGestorSubirJson(false, 'No se pudo iniciar la carga de forma segura.', 503);
 }
 
 // Rate limiting de subidas (20 por hora por usuario).

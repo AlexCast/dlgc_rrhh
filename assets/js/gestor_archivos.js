@@ -5,25 +5,49 @@
         const body = document.body;
         const csrf = body.dataset.csrf || '';
         const puedeCrear = body.dataset.puedeCrear === '1';
+        const puedeAprobar = body.dataset.puedeAprobar === '1';
+        const puedeRechazar = body.dataset.puedeRechazar === '1';
 
         const tbody = document.getElementById('gestor-tbody');
+        const pendientesTbody = document.getElementById('gestor-pendientes-tbody');
+        const pendientesContador = document.getElementById('gestor-pendientes-contador');
         const contador = document.getElementById('gestor-contador');
         const alertas = document.getElementById('gestor-alertas');
+        const buscador = document.getElementById('gestor-buscar');
 
         const modalVersiones = document.getElementById('gestor-modal-versiones');
         const modalSubir = document.getElementById('gestor-modal-subir');
+        const modalRechazar = document.getElementById('gestor-modal-rechazar');
         const listaVersiones = document.getElementById('gestor-versiones-list');
         const tituloVersiones = document.getElementById('gestor-versiones-titulo');
 
         const formSubir = document.getElementById('gestor-form-subir');
+        const formRechazar = document.getElementById('gestor-form-rechazar');
         const inputIdDocumento = document.getElementById('gestor-subir-id-documento');
         const inputArchivo = document.getElementById('gestor-subir-archivo');
 
         let documentoActual = null;
+        let documentosActuales = [];
 
         // Delegación de eventos: aplica también a las filas renderizadas por JS.
         if (tbody) {
             tbody.addEventListener('click', (event) => {
+                const btnCarpeta = event.target.closest('.gestor-folder-toggle, .gestor-empleado-toggle');
+                if (btnCarpeta) {
+                    const grupo = btnCarpeta.closest('.gestor-folder, .gestor-empleado');
+                    const contenido = grupo ? grupo.querySelector(':scope > .gestor-folder-body, :scope > .gestor-empleado-body') : null;
+                    if (grupo && contenido) {
+                        const cerrada = grupo.classList.toggle('gestor-grupo-cerrado');
+                        btnCarpeta.setAttribute('aria-expanded', cerrada ? 'false' : 'true');
+                        contenido.hidden = cerrada;
+                        const iconoCarpeta = btnCarpeta.querySelector('.gestor-folder-icon');
+                        if (iconoCarpeta) {
+                            iconoCarpeta.classList.toggle('fa-folder', cerrada);
+                            iconoCarpeta.classList.toggle('fa-folder-open', !cerrada);
+                        }
+                    }
+                    return;
+                }
                 const btnVersiones = event.target.closest('.gestor-btn-versiones');
                 if (btnVersiones) {
                     abrirHistorial(btnVersiones.dataset.idDocumento, btnVersiones.dataset.titulo || '');
@@ -36,14 +60,31 @@
             });
         }
 
+        if (pendientesTbody) {
+            pendientesTbody.addEventListener('click', (event) => {
+                const btnAprobar = event.target.closest('.gestor-btn-aprobar');
+                if (btnAprobar && puedeAprobar) {
+                    resolverPendiente(btnAprobar.dataset.idVersion, '/app/gestor_aprobar.php', {});
+                    return;
+                }
+                const btnRechazar = event.target.closest('.gestor-btn-rechazar');
+                if (btnRechazar && puedeRechazar) {
+                    abrirFormularioRechazar(btnRechazar.dataset.idVersion);
+                }
+            });
+        }
+
         const btnActualizar = document.getElementById('gestor-btn-actualizar');
         if (btnActualizar) btnActualizar.addEventListener('click', cargarLista);
+        if (buscador) {
+            buscador.addEventListener('input', () => renderizarLista(documentosActuales));
+        }
 
         document.querySelectorAll('.gestor-modal-cerrar').forEach((btn) => {
             btn.addEventListener('click', cerrarModales);
         });
 
-        [modalVersiones, modalSubir].forEach((m) => {
+        [modalVersiones, modalSubir, modalRechazar].forEach((m) => {
             if (!m) return;
             m.addEventListener('click', (event) => {
                 if (event.target === m) cerrarModales();
@@ -68,9 +109,19 @@
             });
         }
 
+        if (formRechazar) {
+            formRechazar.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const idVersion = document.getElementById('gestor-rechazar-id-version')?.value || '';
+                const motivo = document.getElementById('gestor-rechazar-motivo')?.value || '';
+                resolverPendiente(idVersion, '/app/gestor_rechazar.php', { motivo: motivo });
+            });
+        }
+
         function cerrarModales() {
             if (modalVersiones) modalVersiones.hidden = true;
             if (modalSubir) modalSubir.hidden = true;
+            if (modalRechazar) modalRechazar.hidden = true;
         }
 
         function mostrarAlerta(mensaje, ok) {
@@ -180,6 +231,44 @@
             if (inputArchivo) inputArchivo.focus();
         }
 
+        function abrirFormularioRechazar(idVersion) {
+            if (!modalRechazar) return;
+            const input = document.getElementById('gestor-rechazar-id-version');
+            const motivo = document.getElementById('gestor-rechazar-motivo');
+            if (formRechazar) formRechazar.reset();
+            if (input) input.value = idVersion;
+            modalRechazar.hidden = false;
+            if (motivo) motivo.focus();
+        }
+
+        function resolverPendiente(idVersion, endpoint, campos) {
+            if (!idVersion) return;
+            if (endpoint.indexOf('aprobar') !== -1 && !window.confirm('¿Aprobar esta versión como documento oficial?')) return;
+            if (endpoint.indexOf('rechazar') !== -1 && (!campos.motivo || campos.motivo.trim().length < 3)) {
+                mostrarAlerta('Indica un motivo de al menos 3 caracteres.', false);
+                return;
+            }
+
+            const datos = new FormData();
+            datos.set('csrf_token', csrf);
+            datos.set('id_version', idVersion);
+            Object.keys(campos).forEach((clave) => datos.set(clave, campos[clave]));
+
+            fetch(endpoint, { method: 'POST', body: datos, credentials: 'same-origin' })
+                .then((r) => r.json().catch(() => ({ success: false, message: 'Respuesta inválida del servidor.' })))
+                .then((data) => {
+                    if (!data.success) {
+                        mostrarAlerta(data.message || 'No se pudo resolver la versión.', false);
+                        return;
+                    }
+                    cerrarModales();
+                    mostrarAlerta(data.message || 'Operación completada.', true);
+                    cargarPendientes();
+                    cargarLista();
+                })
+                .catch(() => mostrarAlerta('No se pudo conectar con el servidor.', false));
+        }
+
         function subirArchivo() {
             if (!formSubir || !inputArchivo) return;
             const archivo = inputArchivo.files && inputArchivo.files[0];
@@ -230,115 +319,207 @@
                 .catch(() => mostrarAlerta('No se pudo conectar con el servidor.', false));
         }
 
-        function renderizarLista(documentos) {
-            if (!tbody) return;
-            tbody.textContent = '';
-            if (contador) contador.textContent = documentos.length + ' documento(s)';
+        function cargarPendientes() {
+            if (!pendientesTbody) return;
+            fetch('/app/gestor_pendientes.php', { credentials: 'same-origin' })
+                .then((r) => r.json().catch(() => ({ success: false, message: 'Respuesta inválida del servidor.' })))
+                .then((data) => {
+                    if (!data.success) {
+                        mostrarAlerta(data.message || 'No se pudieron cargar los pendientes.', false);
+                        return;
+                    }
+                    renderizarPendientes(data.pendientes || []);
+                })
+                .catch(() => mostrarAlerta('No se pudo conectar con el servidor.', false));
+        }
 
-            if (documentos.length === 0) {
+        function renderizarPendientes(pendientes) {
+            pendientesTbody.textContent = '';
+            if (pendientesContador) pendientesContador.textContent = pendientes.length + ' pendiente(s)';
+            if (pendientes.length === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
                 td.colSpan = 5;
                 td.className = 'gestor-empty';
-                td.textContent = 'No hay documentos registrados todavía.';
+                td.textContent = 'No hay versiones pendientes.';
                 tr.appendChild(td);
-                tbody.appendChild(tr);
+                pendientesTbody.appendChild(tr);
                 return;
             }
 
-            documentos.forEach((doc) => {
+            pendientes.forEach((v) => {
                 const tr = document.createElement('tr');
+                tr.appendChild(celda('Documento', (v.titulo || 'N/A') + ' · ' + (v.tipo_documento || 'N/A')));
+                tr.appendChild(celda('Empleado', v.nombre_empleado || v.id_usuario || 'N/A'));
+                const archivo = document.createElement('td');
+                archivo.setAttribute('data-label', 'Archivo');
+                const enlace = document.createElement('a');
+                enlace.className = 'gestor-enlace';
+                enlace.href = '/app/gestor_descargar.php?id_version=' + encodeURIComponent(v.id_version);
+                enlace.textContent = v.nombre_original || 'Descargar';
+                archivo.appendChild(enlace);
+                tr.appendChild(archivo);
+                tr.appendChild(celda('Enviado', formatearFecha(v.fec_insert)));
 
-                // Documento
-                const tdDoc = document.createElement('td');
-                tdDoc.setAttribute('data-label', 'Documento');
-                const divDoc = document.createElement('div');
-                divDoc.className = 'gestor-doc';
-                const spanTitulo = document.createElement('span');
-                spanTitulo.className = 'gestor-doc-titulo';
-                spanTitulo.textContent = doc.titulo || 'N/A';
-                const spanTipo = document.createElement('span');
-                spanTipo.className = 'gestor-doc-tipo';
-                spanTipo.textContent = doc.tipo_documento || 'N/A';
-                divDoc.appendChild(spanTitulo);
-                divDoc.appendChild(spanTipo);
-                tdDoc.appendChild(divDoc);
-                tr.appendChild(tdDoc);
-
-                // Empleado
-                tr.appendChild(celda('Empleado', doc.nombre_empleado || doc.id_usuario || 'N/A'));
-
-                // Archivo vigente
-                const tdArchivo = document.createElement('td');
-                tdArchivo.setAttribute('data-label', 'Archivo vigente');
-                if (doc.archivo_actual && doc.id_version) {
-                    const cont = document.createElement('div');
-                    cont.className = 'gestor-archivo';
-
-                    const nombre = document.createElement('span');
-                    nombre.className = 'gestor-archivo-nombre';
-                    nombre.textContent = doc.archivo_actual;
-                    nombre.title = doc.archivo_actual;
-
-                    const meta = document.createElement('span');
-                    meta.className = 'text-muted';
-                    meta.textContent = formatearTamano(doc.archivo_tamano) + ' · ' + formatearFecha(doc.archivo_fecha);
-
-                    const enlace = document.createElement('a');
-                    enlace.className = 'gestor-enlace';
-                    enlace.href = '/app/gestor_descargar.php?id_version=' + encodeURIComponent(doc.id_version);
-                    enlace.textContent = 'Descargar';
-
-                    cont.appendChild(nombre);
-                    cont.appendChild(meta);
-                    cont.appendChild(enlace);
-                    tdArchivo.appendChild(cont);
-                } else {
-                    const s = document.createElement('span');
-                    s.className = 'text-muted';
-                    s.textContent = 'Sin archivo';
-                    tdArchivo.appendChild(s);
+                const acciones = document.createElement('td');
+                acciones.setAttribute('data-label', 'Acciones');
+                if (puedeAprobar) {
+                    const aprobar = document.createElement('button');
+                    aprobar.type = 'button';
+                    aprobar.className = 'gestor-btn gestor-btn-primary gestor-btn-aprobar';
+                    aprobar.dataset.idVersion = v.id_version;
+                    aprobar.textContent = 'Aprobar';
+                    acciones.appendChild(aprobar);
                 }
-                tr.appendChild(tdArchivo);
-
-                // Versiones
-                const tdVersiones = document.createElement('td');
-                tdVersiones.setAttribute('data-label', 'Versiones');
-                const badgeV = document.createElement('span');
-                badgeV.className = 'gestor-badge gestor-badge-versiones';
-                badgeV.textContent = String(doc.total_versiones != null ? doc.total_versiones : 0);
-                tdVersiones.appendChild(badgeV);
-                tr.appendChild(tdVersiones);
-
-                // Acciones
-                const tdAcciones = document.createElement('td');
-                tdAcciones.setAttribute('data-label', 'Acciones');
-                const divAcciones = document.createElement('div');
-                divAcciones.className = 'gestor-acciones';
-
-                const btnVersiones = document.createElement('button');
-                btnVersiones.type = 'button';
-                btnVersiones.className = 'gestor-btn gestor-btn-outline gestor-btn-versiones';
-                btnVersiones.dataset.idDocumento = doc.id_documento;
-                btnVersiones.dataset.titulo = doc.titulo || '';
-                btnVersiones.textContent = 'Ver versiones';
-                divAcciones.appendChild(btnVersiones);
-
-                if (puedeCrear) {
-                    const btnSubir = document.createElement('button');
-                    btnSubir.type = 'button';
-                    btnSubir.className = 'gestor-btn gestor-btn-primary gestor-btn-subir';
-                    btnSubir.dataset.idDocumento = doc.id_documento;
-                    btnSubir.dataset.titulo = doc.titulo || '';
-                    btnSubir.textContent = 'Subir versión';
-                    divAcciones.appendChild(btnSubir);
+                if (puedeRechazar) {
+                    const rechazar = document.createElement('button');
+                    rechazar.type = 'button';
+                    rechazar.className = 'gestor-btn gestor-btn-outline gestor-btn-rechazar';
+                    rechazar.dataset.idVersion = v.id_version;
+                    rechazar.textContent = 'Rechazar';
+                    acciones.appendChild(rechazar);
                 }
-
-                tdAcciones.appendChild(divAcciones);
-                tr.appendChild(tdAcciones);
-
-                tbody.appendChild(tr);
+                tr.appendChild(acciones);
+                pendientesTbody.appendChild(tr);
             });
+        }
+
+        function renderizarLista(documentos) {
+            if (!tbody) return;
+            documentosActuales = documentos;
+            tbody.textContent = '';
+            const termino = buscador ? buscador.value.trim().toLocaleLowerCase() : '';
+            const visibles = documentos.filter((doc) => {
+                if (!termino) return true;
+                return [
+                    doc.tipo_documento,
+                    doc.titulo,
+                    doc.nombre_empleado,
+                    doc.archivo_actual
+                ].some((valor) => String(valor || '').toLocaleLowerCase().includes(termino));
+            });
+            if (contador) contador.textContent = documentos.length + ' documento(s)';
+
+            if (visibles.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'gestor-empty';
+                empty.textContent = termino ? 'No hay documentos que coincidan con la búsqueda.' : 'No hay documentos registrados todavía.';
+                tbody.appendChild(empty);
+                return;
+            }
+
+            const grupos = new Map();
+            visibles.forEach((doc) => {
+                const categoria = doc.tipo_documento || 'Sin categoría';
+                if (!grupos.has(categoria)) grupos.set(categoria, []);
+                grupos.get(categoria).push(doc);
+            });
+
+            Array.from(grupos.keys()).sort((a, b) => a.localeCompare(b, 'es')).forEach((categoria) => {
+                const documentosCategoria = grupos.get(categoria);
+                const carpeta = document.createElement('section');
+                carpeta.className = 'gestor-folder';
+                const botonCarpeta = document.createElement('button');
+                botonCarpeta.type = 'button';
+                botonCarpeta.className = 'gestor-folder-toggle';
+                const carpetaAbierta = termino.length > 0;
+                botonCarpeta.setAttribute('aria-expanded', carpetaAbierta ? 'true' : 'false');
+                botonCarpeta.append(icono(carpetaAbierta ? 'fa-folder-open' : 'fa-folder', 'gestor-folder-icon'), texto(categoria, 'gestor-folder-name'));
+                const total = texto(documentosCategoria.length + ' archivo(s)', 'gestor-folder-count');
+                botonCarpeta.appendChild(total);
+                carpeta.appendChild(botonCarpeta);
+
+                const cuerpoCarpeta = document.createElement('div');
+                cuerpoCarpeta.className = 'gestor-folder-body';
+                cuerpoCarpeta.hidden = !carpetaAbierta;
+                if (!carpetaAbierta) carpeta.classList.add('gestor-grupo-cerrado');
+                const empleados = new Map();
+                documentosCategoria.forEach((doc) => {
+                    const empleado = doc.nombre_empleado || doc.id_usuario || 'Empleado sin identificar';
+                    if (!empleados.has(empleado)) empleados.set(empleado, []);
+                    empleados.get(empleado).push(doc);
+                });
+                Array.from(empleados.keys()).sort((a, b) => a.localeCompare(b, 'es')).forEach((empleado) => {
+                    const grupoEmpleado = document.createElement('div');
+                    grupoEmpleado.className = 'gestor-empleado';
+                    const botonEmpleado = document.createElement('button');
+                    botonEmpleado.type = 'button';
+                    botonEmpleado.className = 'gestor-empleado-toggle';
+                    botonEmpleado.setAttribute('aria-expanded', carpetaAbierta ? 'true' : 'false');
+                    botonEmpleado.append(icono('fa-user'), texto(empleado, 'gestor-empleado-name'));
+                    botonEmpleado.appendChild(texto(empleados.get(empleado).length + ' documento(s)', 'gestor-empleado-count'));
+                    grupoEmpleado.appendChild(botonEmpleado);
+
+                    const cuerpoEmpleado = document.createElement('div');
+                    cuerpoEmpleado.className = 'gestor-empleado-body';
+                    cuerpoEmpleado.hidden = !carpetaAbierta;
+                    if (!carpetaAbierta) grupoEmpleado.classList.add('gestor-grupo-cerrado');
+                    empleados.get(empleado).forEach((doc) => {
+                        const archivo = document.createElement('article');
+                        archivo.className = 'gestor-file';
+                        archivo.appendChild(icono(doc.archivo_actual ? 'fa-file-lines' : 'fa-file-circle-question', 'gestor-file-icon'));
+                        const detalle = document.createElement('div');
+                        detalle.className = 'gestor-file-detail';
+                        detalle.appendChild(texto(doc.titulo || 'Documento sin título', 'gestor-file-title'));
+                        detalle.appendChild(texto(doc.archivo_actual || 'Sin archivo vigente', 'gestor-file-name'));
+                        detalle.appendChild(texto(
+                            (doc.archivo_actual ? formatearTamano(doc.archivo_tamano) + ' · ' : '') +
+                            'Última actualización: ' + formatearFecha(doc.archivo_fecha),
+                            'gestor-file-meta'
+                        ));
+                        archivo.appendChild(detalle);
+                        const acciones = document.createElement('div');
+                        acciones.className = 'gestor-file-actions';
+                        if (doc.archivo_actual && doc.id_version) {
+                            const descargar = document.createElement('a');
+                            descargar.className = 'gestor-btn gestor-btn-outline';
+                            descargar.href = '/app/gestor_descargar.php?id_version=' + encodeURIComponent(doc.id_version);
+                            descargar.append(icono('fa-download'), document.createTextNode(' Descargar'));
+                            acciones.appendChild(descargar);
+                        }
+                        const versiones = document.createElement('button');
+                        versiones.type = 'button';
+                        versiones.className = 'gestor-btn gestor-btn-outline gestor-btn-versiones';
+                        versiones.dataset.idDocumento = doc.id_documento;
+                        versiones.dataset.titulo = doc.titulo || '';
+                        versiones.append(icono('fa-clock-rotate-left'), document.createTextNode(' Versiones (' + (doc.total_versiones || 0) + ')'));
+                        acciones.appendChild(versiones);
+                        if (puedeCrear) {
+                            const subir = document.createElement('button');
+                            subir.type = 'button';
+                            subir.className = 'gestor-btn gestor-btn-primary gestor-btn-subir';
+                            subir.dataset.idDocumento = doc.id_documento;
+                            subir.dataset.titulo = doc.titulo || '';
+                            subir.append(icono('fa-upload'), document.createTextNode(' Subir'));
+                            acciones.appendChild(subir);
+                        }
+                        archivo.appendChild(acciones);
+                        cuerpoEmpleado.appendChild(archivo);
+                    });
+                    grupoEmpleado.appendChild(cuerpoEmpleado);
+                    cuerpoCarpeta.appendChild(grupoEmpleado);
+                });
+                carpeta.appendChild(cuerpoCarpeta);
+                tbody.appendChild(carpeta);
+            });
+        }
+
+        function texto(valor, clase) {
+            const span = document.createElement('span');
+            span.className = clase;
+            span.textContent = valor;
+            return span;
+        }
+
+        function icono(clase, adicional) {
+            const i = document.createElement('i');
+            i.className = 'fa-solid ' + clase + (adicional ? ' ' + adicional : '');
+            ariaHidden(i);
+            return i;
+        }
+
+        function ariaHidden(elemento) {
+            elemento.setAttribute('aria-hidden', 'true');
         }
 
         function celda(label, texto) {
@@ -365,5 +546,7 @@
                 ' ' +
                 dt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
         }
+
+        cargarPendientes();
     });
 })();

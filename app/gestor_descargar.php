@@ -70,6 +70,12 @@ if ($version === false) {
     die('Archivo no encontrado.');
 }
 
+$estadoAprobacion = strtoupper((string) ($version['estado_aprobacion'] ?? ''));
+if (!$tieneModuloGestor && $estadoAprobacion !== 'APROBADO') {
+    http_response_code(404);
+    die('Archivo no encontrado.');
+}
+
 $mimesPermitidos = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 $mime = (string) ($version['mime_type'] ?? '');
 if (!in_array($mime, $mimesPermitidos, true)) {

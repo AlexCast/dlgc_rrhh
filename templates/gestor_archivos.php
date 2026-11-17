@@ -22,6 +22,8 @@ require_module_access(30);
 date_default_timezone_set('America/Bogota');
 
 $puedeCrear = has_module_permission(30, 'crear');
+$puedeAprobar = has_module_permission(30, 'actualizar');
+$puedeRechazar = has_module_permission(30, 'eliminar');
 
 $documentos = [];
 $sentenciaDocs = $conexion->prepare('CALL proc_listar_documentos_gestor()');
@@ -64,6 +66,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <title>Gestor de Archivos | DLGC</title>
     <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
     <link rel="stylesheet" href="/assets/css/gestor_archivos.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/gestor_archivos.css'); ?>">
+    <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
     <?php if ($turnstileSiteKey !== ''): ?>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
@@ -72,6 +75,8 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 <body
     data-csrf="<?php echo $csrfToken; ?>"
     data-puede-crear="<?php echo $puedeCrear ? '1' : '0'; ?>"
+    data-puede-aprobar="<?php echo $puedeAprobar ? '1' : '0'; ?>"
+    data-puede-rechazar="<?php echo $puedeRechazar ? '1' : '0'; ?>"
 >
     <div class="dashboard-container">
 
@@ -125,7 +130,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
             <div class="dashboard-body fade-in-up">
 
                 <section class="gestor-header">
-                    <div>
+                    <div class="gestor-header-info">
                         <h2>Archivos de documentos RRHH</h2>
                         <p class="text-muted">Consulta el archivo vigente de cada documento y su historial de versiones.</p>
                     </div>
@@ -139,78 +144,66 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 
                 <section class="gestor-card">
                     <div class="gestor-card-header">
-                        <h3>Documentos y archivos vigentes</h3>
-                        <span class="text-muted" id="gestor-contador"><?php echo count($documentos); ?> documento(s)</span>
+                        <h3>Pendientes de aprobación</h3>
+                        <span class="text-muted" id="gestor-pendientes-contador">0 pendiente(s)</span>
                     </div>
-
                     <div class="gestor-table-wrap">
                         <table class="gestor-table">
                             <thead>
                                 <tr>
-                                    <th scope="col">Documento</th>
-                                    <th scope="col">Empleado</th>
-                                    <th scope="col">Archivo vigente</th>
-                                    <th scope="col">Versiones</th>
-                                    <th scope="col">Acciones</th>
+                                    <th>Documento</th>
+                                    <th>Empleado</th>
+                                    <th>Archivo</th>
+                                    <th>Enviado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="gestor-tbody">
-                                <?php if (count($documentos) === 0): ?>
-                                    <tr id="gestor-fila-vacia">
-                                        <td colspan="5" class="gestor-empty">No hay documentos registrados todavía.</td>
-                                    </tr>
-                                <?php else: ?>
-                                    <?php foreach ($documentos as $doc): ?>
-                                        <tr>
-                                            <td data-label="Documento">
-                                                <div class="gestor-doc">
-                                                    <span class="gestor-doc-titulo"><?php echo htmlspecialchars((string) $doc->titulo, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                    <span class="gestor-doc-tipo"><?php echo htmlspecialchars((string) $doc->tipo_documento, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                </div>
-                                            </td>
-                                            <td data-label="Empleado"><?php echo htmlspecialchars((string) ($doc->nombre_empleado ?? $doc->id_usuario), ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td data-label="Archivo vigente">
-                                                <?php if (!empty($doc->archivo_actual)): ?>
-                                                    <div class="gestor-archivo">
-                                                        <span class="gestor-archivo-nombre"><?php echo htmlspecialchars((string) $doc->archivo_actual, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                        <span class="text-muted">
-                                                            <?php echo formatearTamanoGestor($doc->archivo_tamano !== null ? (int) $doc->archivo_tamano : null); ?> ·
-                                                            <?php echo formatearFechaGestor($doc->archivo_fecha); ?>
-                                                        </span>
-                                                        <a class="gestor-enlace" href="/app/gestor_descargar.php?id_version=<?php echo (int) $doc->id_version; ?>">
-                                                            Descargar
-                                                        </a>
-                                                    </div>
-                                                <?php else: ?>
-                                                    <span class="text-muted">Sin archivo</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td data-label="Versiones">
-                                                <span class="gestor-badge gestor-badge-versiones"><?php echo (int) $doc->total_versiones; ?></span>
-                                            </td>
-                                            <td data-label="Acciones">
-                                                <div class="gestor-acciones">
-                                                    <button type="button"
-                                                        class="gestor-btn gestor-btn-outline gestor-btn-versiones"
-                                                        data-id-documento="<?php echo (int) $doc->id_documento; ?>"
-                                                        data-titulo="<?php echo htmlspecialchars((string) $doc->titulo, ENT_QUOTES, 'UTF-8'); ?>">
-                                                        Ver versiones
-                                                    </button>
-                                                    <?php if ($puedeCrear): ?>
-                                                        <button type="button"
-                                                            class="gestor-btn gestor-btn-primary gestor-btn-subir"
-                                                            data-id-documento="<?php echo (int) $doc->id_documento; ?>"
-                                                            data-titulo="<?php echo htmlspecialchars((string) $doc->titulo, ENT_QUOTES, 'UTF-8'); ?>">
-                                                            Subir versión
-                                                        </button>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                            <tbody id="gestor-pendientes-tbody">
+                                <tr><td colspan="5" class="gestor-empty">Cargando pendientes...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </section>
+
+                <section class="gestor-card">
+                    <div class="gestor-card-header">
+                        <div>
+                            <h3>Documentos y archivos vigentes</h3>
+                            <span class="text-muted" id="gestor-contador"><?php echo count($documentos); ?> documento(s)</span>
+                        </div>
+                        <label class="gestor-busqueda" for="gestor-buscar">
+                            <span class="gestor-busqueda-campo">
+                                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                <input type="search" id="gestor-buscar" aria-label="Buscar documentos vigentes" placeholder="Buscar..." autocomplete="off">
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="gestor-modal-overlay" id="gestor-modal-rechazar" hidden>
+                        <div class="gestor-modal" role="dialog" aria-modal="true" aria-labelledby="gestor-rechazar-titulo">
+                            <div class="gestor-modal-header">
+                                <h3 id="gestor-rechazar-titulo">Rechazar versión</h3>
+                                <button type="button" class="icon-btn gestor-modal-cerrar" aria-label="Cerrar modal">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                            <form id="gestor-form-rechazar" class="gestor-form" novalidate>
+                                <?php echo csrf_input(); ?>
+                                <input type="hidden" name="id_version" id="gestor-rechazar-id-version">
+                                <div class="gestor-form-campo">
+                                    <label for="gestor-rechazar-motivo">Motivo <span class="gestor-obligatorio">*</span></label>
+                                    <textarea id="gestor-rechazar-motivo" name="motivo" maxlength="255" minlength="3" rows="4" required></textarea>
+                                </div>
+                                <div class="gestor-modal-footer">
+                                    <button type="submit" class="gestor-btn gestor-btn-primary">Rechazar y eliminar</button>
+                                    <button type="button" class="gestor-btn gestor-btn-outline gestor-modal-cerrar">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="gestor-tbody" class="gestor-explorador" aria-live="polite">
+                        <div class="gestor-empty">Cargando documentos...</div>
                     </div>
                 </section>
             </div>

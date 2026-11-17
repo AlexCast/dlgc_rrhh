@@ -135,6 +135,12 @@
                 badge.className = 'doc-badge doc-badge-' + String(doc.estado || 'activo').toLowerCase();
                 badge.textContent = doc.estado || 'ACTIVO';
                 tdEstado.appendChild(badge);
+                if (doc.id_version_pendiente) {
+                    const pendiente = document.createElement('span');
+                    pendiente.className = 'doc-badge doc-badge-pendiente';
+                    pendiente.textContent = 'PENDIENTE DE APROBACIÓN';
+                    tdEstado.appendChild(pendiente);
+                }
                 tr.appendChild(tdEstado);
 
                 const tdArchivo = celda('');
@@ -165,7 +171,9 @@
                 } else {
                     const s = document.createElement('span');
                     s.className = 'text-muted';
-                    s.textContent = 'Sin archivo';
+                    s.textContent = doc.archivo_pendiente
+                        ? 'Archivo enviado: ' + doc.archivo_pendiente
+                        : 'Sin archivo';
                     tdArchivo.appendChild(s);
                 }
                 tr.appendChild(tdArchivo);

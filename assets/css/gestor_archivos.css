@@ -67,6 +67,236 @@
     color: var(--text-main);
 }
 
+.gestor-busqueda {
+    display: flex;
+    flex: 0 1 300px;
+    min-width: 220px;
+}
+
+.gestor-busqueda-campo {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    min-width: 0;
+    padding: 0 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(8, 24, 16, 0.55);
+    color: var(--text-main);
+}
+
+.gestor-busqueda-campo:focus-within {
+    border-color: #3ba86a;
+    box-shadow: 0 0 0 2px rgba(59, 168, 106, 0.18);
+}
+
+.gestor-busqueda-campo > i {
+    color: #8d99a6;
+}
+
+.gestor-busqueda input {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text-main);
+}
+
+.gestor-busqueda input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.gestor-explorador {
+    display: grid;
+    gap: 14px;
+}
+
+.gestor-folder {
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.gestor-folder-toggle,
+.gestor-empleado-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: 0;
+    color: var(--text-main);
+    text-align: left;
+    cursor: pointer;
+}
+
+.gestor-folder-toggle {
+    padding: 16px 18px;
+    border: 0;
+    background: rgba(59, 168, 106, 0.12);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.gestor-folder-toggle:hover,
+.gestor-empleado-toggle:hover {
+    background: rgba(59, 168, 106, 0.12);
+}
+
+.gestor-folder-toggle > .gestor-folder-icon,
+.gestor-folder-toggle > .fa-folder {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.gestor-folder-name {
+    flex: 1;
+}
+
+.gestor-folder-count,
+.gestor-empleado-count {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.gestor-folder-body {
+    padding: 4px 14px 14px;
+}
+
+.gestor-empleado {
+    border-top: 1px solid var(--border-color);
+}
+
+.gestor-empleado-toggle {
+    padding: 13px 4px 10px;
+    background: transparent;
+    font-size: 0.92rem;
+}
+
+.gestor-empleado-toggle > .fa-user {
+    width: 22px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.gestor-empleado-name {
+    flex: 1;
+    font-weight: 700;
+}
+
+.gestor-empleado-body {
+    display: grid;
+    gap: 8px;
+    padding: 0 0 12px 26px;
+}
+
+.gestor-file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--bg-card);
+}
+
+.gestor-file-icon {
+    flex: 0 0 30px;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    text-align: center;
+}
+
+.gestor-file-icon.fa-file-circle-question {
+    color: var(--text-muted);
+}
+
+.gestor-file-detail {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+}
+
+.gestor-file-title,
+.gestor-file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gestor-file-title {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+.gestor-file-name,
+.gestor-file-meta {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.gestor-file-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.gestor-file-actions .gestor-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gestor-grupo-cerrado > .gestor-folder-toggle,
+.gestor-grupo-cerrado > .gestor-empleado-toggle {
+    background: transparent;
+}
+
+@media (max-width: 720px) {
+    .gestor-header-info {
+        display: none;
+    }
+
+    .gestor-busqueda {
+        width: 100%;
+        min-width: 0;
+        flex-basis: 100%;
+    }
+
+    .gestor-card-header {
+        align-items: stretch;
+    }
+
+    .gestor-card-header > div:first-child {
+        width: 100%;
+    }
+
+    .gestor-busqueda-campo {
+        min-height: 44px;
+    }
+
+    .gestor-file {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .gestor-file-detail {
+        flex-basis: calc(100% - 44px);
+    }
+
+    .gestor-file-actions {
+        width: 100%;
+        justify-content: flex-start;
+        padding-left: 42px;
+    }
+}
+
 .gestor-table-wrap {
     overflow-x: auto;
 }
@@ -177,6 +407,11 @@
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+.gestor-btn-aprobar,
+.gestor-btn-rechazar {
+    white-space: nowrap;
 }
 
 /* Botones */

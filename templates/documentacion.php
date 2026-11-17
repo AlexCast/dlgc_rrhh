@@ -167,6 +167,9 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                                 <span class="doc-badge doc-badge-<?php echo strtolower((string) $doc->estado); ?>">
                                                     <?php echo htmlspecialchars((string) $doc->estado, ENT_QUOTES, 'UTF-8'); ?>
                                                 </span>
+                                                <?php if (!empty($doc->id_version_pendiente)): ?>
+                                                    <span class="doc-badge doc-badge-pendiente">PENDIENTE DE APROBACIÓN</span>
+                                                <?php endif; ?>
                                             </td>
                                             <td data-label="Archivo vigente">
                                                 <?php if (!empty($doc->archivo_actual)): ?>
@@ -181,7 +184,11 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                                         <?php endif; ?>
                                                     </span>
                                                 <?php else: ?>
-                                                    <span class="text-muted">Sin archivo</span>
+                                                    <?php if (!empty($doc->id_version_pendiente)): ?>
+                                                        <span class="text-muted">Archivo enviado: <?php echo htmlspecialchars((string) $doc->archivo_pendiente, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">Sin archivo</span>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             </td>
                                             <td data-label="Registrado"><?php echo formatearFechaDoc($doc->documento_fecha); ?></td>

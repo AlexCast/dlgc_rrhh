@@ -12,7 +12,7 @@ Documentación técnica de los módulos **Documentación (ID 31)** y **Gestor de
 | Operaciones permitidas | **Solo VER e INSERTAR** (no existen edición ni eliminación) | VER / CREAR / ACTUALIZAR / ELIMINAR / RESTAURAR |
 | Función | Registro documental del empleado (contrato, certificados, etc.) | Control de versiones de los archivos físicos: archivo **Vigente** + **Históricos** |
 | Vistas | `templates/documentacion.php` | `templates/gestor_archivos.php` |
-| Backend | `app/doc_guardar.php`, `app/doc_listar.php` | `app/gestor_listar.php`, `app/gestor_historial.php`, `app/gestor_subir.php`, `app/gestor_descargar.php` |
+| Backend | `app/doc_guardar.php`, `app/doc_listar.php` | `app/gestor_listar.php`, `app/gestor_pendientes.php`, `app/gestor_historial.php`, `app/gestor_subir.php`, `app/gestor_aprobar.php`, `app/gestor_rechazar.php`, `app/gestor_descargar.php` |
 | Frontend | `assets/js/documentacion.js`, `assets/css/documentacion.css` | `assets/js/gestor_archivos.js`, `assets/css/gestor_archivos.css` |
 
 Regla central del Gestor: subir una nueva versión **nunca sobrescribe** el registro anterior. Cada subida inserta una fila nueva en `t_documentos_versiones`; la versión vigente queda marcada con `es_actual = 1` y las anteriores pasan automáticamente al histórico.
@@ -71,7 +71,7 @@ Regla de negocio del esquema (respeta el CHECK `chk_versiones_estado`):
 - `PENDIENTE` / `RECHAZADO`: `numero_version = NULL`, `es_actual = 0`.
 - `APROBADO`: `numero_version` asignado, `id_aprobador` y `fec_resolucion` no nulos.
 
-En esta implementación, **la subida aprueba en el acto** (el usuario con permiso de subir es el aprobador), manteniendo la invariante de una sola versión vigente.
+La subida siempre crea una versión `PENDIENTE`; la versión aprobada anterior continúa vigente hasta que un usuario con permisos RBAC de actualización la aprueba. El rechazo conserva la auditoría y elimina inmediatamente el objeto físico de R2/LOCAL.
 
 ### 2.4 Triggers (auditoría, soft delete y borrado físico)
 
@@ -81,7 +81,7 @@ En esta implementación, **la subida aprueba en el acto** (el usuario con permis
 | `tri_soft_delete_<tabla>` (para las 3 tablas de documentos) | [scripts/triggers/softdelete.sql](scripts/triggers/softdelete.sql) | BEFORE DELETE: bloquean el borrado físico con `SIGNAL SQLSTATE '45000'` (mismo patrón que el resto del proyecto) |
 | — | [scripts/triggers/borrado_fisico.sql](scripts/triggers/borrado_fisico.sql) | **No aplica** a estas tablas (ver nota en §10.7) |
 
-> El rechazo de una versión por RRHH **no es un borrado**: es un cambio de estado a `RECHAZADO` que conserva `motivo_rechazo`, `id_aprobador` y `fec_resolucion` (lo exige el CHECK `chk_versiones_estado`). Además, MariaDB prohíbe que un trigger borre filas de su propia tabla (error 1442), por lo que el patrón de "borrado físico al rechazar" no es viable ni deseable: se perdería la trazabilidad.
+> El rechazo de una versión se registra como `RECHAZADO` y conserva `motivo_rechazo`, `id_aprobador` y `fec_resolucion`. Después se elimina el objeto físico de R2/LOCAL y se aplica soft delete a la fila, conservando la trazabilidad sin acumular archivos rechazados.
 
 ---
 
@@ -109,7 +109,10 @@ En esta implementación, **la subida aprueba en el acto** (el usuario con permis
 
 | Objeto | Firma | Descripción |
 |---|---|---|
-| [proc_subir_version_documento.sql](scripts/functions/documentos_versiones/proc_subir_version_documento.sql) | 9 IN params → fila `resultado` | **Núcleo del versionado**. Transaccional: ① valida parámetros; ② `SELECT … FOR UPDATE` sobre el documento (serializa la numeración); ③ rechaza duplicados por `hash_sha256`; ④ `UPDATE es_actual = 0` a la versión anterior; ⑤ `MAX(numero_version) + 1`; ⑥ INSERT como `APROBADO` con `es_actual = 1`; ⑦ `COMMIT`. Cualquier error hace `ROLLBACK` y devuelve mensaje. (Es PROCEDIMIENTO porque MariaDB no permite `COMMIT/ROLLBACK` en funciones.) |
+| [proc_subir_version_documento.sql](scripts/functions/documentos_versiones/proc_subir_version_documento.sql) | 9 IN params → fila `resultado` | Registra una versión `PENDIENTE`, conserva la vigente anterior y rechaza duplicados por `hash_sha256`. |
+| [proc_aprobar_version_documento.sql](scripts/functions/documentos_versiones/proc_aprobar_version_documento.sql) | `(id_version, id_aprobador)` | Transacción con bloqueo del documento, desmarca la vigente, numera y activa la versión pendiente. |
+| [proc_rechazar_version_documento.sql](scripts/functions/documentos_versiones/proc_rechazar_version_documento.sql) | `(id_version, id_aprobador, motivo)` | Cambia una versión pendiente a `RECHAZADO`, exige motivo y conserva el resolutor. |
+| [proc_marcar_version_eliminada.sql](scripts/functions/documentos_versiones/proc_marcar_version_eliminada.sql) | `(id_version, actor)` | Soft delete posterior a la eliminación física confirmada del objeto rechazado. |
 | [proc_listar_versiones_documento.sql](scripts/functions/documentos_versiones/proc_listar_versiones_documento.sql) | `IN wid_documento INT` | Historial completo (todas las versiones no borradas), vigente primero. |
 | [proc_listar_documentos_gestor.sql](scripts/functions/documentos_versiones/proc_listar_documentos_gestor.sql) | — | Todos los documentos con empleado (nombres), tipo, versión vigente y `total_versiones`. |
 | [proc_obtener_version_archivo.sql](scripts/functions/documentos_versiones/proc_obtener_version_archivo.sql) | `IN wid_version INT` | Fila única de la versión (usada por la descarga). |
@@ -136,7 +139,10 @@ Todos incluyen `session_bootstrap` + `conexion` + `auth_guard`. Las mutaciones e
 | [doc_listar.php](app/doc_listar.php) | GET | Autenticado (transversal) | Lista los documentos del usuario en sesión. | `proc_listar_documentos_usuario` |
 | [gestor_listar.php](app/gestor_listar.php) | GET | `has_module_access(30)` | Lista documentos + archivo vigente. | `proc_listar_documentos_gestor` |
 | [gestor_historial.php](app/gestor_historial.php) | GET | `has_module_access(30)` | `id_documento` validado con `intValue`. | `proc_listar_versiones_documento` |
-| [gestor_subir.php](app/gestor_subir.php) | POST (multipart) | `has_module_access(30)` + `has_module_permission(30,'crear')` | CSRF; archivo: error de subida, tamaño 1 B–10 MB, **MIME real con `finfo`** (solo PDF/JPG/PNG/WebP), nombre saneado (`basename`), SHA-256. Comprime antes de subir (Fase 4): imágenes con GD (máx. 1600 px, JPEG q80; PNG con alpha se conserva) y PDFs con Ghostscript (perfil `/ebook`; si no logra ≥15% de ahorro reintenta con `/screen`; si aún así no hay ahorro, sube el original). Con `provider=R2` en `config/storage_config.php` sube a R2 con llave `documentos/<id_documento>/<token>.<ext>`; si R2 no está configurado usa el disco (`uploads/documentos/...`, proveedor `LOCAL`). Registra con el usuario en sesión como aprobador. Si el SP falla, elimina el archivo del almacenamiento (rollback). | `proc_subir_version_documento` |
+| [gestor_subir.php](app/gestor_subir.php) | POST (multipart) | `has_module_access(30)` + `has_module_permission(30,'crear')` | CSRF; MIME real, tamaño 1 B–10 MB, nombre saneado y SHA-256. Usa rate limit y bloqueo de concurrencia por usuario. El archivo se comprime y se registra como `PENDIENTE`; si el SP falla, elimina el objeto (rollback). | `proc_subir_version_documento` |
+| [gestor_pendientes.php](app/gestor_pendientes.php) | GET | `has_module_access(30)` | Lista las versiones pendientes para la bandeja de revisión. | `proc_listar_versiones_pendientes` |
+| [gestor_aprobar.php](app/gestor_aprobar.php) | POST | `has_module_access(30)` + permiso `actualizar` | CSRF, versión válida y resolución atómica de una versión pendiente. | `proc_aprobar_version_documento` |
+| [gestor_rechazar.php](app/gestor_rechazar.php) | POST | `has_module_access(30)` + permiso `eliminar` | CSRF, motivo obligatorio, rechazo transaccional y eliminación segura de R2/LOCAL antes del soft delete. | `proc_rechazar_version_documento`, `proc_marcar_version_eliminada` |
 | [gestor_descargar.php](app/gestor_descargar.php) | GET | `has_module_access(30)` | `id_version` con `intValue`. La ruta **nunca** viene del cliente: se resuelve desde la DB, se valida con `realpath()` que quede dentro de `uploads/`, se re-verifica el SHA-256 y se sirve con `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff`. | `proc_obtener_version_archivo` |
 
 ### Ejemplo de flujo
@@ -146,8 +152,8 @@ POST /app/gestor_subir.php            (FormData: csrf_token, id_documento, archi
   → valida CSRF y permiso "crear" del módulo 30
   → valida MIME/tamaño/hash
   → mueve el archivo a uploads/documentos/<id>/<token>.pdf
-  → CALL proc_subir_version_documento(...)   ← transacción: desmarca la vigente y numera MAX+1
-  → responde { success: true, message: "Versión 2 subida correctamente." }
+  → CALL proc_subir_version_documento(...)   ← transacción: inserta PENDIENTE sin tocar la vigente
+  → responde { success: true, message: "Versión cargada y enviada a aprobación correctamente." }
 
 GET /app/gestor_historial.php?id_documento=5
   → { success: true, versions: [ { v2, es_actual: "1" }, { v1, es_actual: "0" }, … ] }
@@ -167,7 +173,9 @@ GET /app/gestor_historial.php?id_documento=5
 ### 5.2 `templates/gestor_archivos.php`
 
 - Requiere `require_module_access(30)`; expone en `data-puede-crear` si el usuario tiene permiso de crear.
-- Tabla principal: documento (título + tipo), empleado, **archivo vigente** (nombre, tamaño, fecha, enlace Descargar), contador de versiones y acciones.
+- La card de documentos vigentes funciona como un explorador: muestra carpetas virtuales con icono por `tipo_documento`, y dentro agrupa los archivos por empleado; cada archivo conserva sus acciones de descarga, historial y nueva versión. No crea carpetas físicas en R2.
+- Incluye búsqueda global por categoría, título, empleado y archivo.
+- Dentro de cada categoría: documento (título + tipo), empleado, **archivo vigente** (nombre, tamaño, fecha, enlace Descargar), contador de versiones y acciones.
 - Acciones por fila:
   - **Ver versiones** → abre el modal de historial (carga por AJAX).
   - **Subir versión** (solo con permiso `crear`) → modal con `<input type="file">` y observación opcional.
@@ -178,7 +186,7 @@ GET /app/gestor_historial.php?id_documento=5
 | Archivo | Responsabilidad |
 |---|---|
 | [assets/js/documentacion.js](assets/js/documentacion.js) | Abrir/cerrar modal, `POST` con `FormData` + CSRF a `doc_guardar.php`, refresco de la tabla vía `doc_listar.php`. El DOM se construye con `createElement`/`textContent` (sin inyección de HTML). |
-| [assets/js/gestor_archivos.js](assets/js/gestor_archivos.js) | Delegación de eventos en la tabla, carga del historial (`gestor_historial.php`), subida multipart (`gestor_subir.php`), refresco de tabla e historial tras cada subida. |
+| [assets/js/gestor_archivos.js](assets/js/gestor_archivos.js) | Bandeja de pendientes, aprobación/rechazo, carga del historial, subida multipart y refresco de tablas. |
 | [assets/css/documentacion.css](assets/css/documentacion.css) | Tabla, badges, botones, modal y alertas del módulo 31 (usa variables de tema de `firstpage.css`). |
 | [assets/css/gestor_archivos.css](assets/css/gestor_archivos.css) | Estilos de la tabla, badges VIGENTE/histórica, modales y tarjetas del historial (módulo 30). |
 
@@ -237,8 +245,9 @@ Asignaciones:
 | Control | Dónde |
 |---|---|
 | Autenticación/sesión, user-agent e inactividad | `app/auth_guard.php` (común a todo el proyecto) |
-| CSRF en todas las mutaciones (POST) | `csrf_validate()` en `doc_guardar.php` y `gestor_subir.php`; `csrf_input()` en ambos formularios y token en `data-csrf` para los envíos Fetch |
-| RBAC del módulo 30 | `has_module_access(30)` + `has_module_permission(30, 'crear')` |
+| CSRF en todas las mutaciones (POST) | `csrf_validate()` en cargas, aprobación y rechazo; `csrf_input()` en formularios y token en `data-csrf` para Fetch |
+| Protección contra abuso de carga | Rate limit existente por usuario/tipo y `UploadConcurrencyGuard` con bloqueo no bloqueante por usuario; límites MIME/tamaño y limpieza de temporales |
+| RBAC del módulo 30 | `crear` carga; `actualizar` aprueba; `eliminar` rechaza; `ver` consulta |
 | Transversalidad controlada del 31 | Sin `require_module_access`, pero el propietario del documento siempre es `$_SESSION['id_usuario']` (sin IDOR) |
 | Inyección SQL | Solo `fun_*`/`proc_*` mediante PDO con `ATTR_EMULATE_PREPARES = false` |
 | Validación de entradas | `InputSanitizer::intValue`, `boundedText`, whitelist de MIME con `finfo`, tamaño, nombre con `basename` |
@@ -246,6 +255,12 @@ Asignaciones:
 | XSS en el frontend | Render del DOM exclusivamente con `createElement`/`textContent` (sin `innerHTML` con datos) |
 | Auditoría en BD | Triggers `tri_audit_*` en las 3 tablas: los campos `usr_*`/`fec_*` los completa la BD (nadie los manipula desde la app) |
 | Borrado físico | Bloqueado por triggers `tri_soft_delete_*` (`SIGNAL 45000`) en las 3 tablas |
+
+Para reducir abuso de recursos, el servidor debe mantener `upload_max_filesize=10M`,
+`post_max_size` ligeramente por encima de 10 MB para el multipart, y límites de
+`max_execution_time`, `max_input_time` y `memory_limit` adecuados al entorno. Estos
+valores deben configurarse en PHP/Apache del servidor, no desde datos enviados por el
+cliente; la aplicación vuelve a validar el tamaño real antes de comprimir o subir.
 
 ---
 
@@ -322,11 +337,11 @@ source scripts/inserts/documentos_seeds.sql;
    ```
    seguido de `.\scripts\rebuild_functions.ps1`. Ver §9.2. Los SPs de estos módulos declaran además `COLLATE utf8mb4_unicode_ci` explícito en sus parámetros de texto, por lo que funcionan incluso en bases con otro default.
 2. **`proc_subir_version_documento` es procedimiento y no función** porque MariaDB prohíbe `COMMIT/ROLLBACK` dentro de funciones. Devuelve el mensaje como una fila `resultado` (compatible con `fetchColumn()`).
-3. **Aprobación en la subida**: el flujo actual aprueba la versión en el momento de subir (el usuario autorizado es el aprobador). El esquema ya contempla los estados `PENDIENTE`/`RECHAZADO` por si en el futuro se implementa un flujo de aprobación por separado.
+3. **Aprobación separada**: la subida crea `PENDIENTE`; `ACTUALIZAR` aprueba y `ELIMINAR` rechaza. La versión anterior permanece vigente hasta la aprobación.
 4. **Documentación sin editar/eliminar**: por regla de negocio no existen `fun_update_*` ni `fun_softdelete_*` para `t_documentos_rrhh`, y las vistas no renderizan esos botones.
 5. Los campos de auditoría (`usr_insert`/`fec_insert`, etc.) se completan en los SPs con `COALESCE(@app_current_user, CURRENT_USER())`, siguiendo la convención del proyecto.
 6. El archivo `logs/mailer.log` muestra fallos de envío de correo por **extensión cURL no disponible** (problema preexistente del entorno PHP, ajeno a estos módulos).
-7. **Borrado físico en documentos**: las 3 tablas están protegidas con guardas de soft delete (`SIGNAL` en `softdelete.sql`). El rechazo de versiones se modela como estado `RECHAZADO` (con su motivo y resolutor), nunca como `DELETE`. Si en el futuro se necesita eliminar la fila de una versión rechazada, debe hacerse desde la app o un procedimiento (no con trigger, por el error 1442 de MariaDB).
+7. **Rechazo y almacenamiento**: el rechazo se registra primero como `RECHAZADO`; después se elimina el objeto de R2/LOCAL y se aplica `proc_marcar_version_eliminada`. Si falla la eliminación física, la fila queda rechazada para permitir una revisión administrativa sin ocultar el error.
 
 ---
 
@@ -334,13 +349,16 @@ source scripts/inserts/documentos_seeds.sql;
 
 | Prueba | Resultado |
 |---|---|
-| `php -l` sobre los 9 archivos PHP nuevos/modificados | ✅ Sin errores |
-| Render server-side de `documentacion.php` y `gestor_archivos.php` con sesión simulada (CLI) | ✅ HTML completo, sidebar con ambos enlaces, sin warnings |
+| `php -l` sobre los archivos PHP nuevos/modificados | ✅ Sin errores |
+| Prueba del bloqueo de concurrencia por usuario | ✅ Primera carga permitida; segunda carga simultánea devuelve bloqueo |
+| Reconstrucción de 157 funciones/procedimientos MariaDB | ✅ Sin errores |
+| Procedimientos de aprobación/rechazo | ✅ Carga pendiente, aprobación transaccional y rechazo con motivo verificados |
+| Limpieza lógica de rechazo | ✅ `proc_marcar_version_eliminada` marca la fila rechazada después de la limpieza |
 | `doc_guardar.php` sin token CSRF | ✅ 403 JSON |
 | `doc_guardar.php` con CSRF y usuario no empleado | ✅ Error amigable del SP |
 | `doc_listar.php`, `gestor_listar.php`, `gestor_historial.php` | ✅ JSON correcto |
 | `gestor_subir.php` sin archivo | ✅ Validación JSON |
-| E2E en MariaDB: empleado → documento → v1 → v2 → duplicado rechazado | ✅ v1 queda `es_actual=0`, v2 `es_actual=1`; historial y listados correctos; datos de prueba eliminados |
+| E2E en MariaDB: empleado → documento → versión pendiente → aprobación/rechazo | ✅ Estados, numeración, versión vigente y motivo verificados; datos de prueba marcados eliminados |
 | HTTP vía Apache sin sesión | ✅ 302 a `login.php` en los 3 puntos de entrada |
 | RBAC aplicado | ✅ Admin con 301–305 y 311–312; EMPLEADO solo 311–312 |
 | Corrección de collation + login | ✅ `ALTER DATABASE … utf8mb4_unicode_ci` + rebuild de funciones; `CALL proc_login_usuarios('admin')` sin error 1267; simulación completa de login (proc → `password_verify` → `load_user_session`) con permisos 30 y 31 cargados |

@@ -1,6 +1,6 @@
 DELIMITER //
 
--- Procedimiento transaccional: sube una nueva versión APROBADA de un documento.
+-- Procedimiento transaccional: registra una nueva versión PENDIENTE de un documento.
 -- MariaDB no permite COMMIT/ROLLBACK dentro de funciones; por eso es un PROCEDIMIENTO
 -- que devuelve el mensaje de resultado como fila (columna "resultado").
 CREATE OR REPLACE PROCEDURE proc_subir_version_documento(
@@ -59,11 +59,6 @@ BEGIN
             LEAVE logica;
         END IF;
 
-        IF wid_aprobador IS NULL OR TRIM(wid_aprobador) = '' THEN
-            SET v_mensaje = 'El usuario aprobador es obligatorio.';
-            LEAVE logica;
-        END IF;
-
         START TRANSACTION;
 
         -- Serializa la numeración de versiones por documento.
@@ -92,19 +87,6 @@ BEGIN
             LEAVE logica;
         END IF;
 
-        -- La versión vigente anterior deja de serlo.
-        UPDATE t_documentos_versiones
-        SET es_actual = 0
-        WHERE id_documento = wid_documento
-          AND es_actual = 1
-          AND fec_delete IS NULL;
-
-        -- La nueva versión se numera y queda vigente (aprobada en el momento de la subida).
-        SELECT COALESCE(MAX(numero_version), 0) + 1 INTO v_numero
-        FROM t_documentos_versiones
-        WHERE id_documento = wid_documento
-          AND fec_delete IS NULL;
-
         INSERT INTO t_documentos_versiones (
             id_documento,
             numero_version,
@@ -124,25 +106,25 @@ BEGIN
         )
         VALUES (
             wid_documento,
-            v_numero,
+            NULL,
             UPPER(TRIM(wproveedor)),
             TRIM(wstorage_key),
             TRIM(wnombre_original),
             wmime_type,
             wtamano_bytes,
             whash_sha256,
-            TRUE,
+            FALSE,
             NULLIF(TRIM(wobservacion), ''),
-            'APROBADO',
-            TRIM(wid_aprobador),
-            CURRENT_TIMESTAMP,
+            'PENDIENTE',
+            NULL,
+            NULL,
             COALESCE(@app_current_user, CURRENT_USER()),
             CURRENT_TIMESTAMP
         );
 
         COMMIT;
 
-        SET v_mensaje = CONCAT('Versión ', v_numero, ' subida correctamente.');
+        SET v_mensaje = 'Versión cargada y enviada a aprobación correctamente.';
     END logica;
 
     SELECT v_mensaje AS resultado;

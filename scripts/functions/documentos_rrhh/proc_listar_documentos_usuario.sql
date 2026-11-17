@@ -18,7 +18,36 @@ BEGIN
         v.nombre_original AS archivo_actual,
         v.mime_type AS archivo_mime,
         v.tamano_bytes AS archivo_tamano,
-        v.fec_insert AS archivo_fecha
+        v.fec_insert AS archivo_fecha,
+        v.estado_aprobacion,
+        v.motivo_rechazo,
+        (
+            SELECT p.id_version
+            FROM t_documentos_versiones p
+            WHERE p.id_documento = d.id_documento
+              AND p.estado_aprobacion = 'PENDIENTE'
+              AND p.fec_delete IS NULL
+            ORDER BY p.fec_insert DESC, p.id_version DESC
+            LIMIT 1
+        ) AS id_version_pendiente,
+        (
+            SELECT p.nombre_original
+            FROM t_documentos_versiones p
+            WHERE p.id_documento = d.id_documento
+              AND p.estado_aprobacion = 'PENDIENTE'
+              AND p.fec_delete IS NULL
+            ORDER BY p.fec_insert DESC, p.id_version DESC
+            LIMIT 1
+        ) AS archivo_pendiente,
+        (
+            SELECT p.fec_insert
+            FROM t_documentos_versiones p
+            WHERE p.id_documento = d.id_documento
+              AND p.estado_aprobacion = 'PENDIENTE'
+              AND p.fec_delete IS NULL
+            ORDER BY p.fec_insert DESC, p.id_version DESC
+            LIMIT 1
+        ) AS pendiente_fecha
     FROM t_documentos_rrhh d
     INNER JOIN t_tipos_documento_rrhh t
         ON t.id_tipo_documento = d.id_tipo_documento

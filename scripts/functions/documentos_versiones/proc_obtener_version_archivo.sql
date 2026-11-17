@@ -15,6 +15,8 @@ BEGIN
         v.hash_sha256,
         v.numero_version,
         v.es_actual,
+        v.estado_aprobacion,
+        v.motivo_rechazo,
         v.fec_insert
     FROM t_documentos_versiones v
     WHERE v.id_version = wid_version

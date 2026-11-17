@@ -1,7 +1,7 @@
 DELIMITER //
 
 -- Procedimiento transaccional: registra un documento del empleado en sesión
--- (módulo Documentación 31) junto con su primera versión (archivo adjunto).
+-- (módulo Documentación 31) junto con su primera versión pendiente de aprobación.
 -- Sustituye a la combinación fun_insert_documentos_rrhh + LAST_INSERT_ID()
 -- (que en MariaDB no propaga el id fuera de la función) + proc_subir_version_documento.
 CREATE OR REPLACE PROCEDURE proc_registrar_documento_archivo(
@@ -96,15 +96,15 @@ BEGIN
                         mime_type, tamano_bytes, hash_sha256, es_actual, observacion,
                         estado_aprobacion, id_aprobador, fec_resolucion, usr_insert, fec_insert
                     ) VALUES (
-                        v_documento, 1, UPPER(TRIM(wproveedor)), TRIM(wstorage_key), TRIM(wnombre_original),
-                        wmime_type, wtamano_bytes, whash_sha256, TRUE, NULL,
-                        'APROBADO', TRIM(wid_usuario), CURRENT_TIMESTAMP,
+                        v_documento, NULL, UPPER(TRIM(wproveedor)), TRIM(wstorage_key), TRIM(wnombre_original),
+                        wmime_type, wtamano_bytes, whash_sha256, FALSE, NULL,
+                        'PENDIENTE', NULL, NULL,
                         COALESCE(@app_current_user, CURRENT_USER()), CURRENT_TIMESTAMP
                     );
 
                     COMMIT;
 
-                    SELECT v_documento AS id_documento, 'Documento registrado correctamente con su archivo.' AS resultado;
+                    SELECT v_documento AS id_documento, 'Documento registrado correctamente y enviado a aprobación.' AS resultado;
                 END IF;
             END IF;
         END IF;
