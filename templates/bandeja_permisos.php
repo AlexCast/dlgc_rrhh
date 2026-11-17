@@ -38,6 +38,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="/assets/css/firstpage.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/firstpage.css'); ?>">
     <link rel="stylesheet" href="/assets/css/sst.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/sst.css'); ?>">
     <link rel="stylesheet" href="/assets/css/solicitud_permiso.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/solicitud_permiso.css'); ?>">
+    <link rel="stylesheet" href="/assets/css/bandeja_permisos.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/bandeja_permisos.css'); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon.ico">
 </head>
 <body

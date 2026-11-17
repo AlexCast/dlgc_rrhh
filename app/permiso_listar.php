@@ -77,17 +77,24 @@ try {
             sp.fecha_inicio, sp.fecha_fin, sp.hora_inicio, sp.hora_fin, sp.estado,
             sp.metodo_descuento, sp.fec_insert,
             ue.primer_nombre AS empleado_nombre, ue.primer_apellido AS empleado_apellido,
+            uj.primer_nombre AS jefe_nombre, uj.primer_apellido AS jefe_apellido,
             aj.estado AS estado_jefe, aj.observacion AS observacion_jefe, aj.fec_resolucion AS fec_resolucion_jefe,
             ar.estado AS estado_rrhh, ar.observacion AS observacion_rrhh, ar.fec_resolucion AS fec_resolucion_rrhh,
+            uar.primer_nombre AS aprobador_rrhh_nombre, uar.primer_apellido AS aprobador_rrhh_apellido,
             (SELECT COUNT(*) FROM t_permisos_evidencias e WHERE e.id_permiso = sp.id_permiso AND e.fec_delete IS NULL) AS total_evidencias,
             (SELECT GROUP_CONCAT(tp.nombre_tipo ORDER BY tp.nombre_tipo SEPARATOR ', ')
                FROM t_solicitudes_permisos_motivos spm
                INNER JOIN t_tipos_permisos tp ON tp.id_tipo_permiso = spm.id_tipo_permiso
-              WHERE spm.id_permiso = sp.id_permiso AND spm.fec_delete IS NULL) AS motivos
+              WHERE spm.id_permiso = sp.id_permiso AND spm.fec_delete IS NULL) AS motivos,
+            (SELECT GROUP_CONCAT(NULLIF(TRIM(spmd.detalle_motivo), '') SEPARATOR ' ')
+               FROM t_solicitudes_permisos_motivos spmd
+              WHERE spmd.id_permiso = sp.id_permiso AND spmd.fec_delete IS NULL) AS detalle_motivo
          FROM t_solicitudes_permisos sp
          INNER JOIN t_usuarios ue ON ue.id_usuario = sp.id_empleado
+         LEFT JOIN t_usuarios uj ON uj.id_usuario = sp.id_jefe_responsable
          LEFT JOIN t_permisos_aprobaciones aj ON aj.id_permiso = sp.id_permiso AND aj.nivel_aprobacion = 'JEFE' AND aj.fec_delete IS NULL
          LEFT JOIN t_permisos_aprobaciones ar ON ar.id_permiso = sp.id_permiso AND ar.nivel_aprobacion = 'RRHH' AND ar.fec_delete IS NULL
+         LEFT JOIN t_usuarios uar ON uar.id_usuario = ar.id_aprobador
          WHERE sp.fec_delete IS NULL
            AND {$filtroSql}
          ORDER BY {$ordenSql}"
