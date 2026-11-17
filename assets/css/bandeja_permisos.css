@@ -11,6 +11,21 @@
 }
 
 /* ---------- Cabecera: empleado + estado global ---------- */
+.sst-section-header .form-actions {
+    margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+    .sst-section-header h2,
+    .sst-section-header .sst-section-desc {
+        display: none;
+    }
+
+    .sst-section-header .form-actions {
+        margin-top: 0;
+    }
+}
+
 .pc-cabecera {
     display: flex;
     justify-content: space-between;
@@ -394,6 +409,13 @@ body.dark-theme .pc-paso-estado--aprobado {
     .pc-acciones-fila {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .pc-acciones-fila .observacion-input {
+        flex: 0 0 42px;
+        width: 100%;
+        min-height: 42px;
+        height: 42px;
     }
 
     .pc-acciones-fila .btn {
