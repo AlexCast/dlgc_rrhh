@@ -146,4 +146,5 @@ $epsEliminadas = array_filter($epsRegistros, function ($eps) {
     </div>
 </main>
 
+<?php $exportarModulo = 'eps'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_eps.php'; ?>

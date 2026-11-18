@@ -123,4 +123,5 @@ $eliminados = array_filter($registros, function ($row) {
     </div>
 </main>
 
+<?php $exportarModulo = 'modulos'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_modulos.php'; ?>

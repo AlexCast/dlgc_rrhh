@@ -112,4 +112,5 @@ render_alert_banner();
     </section>
 </main>
 
+<?php $exportarModulo = 'quejas'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_sst.php'; ?>

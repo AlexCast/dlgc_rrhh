@@ -146,4 +146,5 @@ $pensionEliminadas = array_filter($pensionRegistros, function ($pension) {
     </div>
 </main>
 
+<?php $exportarModulo = 'pension'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_pension.php'; ?>

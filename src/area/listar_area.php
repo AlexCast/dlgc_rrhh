@@ -146,4 +146,5 @@ $areaEliminadas = array_filter($areaRegistros, function ($area) {
     </div>
 </main>
 
+<?php $exportarModulo = 'area'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_area.php'; ?>

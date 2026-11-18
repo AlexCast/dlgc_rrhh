@@ -235,4 +235,5 @@ $festivoEliminados = array_filter($festivoRegistros, function ($f) {
 })();
 </script>
 
+<?php $exportarModulo = 'festivos'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_dias_festivos.php'; ?>

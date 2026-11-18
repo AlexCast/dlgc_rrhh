@@ -172,4 +172,5 @@ $nominasEliminadas = array_filter($nominaRegistros, function ($nomina) {
     </div>
 </main>
 
+<?php $exportarModulo = 'nomina'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_nomina.php'; ?>

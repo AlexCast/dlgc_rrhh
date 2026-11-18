@@ -146,4 +146,5 @@ $cesantiaEliminadas = array_filter($cesantiaRegistros, function ($cesantia) {
     </div>
 </main>
 
+<?php $exportarModulo = 'cesantias'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_cesantias.php'; ?>

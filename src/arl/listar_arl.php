@@ -146,4 +146,5 @@ $arlEliminadas = array_filter($arlRegistros, function ($arl) {
     </div>
 </main>
 
+<?php $exportarModulo = 'arl'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_arl.php'; ?>

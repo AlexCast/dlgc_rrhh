@@ -234,4 +234,5 @@ $totalPermisosActivos = count($relaciones) - count($relacionesEliminadas);
     });
 })();
 </script>
+<?php $exportarModulo = 'permisos-usuarios'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_permisos_usuarios.php'; ?>

@@ -198,4 +198,5 @@ $contratosEliminados = array_filter($contratosRegistros, function ($contrato) {
     </div>
 </main>
 
+<?php $exportarModulo = 'contratos'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_contratos_empleados.php'; ?>

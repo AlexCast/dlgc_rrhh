@@ -277,4 +277,5 @@ $empleadosEliminados = array_filter($empleadosRegistros, function ($empleado) {
     </div>
 </main>
 
+<?php $exportarModulo = 'empleados'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_empleados.php'; ?>

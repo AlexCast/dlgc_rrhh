@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/auth_guard.php';
+require_once __DIR__ . '/helpers/PdfBranding.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -365,12 +366,16 @@ function generarPdf(string $titulo, array $permisosDias, array $permisosHoras, a
 
     $html = '<html><head><meta charset="UTF-8"><style>
         body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #0D130F; }
+        .pdf-logo { width: 54px; height: auto; }
         h1 { font-size: 16px; } h2 { font-size: 13px; margin-top: 24px; }
         table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         th, td { border: 1px solid #cccccc; padding: 5px 6px; text-align: left; }
         th { background-color: #3ba86a; color: #ffffff; }
+        .pdf-cabecera { width: 100%; margin-bottom: 8px; }
+        .pdf-cabecera td { border: 0; padding: 0; vertical-align: middle; background: transparent; }
+        .pdf-cabecera h1 { margin: 0; }
     </style></head><body>'
-        . '<h1>' . htmlspecialchars($titulo) . '</h1>'
+        . '<table class="pdf-cabecera"><tr><td><h1>' . htmlspecialchars($titulo) . '</h1></td><td style="text-align:right">' . pdf_logo_html() . '</td></tr></table>'
         . '<p style="font-size:10px;color:#555;">' . htmlspecialchars($notaPermisos) . '</p>'
         . '<h2>' . htmlspecialchars($tituloSeccionDias) . '</h2>'
         . '<table><thead><tr><th>ID</th><th>Empleado</th><th>Documento</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Días Hábiles</th><th>Motivo(s)</th><th>% Ref.</th><th>Método</th></tr></thead><tbody>'

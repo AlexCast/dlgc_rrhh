@@ -118,4 +118,5 @@ render_alert_banner();
     <?php endif; ?>
 </main>
 
+<?php $exportarModulo = 'comite'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_sst.php'; ?>

@@ -178,4 +178,5 @@ $afiliaciones_empleadosEliminadas = array_filter($afiliaciones_empleadosRegistro
     </div>
 </main>
 
+<?php $exportarModulo = 'afiliaciones'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_afiliaciones_empleados.php'; ?>

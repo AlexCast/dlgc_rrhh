@@ -146,4 +146,5 @@ $bancoEliminadas = array_filter($bancoRegistros, function ($banco) {
     </div>
 </main>
 
+<?php $exportarModulo = 'banco'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_banco.php'; ?>

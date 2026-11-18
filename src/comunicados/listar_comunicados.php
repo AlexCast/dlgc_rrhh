@@ -298,4 +298,5 @@ include_once 'encab_comunicados.php';
     </div>
 </main>
 
+<?php $exportarModulo = 'comunicados'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_comunicados.php'; ?>

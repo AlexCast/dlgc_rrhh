@@ -195,4 +195,5 @@ $relacionesEliminadas = array_filter($relaciones, function ($rel) {
     </div>
 </main>
 
+<?php $exportarModulo = 'roles-operaciones'; include __DIR__ . '/../../templates/partials/exportar_src_modal.php'; ?>
 <?php include_once 'pie_roles_operaciones.php'; ?>
