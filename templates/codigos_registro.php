@@ -87,13 +87,9 @@ $esTabUnico = $tabActiva === 'unico';
             </div>
 
             <?php
-            // Mismo criterio que firstpage.php: el sidebar se mantiene según el rol.
+            // El sidebar único aplica la visibilidad de módulos según los permisos RBAC.
             $activeItem = 'codigos_registro';
-            if (($_SESSION['id_rol'] ?? null) === 1) {
-                include __DIR__ . '/partials/sidebar_admin.php';
-            } else {
-                include __DIR__ . '/partials/sidebar_nav.php';
-            }
+            include __DIR__ . '/partials/sidebar_nav.php';
             ?>
             <a href="/templates/perfil_rrhh.php" class="sidebar-profile" aria-label="Ver mi perfil">
                 <div class="profile-avatar" aria-hidden="true">

@@ -196,13 +196,9 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
             </div>
 
             <?php
-            // Mismo criterio que firstpage.php: el sidebar se mantiene según el rol.
+            // El sidebar único aplica la visibilidad de módulos según los permisos RBAC.
             $activeItem = 'empleados';
-            if (($_SESSION['id_rol'] ?? null) === 1) {
-                include __DIR__ . '/partials/sidebar_admin.php';
-            } else {
-                include __DIR__ . '/partials/sidebar_nav.php';
-            }
+            include __DIR__ . '/partials/sidebar_nav.php';
             ?>
 
             <a href="/templates/ficha_tecnica.php" class="sidebar-profile" aria-label="Ver mi perfil">

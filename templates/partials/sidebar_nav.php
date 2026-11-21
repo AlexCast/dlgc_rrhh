@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 /**
- * Menú lateral reutilizable para las vistas de empleado.
+ * Menú lateral único.
+ * La visibilidad de cada módulo se determina mediante los permisos RBAC.
  * Variable esperada:
  *   $activeItem (string): slug de la opción activa.
  */
@@ -13,6 +14,7 @@ $iconComunicados  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
 $iconEmpleados    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>';
 $iconSolicitudes  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>';
 $iconSst           = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>';
+$iconAdmin         = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="10" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>';
 $iconSegSocial    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
 $iconEmpresa      = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="6" x2="12.01" y2="6"></line><line x1="12" y1="10" x2="12.01" y2="10"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>';
 $iconSoftware     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>';
@@ -73,19 +75,21 @@ $grupos = [
             ['id' => 20, 'slug' => 'usuarios',    'titulo' => 'Usuarios',         'url' => '/src/usuarios/listar_usuarios.php',             'icono' => $iconUsuarios],
             ['id' => 6,  'slug' => 'src',         'titulo' => 'Roles Operaciones','url' => '/src/roles_operaciones/listar_roles_operaciones.php', 'icono' => $iconSrc],
             ['id' => 18, 'slug' => 'modulos',     'titulo' => 'Módulos',          'url' => '/src/modulos/listar_modulos.php',               'icono' => $iconModulos],
+            ['id' => 21, 'slug' => 'permisos_usuarios', 'titulo' => 'Permisos por Usuario', 'url' => '/src/permisos_usuarios/listar_permisos_usuarios.php', 'icono' => $iconUsuarios],
+            ['id' => 23, 'slug' => 'codigos_registro',  'titulo' => 'Códigos de Registro',  'url' => '/templates/codigos_registro.php',                 'icono' => $iconCodigos],
+        ],
+    ],
+    'administracion' => [
+        'titulo' => 'Administración',
+        'icono'  => $iconAdmin,
+        'modulos' => [
+            ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/src/comunicados/listar_comunicados.php', 'icono' => $iconComunicados],
+            ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/src/sst/listar_quejas.php',              'icono' => $iconSst],
+            ['id' => 30, 'slug' => 'gestor_archivos',   'titulo' => 'Gestor de Archivos',      'url' => '/templates/gestor_archivos.php',          'icono' => $iconArchivos],
+            ['id' => 29, 'slug' => 'vacaciones',       'titulo' => 'Gestión de Vacaciones',   'url' => '/templates/vacaciones.php',               'icono' => $iconVacaciones],
         ],
     ],
 ];
-
-$gruposVisibles = [];
-foreach ($grupos as $key => $grupo) {
-    foreach ($grupo['modulos'] as $modulo) {
-        if (has_module_access($modulo['id'])) {
-            $gruposVisibles[$key] = $grupo;
-            break;
-        }
-    }
-}
 
 // La Bandeja de Aprobaciones no tiene un id_modulo propio: agrupa la aprobación de JEFE
 // (operación 33 del módulo 3, solo si el usuario tiene al menos un subordinado directo) y la
@@ -101,16 +105,29 @@ if (isset($conexion) && has_module_permission(3, 'actualizar')) {
 if (has_module_access(27)) {
     $mostrarBandejaPermisos = true;
 }
+if ($mostrarBandejaPermisos) {
+    $grupos['administracion']['modulos'][] = [
+        'id' => 27,
+        'slug' => 'bandeja_permisos',
+        'titulo' => 'Bandeja de Aprobaciones',
+        'url' => '/templates/bandeja_permisos.php',
+        'icono' => $iconBandeja,
+        'visible' => true,
+    ];
+}
 
-// Módulos SRC/administrativos sueltos (no agrupados) que el usuario tenga asignados.
-// La clave es el slug usado como $activeItem en cada vista.
-$modulosAdminSueltos = [
-    ['id' => 23, 'slug' => 'codigos_registro', 'titulo' => 'Códigos de Registro',  'url' => '/templates/codigos_registro.php',             'icono' => $iconCodigos],
-    ['id' => 24, 'slug' => 'admin_comunicados', 'titulo' => 'Administrar Comunicados', 'url' => '/src/comunicados/listar_comunicados.php', 'icono' => $iconSrc],
-    ['id' => 26, 'slug' => 'admin_sst',         'titulo' => 'Administración SST',      'url' => '/src/sst/listar_quejas.php',              'icono' => $iconSst],
-    ['id' => 29, 'slug' => 'vacaciones',        'titulo' => 'Gestión de Vacaciones',   'url' => '/templates/vacaciones.php',               'icono' => $iconVacaciones],
-    ['id' => 30, 'slug' => 'gestor_archivos',   'titulo' => 'Gestor de Archivos',      'url' => '/templates/gestor_archivos.php',          'icono' => $iconArchivos],
-];
+$gruposVisibles = [];
+foreach ($grupos as $key => $grupo) {
+    foreach ($grupo['modulos'] as $modulo) {
+        $visible = isset($modulo['visible'])
+            ? (bool) $modulo['visible']
+            : has_module_access($modulo['id']);
+        if ($visible) {
+            $gruposVisibles[$key] = $grupo;
+            break;
+        }
+    }
+}
 
 function renderNavItem(string $url, string $titulo, string $icono, string $slug, string $activeItem): string {
     $isActive = $activeItem === $slug;
@@ -129,7 +146,10 @@ function renderNavItem(string $url, string $titulo, string $icono, string $slug,
 function renderGrupo(string $key, array $grupo, string $activeItem, string $iconChevron): string {
     $hijoActivo = false;
     foreach ($grupo['modulos'] as $modulo) {
-        if (has_module_access($modulo['id']) && $activeItem === $modulo['slug']) {
+        $visible = isset($modulo['visible'])
+            ? (bool) $modulo['visible']
+            : has_module_access($modulo['id']);
+        if ($visible && $activeItem === $modulo['slug']) {
             $hijoActivo = true;
             break;
         }
@@ -145,7 +165,10 @@ function renderGrupo(string $key, array $grupo, string $activeItem, string $icon
     $html .= '</button>';
     $html .= '<ul id="nav-group-' . $key . '" class="nav-group-menu">';
     foreach ($grupo['modulos'] as $modulo) {
-        if (has_module_access($modulo['id'])) {
+        $visible = isset($modulo['visible'])
+            ? (bool) $modulo['visible']
+            : has_module_access($modulo['id']);
+        if ($visible) {
             $html .= renderNavItem($modulo['url'], $modulo['titulo'], $modulo['icono'], $modulo['slug'], $activeItem);
         }
     }
@@ -164,19 +187,10 @@ function renderGrupo(string $key, array $grupo, string $activeItem, string $icon
         ?>
         <?php echo renderNavItem('/templates/empleados.php',     'Empleados',             $iconEmpleados,   'empleados',   $activeItem); ?>
         <?php echo renderNavItem('/templates/solicitud_permiso.php', 'Solicitudes y Permisos', $iconSolicitudes, 'solicitudes', $activeItem); ?>
-        <?php if ($mostrarBandejaPermisos): ?>
-            <?php echo renderNavItem('/templates/bandeja_permisos.php', 'Bandeja de Aprobaciones', $iconBandeja, 'bandeja_permisos', $activeItem); ?>
-        <?php endif; ?>
         <?php echo renderNavItem('/templates/sst.php',           'SST',                   $iconSst,         'sst',         $activeItem); ?>
 
         <?php foreach ($gruposVisibles as $key => $grupo): ?>
             <?php echo renderGrupo($key, $grupo, $activeItem, $iconChevron); ?>
-        <?php endforeach; ?>
-
-        <?php foreach ($modulosAdminSueltos as $modulo): ?>
-            <?php if (has_module_access($modulo['id'])): ?>
-                <?php echo renderNavItem($modulo['url'], $modulo['titulo'], $modulo['icono'], $modulo['slug'], $activeItem); ?>
-            <?php endif; ?>
         <?php endforeach; ?>
     </ul>
 </nav>
