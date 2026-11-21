@@ -25,15 +25,9 @@ $sentenciaTipos->execute();
 $tipos = $sentenciaTipos->fetchAll(PDO::FETCH_OBJ);
 $sentenciaTipos->closeCursor();
 
-$contratos = [];
 $documentos = [];
 
 if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
-    $sentenciaContratos = $conexion->prepare('CALL proc_listar_contratos_usuario(?)');
-    $sentenciaContratos->execute([$idUsuarioSesion]);
-    $contratos = $sentenciaContratos->fetchAll(PDO::FETCH_OBJ);
-    $sentenciaContratos->closeCursor();
-
     $sentenciaDocs = $conexion->prepare('CALL proc_listar_documentos_usuario(?)');
     $sentenciaDocs->execute([$idUsuarioSesion]);
     $documentos = $sentenciaDocs->fetchAll(PDO::FETCH_OBJ);
@@ -144,7 +138,6 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                                 <tr>
                                     <th scope="col">Tipo</th>
                                     <th scope="col">Título</th>
-                                    <th scope="col">Contrato</th>
                                     <th scope="col">Estado</th>
                                     <th scope="col">Archivo vigente</th>
                                     <th scope="col">Registrado</th>
@@ -153,16 +146,13 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                             <tbody id="doc-tbody">
                                 <?php if (count($documentos) === 0): ?>
                                     <tr id="doc-fila-vacia">
-                                        <td colspan="6" class="doc-empty">Aún no tienes documentos registrados.</td>
+                                        <td colspan="5" class="doc-empty">Aún no tienes documentos registrados.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($documentos as $doc): ?>
                                         <tr>
                                             <td data-label="Tipo"><?php echo htmlspecialchars((string) $doc->tipo_documento, ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td data-label="Título"><?php echo htmlspecialchars((string) $doc->titulo, ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td data-label="Contrato">
-                                                <?php echo $doc->id_contrato ? '#' . (int) $doc->id_contrato : 'Sin contrato'; ?>
-                                            </td>
                                             <td data-label="Estado">
                                                 <span class="doc-badge doc-badge-<?php echo strtolower((string) $doc->estado); ?>">
                                                     <?php echo htmlspecialchars((string) $doc->estado, ENT_QUOTES, 'UTF-8'); ?>
@@ -229,17 +219,6 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
                     <label for="doc-titulo">Título <span class="doc-obligatorio">*</span></label>
                     <input type="text" id="doc-titulo" name="titulo" maxlength="150" minlength="3" placeholder="Ej: Contrato laboral 2026" required>
                     <span class="doc-ayuda">Entre 3 y 150 caracteres.</span>
-                </div>
-                <div class="doc-form-campo">
-                    <label for="doc-contrato">Contrato asociado (opcional)</label>
-                    <select id="doc-contrato" name="id_contrato">
-                        <option value="">Sin contrato</option>
-                        <?php foreach ($contratos as $contrato): ?>
-                            <option value="<?php echo (int) $contrato->id_contrato; ?>">
-                                <?php echo '#' . (int) $contrato->id_contrato . ' — ' . htmlspecialchars((string) $contrato->puesto, ENT_QUOTES, 'UTF-8'); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
                 </div>
                 <div class="doc-form-campo">
                     <label for="doc-archivo">Archivo del documento <span class="doc-obligatorio">*</span></label>

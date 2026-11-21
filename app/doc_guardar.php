@@ -68,7 +68,7 @@ if (!$chequeoSubidas['permitido']) {
 $limiteSubidas->registrar($idUsuario, 'documento_subida');
 
 $idTipoDocumento = InputSanitizer::intValue($_POST['id_tipo_documento'] ?? null, 1);
-$idContrato      = InputSanitizer::intValue($_POST['id_contrato'] ?? null, 1);
+$idContrato      = null;
 $titulo          = InputSanitizer::boundedText($_POST['titulo'] ?? null, 150);
 
 if ($idTipoDocumento === null) {

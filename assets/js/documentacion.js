@@ -115,7 +115,7 @@
             if (documentos.length === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 6;
+                td.colSpan = 5;
                 td.className = 'doc-empty';
                 td.textContent = 'Aún no tienes documentos registrados.';
                 tr.appendChild(td);
@@ -128,7 +128,6 @@
 
                 tr.appendChild(celda(doc.tipo_documento || 'N/A'));
                 tr.appendChild(celda(doc.titulo || 'N/A'));
-                tr.appendChild(celda(doc.id_contrato ? '#' + doc.id_contrato : 'Sin contrato'));
 
                 const tdEstado = celda('');
                 const badge = document.createElement('span');
