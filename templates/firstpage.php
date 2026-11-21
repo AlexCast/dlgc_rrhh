@@ -230,7 +230,7 @@ if ($verTramitesEmpresa) {
         
         <aside class="sidebar" id="sidebar" aria-label="Menú principal">
             <div class="sidebar-top">
-                <a href="/templates/index.html" class="logo" aria-label="Inicio">
+                <a href="/templates/firstpage.php" class="logo" aria-label="Inicio">
                     <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
                 <button id="close-sidebar" class="icon-btn mobile-only" aria-label="Cerrar menú">
@@ -336,20 +336,6 @@ if ($verTramitesEmpresa) {
                 </section>
 
                 <div class="content-split-grid content-split-grid--stacked">
-
-                    <section class="data-card actions-card-compact" aria-labelledby="actions-title">
-                        <div class="actions-compact-row">
-                            <h3 id="actions-title" class="card-title">Acciones Rápidas</h3>
-                            <button class="btn btn-primary">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                                Reportar Incapacidad Médica
-                            </button>
-                        </div>
-                        <div class="info-alert-box" role="note">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                            <p>Recuerda que tienes hasta 48 horas hábiles después de emitida tu incapacidad para radicar el certificado médico en el sistema.</p>
-                        </div>
-                    </section>
 
                     <section class="data-card carousel-card" aria-labelledby="carousel-title">
                         <div class="carousel-header">

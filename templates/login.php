@@ -35,13 +35,13 @@ $registerData = $_SESSION['register_form_data'] ?? [];
     <header class="navbar-wrapper">
     <nav class="navbar auth-navbar" aria-label="Navegación de autenticación">
         <!-- Logotipo Corporativo -->
-        <a href="/templates/index.html" class="logo" aria-label="Volver al inicio">
+        <a href="/templates/firstpage.php" class="logo" aria-label="Ir al dashboard">
             <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
         </a>
         
         <!-- Acciones del Header -->
         <div class="nav-actions">
-            <a href="/templates/index.html" class="btn btn-outline back-btn" aria-label="Regresar al inicio">
+            <a href="/templates/firstpage.php" class="btn btn-outline back-btn" aria-label="Ir al dashboard">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M15 18l-6-6 6-6"></path>
     </svg>

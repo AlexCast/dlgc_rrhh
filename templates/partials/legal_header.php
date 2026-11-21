@@ -6,7 +6,7 @@
  *   require_once __DIR__ . '/../partials/legal_header.php';
  */
 
-$backUrl = '/templates/index.html';
+$backUrl = '/templates/firstpage.php';
 $allowedOrigins = [
     'login'    => '/templates/login.php',
     'register' => '/templates/login.php?tab=register',
@@ -35,7 +35,7 @@ if (isset($allowedOrigins[$from])) {
 <body>
     <header class="legal-header">
         <div class="legal-header__container">
-            <a href="/templates/index.html" class="legal-header__logo" aria-label="Volver al inicio">
+            <a href="/templates/firstpage.php" class="legal-header__logo" aria-label="Ir al dashboard">
                 <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
             </a>
             <a href="<?php echo htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8'); ?>" class="legal-header__back">

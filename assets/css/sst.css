@@ -227,6 +227,41 @@
     color: #b91c1c;
 }
 
+.sst-feedback.info {
+    display: block;
+    background: rgba(59, 168, 106, 0.12);
+    color: #298350;
+}
+
+.sst-form .btn[aria-busy="true"] {
+    cursor: wait;
+    opacity: 0.82;
+}
+
+.sst-btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    animation: sst-submit-spin 0.75s linear infinite;
+}
+
+.sst-form .btn[aria-busy="true"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@keyframes sst-submit-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Lista de quejas del usuario */
 .sst-quejas-list {
     display: flex;

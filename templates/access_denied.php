@@ -246,7 +246,7 @@
     </button>
 
     <main class="error-card" role="main" aria-labelledby="page-title">
-        <a href="/templates/index.html" class="logo" aria-label="Volver al inicio">
+        <a href="/templates/firstpage.php" class="logo" aria-label="Volver al inicio">
             <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
         </a>
 

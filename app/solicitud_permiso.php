@@ -20,8 +20,22 @@ require_once __DIR__ . '/helpers/TurnstileHelper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+$inicioSolicitud = microtime(true);
+
+function registrarDuracionSolicitud(string $etapa, float $inicio): void
+{
+    $duracionMs = (microtime(true) - $inicio) * 1000;
+    error_log(sprintf(
+        'solicitud_permiso: etapa=%s duracion_ms=%.1f',
+        $etapa,
+        $duracionMs
+    ));
+}
+
 function responderJson(bool $success, string $message, int $httpCode = 200, array $extra = []): void
 {
+    global $inicioSolicitud;
+    registrarDuracionSolicitud('total', $inicioSolicitud);
     http_response_code($httpCode);
     echo json_encode(array_merge(['success' => $success, 'message' => $message], $extra), JSON_UNESCAPED_UNICODE);
     exit;
@@ -36,9 +50,11 @@ if (!csrf_validate(false)) {
 }
 
 // Verificación anti-bot (Cloudflare Turnstile) antes de crear la solicitud.
+$inicioTurnstile = microtime(true);
 if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null, 'solicitud_permiso')) {
     responderJson(false, 'No pudimos verificar que no eres un robot. Resuelve la verificación de seguridad e inténtalo de nuevo.', 400);
 }
+registrarDuracionSolicitud('turnstile', $inicioTurnstile);
 
 if (!has_module_permission(3, 'crear')) {
     responderJson(false, 'No tienes permiso para crear solicitudes.', 403);
@@ -165,6 +181,7 @@ try {
     $proveedorStorage = null; // Nombre del proveedor real ('R2' o 'NULL') para persistir en la BD.
     $archivosEvidencia = $_FILES['evidencias'] ?? null;
     $cantidadArchivos = is_array($archivosEvidencia['name'] ?? null) ? count($archivosEvidencia['name']) : 0;
+    $inicioEvidencias = microtime(true);
 
     if ($cantidadArchivos > 0) {
         $storage = StorageFactory::create();
@@ -220,10 +237,12 @@ try {
             ];
         }
     }
+    registrarDuracionSolicitud('evidencias', $inicioEvidencias);
 
     // --- Creación atómica de la solicitud (solicitud + motivos + aprobaciones JEFE/RRHH) ---
     $tiposLiteral = json_encode(array_map('intval', $idsTiposPermiso));
     $detallesLiteral = json_encode(array_pad($detallesMotivo, count($idsTiposPermiso), ''));
+    $inicioBaseDatos = microtime(true);
 
     $sentenciaCrear = $conexion->prepare(
         'CALL proc_insert_solicitudes_permisos(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -242,6 +261,7 @@ try {
     ]);
     $resultadoCreacion = $sentenciaCrear->fetch(PDO::FETCH_ASSOC);
     $sentenciaCrear->closeCursor();
+    registrarDuracionSolicitud('base_datos_creacion', $inicioBaseDatos);
 
     if ($resultadoCreacion === false || !filter_var($resultadoCreacion['exito'], FILTER_VALIDATE_BOOLEAN)) {
         responderJson(false, $resultadoCreacion['mensaje'] ?? 'No se pudo crear la solicitud.', 400);
@@ -251,6 +271,7 @@ try {
 
     // --- Registro de evidencias ya subidas ---
     if (!empty($archivosSubidos)) {
+        $inicioEvidenciasBd = microtime(true);
         $sentenciaEvidencia = $conexion->prepare(
             'SELECT fun_insert_permisos_evidencias(?, ?, ?, ?, ?, ?, ?)'
         );
@@ -266,9 +287,12 @@ try {
             ]);
             $sentenciaEvidencia->closeCursor();
         }
+        registrarDuracionSolicitud('evidencias_base_datos', $inicioEvidenciasBd);
     }
 
+    $inicioCorreo = microtime(true);
     notificarSolicitudCreada($conexion, $idPermiso, $filaJefe, $esVacaciones);
+    registrarDuracionSolicitud('correo', $inicioCorreo);
 
     responderJson(true, 'Solicitud enviada correctamente.', 200, ['id_permiso' => $idPermiso]);
 

@@ -68,6 +68,27 @@ document.addEventListener('DOMContentLoaded', () => {
         feedback.className = 'sst-feedback ' + tipo;
     }
 
+    function finalizarEnvio(mensajeBoton) {
+        btnEnviar.disabled = false;
+        btnEnviar.removeAttribute('aria-busy');
+        btnEnviar.innerHTML = '';
+        btnEnviar.textContent = mensajeBoton;
+        form.removeAttribute('aria-busy');
+    }
+
+    function iniciarEnvio(idQueja) {
+        btnEnviar.disabled = true;
+        btnEnviar.setAttribute('aria-busy', 'true');
+        btnEnviar.innerHTML = '<span class="sst-btn-spinner" aria-hidden="true"></span><span>' +
+            (idQueja ? 'Actualizando solicitud...' : 'Enviando solicitud...') +
+            '</span>';
+        form.setAttribute('aria-busy', 'true');
+        mostrarFeedback(
+            idQueja ? 'Actualizando la solicitud. No cierres ni recargues esta página.' : 'Enviando la solicitud. No cierres ni recargues esta página.',
+            'info'
+        );
+    }
+
     function resetFormulario() {
         form.reset();
         inputIdQueja.value = '';
@@ -77,14 +98,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        mostrarFeedback('', '');
+        if (btnEnviar.disabled) {
+            return;
+        }
 
         const formData = new FormData(form);
         const idQueja = inputIdQueja.value.trim();
         const url = idQueja ? actualizarUrl : guardarUrl;
 
-        btnEnviar.disabled = true;
-        btnEnviar.textContent = idQueja ? 'Actualizando...' : 'Enviando...';
+        iniciarEnvio(idQueja);
 
         try {
             const response = await fetch(url, {
@@ -99,18 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.success) {
                 mostrarFeedback(data.message, 'success');
+                finalizarEnvio(idQueja ? 'Actualizar' : 'Enviar');
                 setTimeout(() => {
                     window.location.reload();
                 }, 800);
             } else {
                 mostrarFeedback(data.message || 'Error al procesar la solicitud.', 'error');
-                btnEnviar.disabled = false;
-                btnEnviar.textContent = idQueja ? 'Actualizar' : 'Enviar';
+                finalizarEnvio(idQueja ? 'Actualizar' : 'Enviar');
             }
         } catch (error) {
             mostrarFeedback('Error de conexión. Intenta de nuevo.', 'error');
-            btnEnviar.disabled = false;
-            btnEnviar.textContent = idQueja ? 'Actualizar' : 'Enviar';
+            finalizarEnvio(idQueja ? 'Actualizar' : 'Enviar');
         }
     });
 

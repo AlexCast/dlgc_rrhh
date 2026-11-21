@@ -196,6 +196,28 @@
     font-size: 0.95rem;
 }
 
+.perm-actions .btn[aria-busy="true"] {
+    cursor: wait;
+    opacity: 0.82;
+}
+
+.btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    animation: solicitud-spin 0.75s linear infinite;
+}
+
+@keyframes solicitud-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Selector de fechas personalizado */
 .date-picker {
     position: relative;

@@ -41,7 +41,7 @@ if (is_string($idUsuarioSesion) && trim($idUsuarioSesion) !== '') {
         
         <aside class="sidebar" id="sidebar" aria-label="Menú principal">
             <div class="sidebar-top">
-                <a href="/templates/index.html" class="logo" aria-label="Inicio">
+                <a href="/templates/firstpage.php" class="logo" aria-label="Inicio">
                     <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
                 </a>
                 <button id="close-sidebar" class="icon-btn mobile-only" aria-label="Cerrar menú">

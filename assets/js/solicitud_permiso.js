@@ -577,8 +577,27 @@ function mostrarFeedbackForm(mensaje, tipo) {
     feedback.className = 'sst-feedback ' + tipo;
 }
 
+function finalizarEnvioSolicitud(form, submitBtn) {
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.removeAttribute('aria-busy');
+        if (submitBtn.dataset.originalHtml) {
+            submitBtn.innerHTML = submitBtn.dataset.originalHtml;
+        }
+    }
+    if (form) {
+        form.removeAttribute('aria-busy');
+    }
+}
+
 function handleFormSubmit(event) {
     event.preventDefault();
+
+    const form = event.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn && submitBtn.disabled) {
+        return;
+    }
 
     const tipoSolicitud = document.querySelector('input[name="tipo_solicitud"]:checked');
     if (!tipoSolicitud) {
@@ -624,8 +643,14 @@ function handleFormSubmit(event) {
 
     const formData = new FormData(event.target);
     // Para vacaciones el backend no usa motivo: lo identifica por tipo_solicitud=vacaciones.
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
+    if (submitBtn) {
+        submitBtn.dataset.originalHtml = submitBtn.dataset.originalHtml || submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>Enviando solicitud...</span>';
+        event.target.setAttribute('aria-busy', 'true');
+        mostrarFeedbackForm('Enviando solicitud. No cierres ni recargues esta página.', 'info');
+    }
 
     fetch('/app/solicitud_permiso.php', {
         method: 'POST',
@@ -640,7 +665,7 @@ function handleFormSubmit(event) {
                 if (typeof window.turnstile !== 'undefined' && typeof window.turnstile.reset === 'function') {
                     window.turnstile.reset();
                 }
-                if (submitBtn) submitBtn.disabled = false;
+                finalizarEnvioSolicitud(event.target, submitBtn);
                 return;
             }
             mostrarFeedbackForm(data.message || 'Solicitud enviada exitosamente.', 'success');
@@ -650,12 +675,12 @@ function handleFormSubmit(event) {
             document.getElementById('evidencia-section').style.display = 'none';
             const detalleGroup = document.getElementById('detalle-motivo-group');
             if (detalleGroup) detalleGroup.style.display = 'none';
-            if (submitBtn) submitBtn.disabled = false;
+            finalizarEnvioSolicitud(event.target, submitBtn);
         })
         .catch(error => {
             console.error('Error:', error);
             mostrarFeedbackForm('Error de conexión al enviar la solicitud.', 'error');
-            if (submitBtn) submitBtn.disabled = false;
+            finalizarEnvioSolicitud(event.target, submitBtn);
         });
 }
 
