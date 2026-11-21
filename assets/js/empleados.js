@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const calendarContainer = document.getElementById('calendar-container');
     const selectedName = document.getElementById('selected-name');
     const selectedRole = document.getElementById('selected-role');
+    const selectedAvatar = document.querySelector('.avatar-small');
     const calendarDays = document.getElementById('calendar-days');
     const currentMonthLabel = document.getElementById('current-month');
     const prevMonthBtn = document.getElementById('prev-month');
@@ -219,6 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Actualizar info del empleado seleccionado
         selectedName.textContent = employee.name;
         selectedRole.textContent = employee.role;
+        if (selectedAvatar) {
+            if (employee.foto_url) {
+                selectedAvatar.innerHTML = `<img src="${escapeHtml(employee.foto_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            } else {
+                selectedAvatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+            }
+        }
 
         empleadoSeleccionado = employee;
         vistaAnio = new Date().getFullYear();
