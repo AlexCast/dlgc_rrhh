@@ -75,7 +75,7 @@ $csrfToken = htmlspecialchars(csrf_get_token(), ENT_QUOTES, 'UTF-8');
 </div>
                 <div class="profile-info">
                     <span class="profile-name"><?php echo htmlspecialchars($_SESSION['nombre_completo'] ?? 'Usuario'); ?></span>
-                    <span class="profile-role">Área por definir</span>
+                    <span class="profile-role"><?php include __DIR__ . '/partials/profile_role.php'; ?></span>
                 </div>
             </a>
         </aside>

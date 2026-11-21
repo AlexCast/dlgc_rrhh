@@ -217,7 +217,7 @@ $rolPerfil = $ficha['nombre_area'] ?? ($_SESSION['id_rol'] ?? '');
 </div>
                 <div class="profile-info">
                     <span class="profile-name"><?php echo $escape($nombreCompleto); ?></span>
-                    <span class="profile-role"><?php echo $escape($rolPerfil); ?></span>
+                    <span class="profile-role"><?php include __DIR__ . '/partials/profile_role.php'; ?></span>
                 </div>
             </a>
         </aside>
