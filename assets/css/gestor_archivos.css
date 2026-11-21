@@ -82,8 +82,12 @@
     padding: 0 13px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: rgba(8, 24, 16, 0.55);
+    background: var(--bg-card);
     color: var(--text-main);
+}
+
+body.dark-theme .gestor-busqueda-campo {
+    background: rgba(8, 24, 16, 0.55);
 }
 
 .gestor-busqueda-campo:focus-within {
@@ -92,7 +96,7 @@
 }
 
 .gestor-busqueda-campo > i {
-    color: #8d99a6;
+    color: var(--text-muted);
 }
 
 .gestor-busqueda input {
@@ -103,6 +107,11 @@
     outline: 0;
     background: transparent;
     color: var(--text-main);
+}
+
+.gestor-busqueda input::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
 }
 
 .gestor-busqueda input::-webkit-search-cancel-button {

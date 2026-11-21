@@ -8,9 +8,8 @@
  * el registro pendiente (y en cascada todos sus tokens). En su lugar, los
  * tokens activos anteriores se expiran vía fecha_expiracion.
  *
- * Soporta dos modos de respuesta:
- *  - Clásico (formulario): redirige a /templates/login.php con parámetros.
- *  - AJAX (X-Requested-With: XMLHttpRequest o campo ajax=1): responde JSON.
+ * La vista clásica es una página independiente en /templates/reenviar_verificacion.php.
+ * Se conserva compatibilidad opcional con respuestas AJAX.
  */
 
 declare(strict_types=1);
@@ -22,15 +21,15 @@ require_once __DIR__ . '/helpers/Mailer.php';
 require_once __DIR__ . '/helpers/RateLimiter.php';
 require_once __DIR__ . '/helpers/TurnstileHelper.php';
 
-$urlLogin = '/templates/login.php';
+$urlResend = '/templates/reenviar_verificacion.php';
 $usrInsert = 'sistema_reenvio';
 
 $isAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest'
     || ($_POST['ajax'] ?? '') === '1';
 
-function redirigirLogin(array $parametros): void
+function redirigirResend(array $parametros): void
 {
-    global $urlLogin, $isAjax;
+    global $urlResend, $isAjax;
 
     if ($isAjax) {
         header('Content-Type: application/json; charset=utf-8');
@@ -42,13 +41,12 @@ function redirigirLogin(array $parametros): void
         exit;
     }
 
-    header('Location: ' . $urlLogin . '?' . http_build_query($parametros));
+    header('Location: ' . $urlResend . '?' . http_build_query($parametros));
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirigirLogin([
-        'tab' => 'register',
+    redirigirResend([
         'status' => 'error',
         'code' => 'metodo_no_valido',
     ]);
@@ -59,8 +57,7 @@ csrf_validate();
 
 // Verificación anti-bot (Cloudflare Turnstile).
 if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null, 'resend')) {
-    redirigirLogin([
-        'tab' => 'register',
+    redirigirResend([
         'status' => 'error',
         'code' => 'turnstile_invalido',
     ]);
@@ -69,8 +66,7 @@ if (!TurnstileHelper::verify($_POST['cf-turnstile-response'] ?? null, 'resend'))
 $identificador = strtolower(trim($_POST['identificador'] ?? ''));
 
 if ($identificador === '' || strlen($identificador) < 3 || strlen($identificador) > 40) {
-    redirigirLogin([
-        'tab' => 'register',
+    redirigirResend([
         'status' => 'error',
         'code' => 'reenvio_datos_invalidos',
     ]);
@@ -104,10 +100,9 @@ try {
     $pendiente = $sentencia->fetch();
 
     if (!$pendiente) {
-        redirigirLogin([
-            'tab' => 'register',
-            'status' => 'error',
-            'code' => 'reenvio_sin_pendiente',
+        redirigirResend([
+            'status' => 'success',
+            'code' => 'reenvio_enviado',
         ]);
     }
 
@@ -116,8 +111,7 @@ try {
     $rateCheck = $rateLimiter->verificar($pendiente['id_usuario'], 'verificacion');
 
     if (!$rateCheck['permitido']) {
-        redirigirLogin([
-            'tab' => 'register',
+        redirigirResend([
             'status' => 'error',
             'code' => 'demasiados_intentos',
             'msg' => 'Has enviado demasiadas solicitudes. Inténtalo de nuevo en ' . $rateCheck['minutos'] . ' minuto(s).',
@@ -214,23 +208,20 @@ try {
     $rateLimiter->registrar($pendiente['id_usuario'], 'verificacion');
 
     if (!$enviado) {
-        redirigirLogin([
-            'tab' => 'register',
+        redirigirResend([
             'status' => 'error',
             'code' => 'reenvio_fallo',
         ]);
     }
 
-    redirigirLogin([
-        'tab' => 'login',
+    redirigirResend([
         'status' => 'success',
         'code' => 'reenvio_enviado',
     ]);
 
 } catch (PDOException $e) {
     error_log('Error en reenvío de verificación: ' . $e->getMessage());
-    redirigirLogin([
-        'tab' => 'register',
+    redirigirResend([
         'status' => 'error',
         'code' => 'error_servidor',
     ]);

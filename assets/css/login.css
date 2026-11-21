@@ -6,20 +6,21 @@
     --primary-hover: #298350;
     --text-main: #0D130F;
     --text-muted: #6b7280;
-    --bg-main: #ececec;
-    --bg-secondary: #f9fafb;
+    --bg-main: #ffffff;
+    --bg-secondary: #EFF0F3;
     --border-color: #e5e7eb;
-    --input-bg: #f9fafb;
+    --input-bg: #EFF0F3;
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html.dark-theme,
 body.dark-theme {
     --text-main: #f9fafb;
     --text-muted: #9ca3af;
     --bg-main: #0D130F;
     --bg-secondary: #131B15;
-    --border-color: #374151;
+    --border-color: #303136;
     --input-bg: #0D130F;
 }
 
@@ -28,7 +29,8 @@ body.dark-theme {
 body {
     font-family: var(--font-sans);
     background-color: var(--bg-main);
-    background-image: linear-gradient(to top, rgba(59, 168, 106, 0.575) 0%, rgba(59, 168, 106, 0) 42%);
+    background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+    background-size: 32px 32px;
     color: var(--text-main);
     min-height: 100vh;
     display: flex;
@@ -39,8 +41,22 @@ body {
     overflow-y: auto;
 }
 
+html.dark-theme,
 body.dark-theme {
     background-color: var(--bg-main);
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(59, 168, 106, 0.12),
+        transparent 80%
+    );
+    z-index: 0;
 }
 
 html::-webkit-scrollbar,

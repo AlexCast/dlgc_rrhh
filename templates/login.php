@@ -35,13 +35,13 @@ $registerData = $_SESSION['register_form_data'] ?? [];
     <header class="navbar-wrapper">
     <nav class="navbar auth-navbar" aria-label="Navegación de autenticación">
         <!-- Logotipo Corporativo -->
-        <a href="/templates/firstpage.php" class="logo" aria-label="Ir al dashboard">
+        <a href="/templates/index.html" class="logo" aria-label="Ir al dashboard">
             <img src="/assets/img/logo1.png" alt="Distribuciones La Gran Cacharrería">
         </a>
         
         <!-- Acciones del Header -->
         <div class="nav-actions">
-            <a href="/templates/firstpage.php" class="btn btn-outline back-btn" aria-label="Ir al dashboard">
+            <a href="/templates/index.html" class="btn btn-outline back-btn" aria-label="Ir a la página principal">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M15 18l-6-6 6-6"></path>
     </svg>
@@ -132,19 +132,7 @@ $registerData = $_SESSION['register_form_data'] ?? [];
                             <span id="access-code-help" class="help-text">Solicita este código de 4 dígitos al área de RRHH.</span>
                         </div>
 
-                        <button type="button" id="resend-verification-link" class="resend-link">¿No recibiste tu correo? Reenviar correo</button>
-
-                        <div id="resend-verification-area" class="resend-area" hidden>
-                            <div class="input-group">
-                                <label for="resend-ident">Usuario o Correo Electrónico</label>
-                                <input type="text" id="resend-ident" maxlength="40" placeholder="usuario o ejemplo@empresa.com" autocomplete="username" autocapitalize="off">
-                            </div>
-                            <?php if ($turnstileSiteKey !== ''): ?>
-                                <div id="resend-turnstile-container" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
-                            <?php endif; ?>
-                            <button type="button" id="resend-verification-submit" class="btn btn-dark full-width">Reenviar correo</button>
-                            <p id="resend-verification-msg" class="help-text" aria-live="polite"></p>
-                        </div>
+                        <a href="/templates/reenviar_verificacion.php" class="resend-link">¿No recibiste tu correo? Reenviar correo</a>
 
                         <?php if ($turnstileSiteKey !== ''): ?>
                             <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey, ENT_QUOTES, 'UTF-8'); ?>" data-action="register"></div>
