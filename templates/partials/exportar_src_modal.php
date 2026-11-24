@@ -49,6 +49,15 @@ if (!$exportarPermitido) {
                     <option value="todos">Todos los registros</option>
                 </select>
             </label>
+            <?php if ($exportarModulo === 'usuarios'): ?>
+                <label>Por registro como empleado
+                    <select name="registro_empleado">
+                        <option value="">Todos los usuarios</option>
+                        <option value="si">Solo con registro de empleado</option>
+                        <option value="no">Solo sin registro de empleado</option>
+                    </select>
+                </label>
+            <?php endif; ?>
             <?php if ($exportarModulo === 'festivos'): ?>
                 <p class="src-export-hint">El rango se aplica a la fecha del festivo.</p>
             <?php elseif ($exportarModulo === 'comunicados'): ?>

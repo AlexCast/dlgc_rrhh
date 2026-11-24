@@ -20,6 +20,7 @@ $estado = trim((string) ($_GET['estado'] ?? ''));
 $categoria = trim((string) ($_GET['categoria'] ?? ''));
 $minimo = trim((string) ($_GET['minimo'] ?? ''));
 $maximo = trim((string) ($_GET['maximo'] ?? ''));
+$registroEmpleado = trim((string) ($_GET['registro_empleado'] ?? ''));
 
 $reportes = [
     'empleados' => [
@@ -195,6 +196,11 @@ $params = [];
 if ($alcance !== 'todos') {
     $where[] = $reporte['active_column'] . ' IS NULL';
 }
+if ($modulo === 'usuarios' && $registroEmpleado === 'si') {
+    $where[] = 'EXISTS (SELECT 1 FROM t_empleados e WHERE e.id_usuario = u.id_usuario)';
+} elseif ($modulo === 'usuarios' && $registroEmpleado === 'no') {
+    $where[] = 'NOT EXISTS (SELECT 1 FROM t_empleados e WHERE e.id_usuario = u.id_usuario)';
+}
 if ($desde !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $desde) === 1) {
     $where[] = $reporte['date_column'] . ' >= ?';
     $params[] = $desde;
@@ -265,6 +271,12 @@ $rangoTexto = $desde !== '' || $hasta !== ''
     ? 'Periodo: ' . ($desde !== '' ? $desde : 'inicio') . ' a ' . ($hasta !== '' ? $hasta : 'actualidad')
     : 'Periodo: todos los registros disponibles';
 $alcanceTexto = $alcance === 'todos' ? 'Activos y eliminados' : 'Solo registros activos';
+$registroEmpleadoTexto = '';
+if ($modulo === 'usuarios' && $registroEmpleado === 'si') {
+    $registroEmpleadoTexto = 'Solo usuarios con registro como empleado';
+} elseif ($modulo === 'usuarios' && $registroEmpleado === 'no') {
+    $registroEmpleadoTexto = 'Solo usuarios sin registro como empleado';
+}
 $generadoTexto = 'Generado el ' . date('d/m/Y H:i');
 
 function columnaExcel(int $indice): string
@@ -287,7 +299,7 @@ if ($formato === 'excel') {
     $ultimaColumna = columnaExcel(count($encabezados));
     $hoja->setCellValue('A1', $reporte['title']);
     $hoja->mergeCells('A1:' . $ultimaColumna . '1');
-    $hoja->setCellValue('A2', $rangoTexto . ' · ' . $alcanceTexto);
+    $hoja->setCellValue('A2', implode(' · ', array_filter([$rangoTexto, $alcanceTexto, $registroEmpleadoTexto])));
     $hoja->mergeCells('A2:' . $ultimaColumna . '2');
     $hoja->setCellValue('A3', $generadoTexto);
     $hoja->mergeCells('A3:' . $ultimaColumna . '3');
@@ -348,7 +360,7 @@ tr:nth-child(even){background:#F3F4F6}
 .footer{margin-top:16px;color:#6B7280;font-size:8px}
 </style></head><body>';
 $html .= '<div class="marca"></div><table class="pdf-cabecera"><tr><td><h1>' . htmlspecialchars($reporte['title'], ENT_QUOTES, 'UTF-8') . '</h1></td><td style="text-align:right">' . pdf_logo_html() . '</td></tr></table>';
-$html .= '<p class="meta">' . htmlspecialchars($rangoTexto . ' · ' . $alcanceTexto . ' · ' . $generadoTexto, ENT_QUOTES, 'UTF-8') . '</p><table><thead><tr>';
+$html .= '<p class="meta">' . htmlspecialchars(implode(' · ', array_filter([$rangoTexto, $alcanceTexto, $registroEmpleadoTexto, $generadoTexto])), ENT_QUOTES, 'UTF-8') . '</p><table><thead><tr>';
 foreach (array_keys($reporte['columns']) as $titulo) {
     $html .= '<th>' . htmlspecialchars($titulo, ENT_QUOTES, 'UTF-8') . '</th>';
 }
